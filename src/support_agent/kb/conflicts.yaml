@@ -1,0 +1,236 @@
+# Conflict register (rag-design.md section 9; D38). Source: assumptions.md A12-A16,
+# A18-A21, A26, A29. A17 (overdue review) and A22 (NetLink v2.1 end of support) are
+# facts, not conflicts between documents, so they have no row.
+# resolution: flag_and_handoff (a ticket whose fix depends on it goes to L2 with both
+# claims), or sop_wins (peak hours and SLA: the escalation SOP and sla_matrix decide).
+# attach: per document, a regex; a section of that document whose text matches gets
+# the conflict id. A new conflict is a new row (code change), as flag_and_handoff.
+version: conflicts-v1
+conflicts:
+  - id: A12
+    topic: Soft-serve error E-02 meaning
+    resolution: flag_and_handoff
+    affects: {device_family: soft_serve, codes: [E02]}
+    claims:
+      faq/soft-serve-faq.md: "E-02 is a temperature sensor malfunction on all three models"
+      runbooks/soft-serve-error-codes.md: "E02 is Freezing Unit Temperature Out of Range (Too Warm); E-codes are CreamTech only"
+    attach:
+      faq/soft-serve-faq.md: '\bE-?02\b'
+      runbooks/soft-serve-error-codes.md: '\bE-?02\b'
+  - id: A13
+    topic: Cisco SG350 is a switch or a router
+    resolution: flag_and_handoff
+    affects: {device_family: network, systems: [Cisco SG350]}
+    claims:
+      faq/network-faq.md: "Cisco SG350 is a managed switch"
+      data/assets.csv: "Cisco SG350 is asset_type Network Router"
+    attach:
+      faq/network-faq.md: 'SG350'
+  - id: A14
+    topic: L2 response time
+    resolution: sop_wins
+    affects: {scope: escalation}
+    claims:
+      sop/escalation-procedure.md: "P1 15 min, P2 1 h, P3 3 h, P4 8 business hours"
+      sop/shift-start-checklist.md: "15 minutes"
+      sop/shift-end-checklist.md: "1 hour (business hours); next business day after hours"
+    attach:
+      sop/escalation-procedure.md: '(?i)response'
+      sop/shift-start-checklist.md: '(?i)L2'
+      sop/shift-end-checklist.md: '(?i)L2'
+  - id: A15
+    topic: On-Call Manager response time
+    resolution: sop_wins
+    affects: {scope: escalation}
+    claims:
+      sop/shift-start-checklist.md: "10 minutes"
+      sop/shift-end-checklist.md: "15 minutes (critical incidents only)"
+      sop/escalation-procedure.md: "24/7 for P1 escalations, no response time"
+    attach:
+      sop/shift-start-checklist.md: '(?i)on-call'
+      sop/shift-end-checklist.md: '(?i)on-call'
+      sop/escalation-procedure.md: '(?i)on-call'
+  - id: A16
+    topic: Two SLA tables
+    resolution: sop_wins
+    affects: {scope: sla}
+    claims:
+      sop/escalation-procedure.md: "L2 SLAs from escalation: resolve P1 4 h, P2 8 h, P3 24 h, P4 5 business days"
+      data/sla_matrix.csv: "From date_opened: resolve P1 60 min, P2 240 min, P3 480 min, P4 1440 min"
+    attach:
+      sop/escalation-procedure.md: '(?i)\bSLA\b|resolution target'
+  - id: A18
+    topic: Soft-serve error code meanings (runbook table vs specs)
+    resolution: flag_and_handoff
+    affects: {device_family: soft_serve, codes: [E01-E12, F01-F08]}
+    claims:
+      runbooks/soft-serve-error-codes.md: "Error Code Table meanings (e.g. E01 Too Cold, E04 Hopper Low, F02 Evaporator Sensor)"
+      system-specs/creamtech-soft-serve.md: "Spec meanings (e.g. E01 Compressor overheat, E04 Ambient temperature)"
+      system-specs/frostypro-soft-serve.md: "Spec meanings (e.g. F02 Mix level critical)"
+    attach:
+      runbooks/soft-serve-error-codes.md: '\b[EF]-?\d{2}\b'
+      system-specs/creamtech-soft-serve.md: '\bE-?\d{2}\b'
+      system-specs/frostypro-soft-serve.md: '\bF-?\d{2}\b'
+  - id: A19
+    topic: FoodTech POS end-of-life dates
+    resolution: flag_and_handoff
+    affects: {device_family: pos, systems: [FoodTech POS]}
+    claims:
+      system-specs/foodtech-pos.md: "v4.2.1 and v4.2.2 EOL 2025-12-31, v4.2.3 2026-06-30, v5.1.x 2027-12-31"
+      kb/system-specs/version-matrix.csv: "v4.2.1 EOL scheduled 2026-12"
+      runbooks/pos-startup-failure.md: "v4.2.x end of support 2026-03-31"
+    attach:
+      system-specs/foodtech-pos.md: '(?i)end[- ]of[- ](?:life|support)|\bEOL\b'
+      runbooks/pos-startup-failure.md: '(?i)end[- ]of[- ](?:life|support)|\bEOL\b'
+  - id: A20
+    topic: FoodTech POS release dates
+    resolution: flag_and_handoff
+    affects: {device_family: pos, systems: [FoodTech POS]}
+    claims:
+      system-specs/foodtech-pos.md: "v4.2.1 2023-06-15 ... v5.1.1 2025-01-15"
+      kb/system-specs/version-matrix.csv: "v4.2.1 2022-03-15 ... v5.1.1 2024-07-08"
+    attach:
+      system-specs/foodtech-pos.md: '(?i)release'
+  - id: A21
+    topic: Epson TM-T88VI driver version
+    resolution: flag_and_handoff
+    affects: {device_family: printer, systems: [Epson TM-T88VI]}
+    claims:
+      system-specs/epson-printer.md: "current Windows driver 2.12.7"
+      runbooks/printer-offline.md: "driver v3.2.0 or later"
+      runbooks/printer-driver-reinstall.md: "driver v1.12"
+      runbooks/printer-wrong-output.md: "driver v6.xx up to v6.12a"
+      runbooks/pos-printer-integration.md: "v4.02 as an example"
+    attach:
+      system-specs/epson-printer.md: '(?i)driver'
+      runbooks/printer-offline.md: '(?i)driver[^\n]{0,40}v?\d+\.\d'
+      runbooks/printer-driver-reinstall.md: '(?i)v?1\.12\b|driver version'
+      runbooks/printer-wrong-output.md: '(?i)v?6\.\d'
+      runbooks/pos-printer-integration.md: '(?i)v?4\.02'
+  - id: A26.1
+    topic: Who may update printer drivers
+    resolution: flag_and_handoff
+    affects: {device_family: printer}
+    claims:
+      faq/printers-faq.md: "do not manually update drivers"
+      runbooks/printer-offline.md: "Resolution Step 2 downloads the driver from the vendor site"
+      runbooks/printer-wrong-output.md: "only if approved by L2"
+    attach:
+      faq/printers-faq.md: '(?i)update[^\n]{0,30}driver|driver[^\n]{0,30}update'
+      runbooks/printer-offline.md: '(?i)download[^\n]{0,60}driver|driver[^\n]{0,60}download'
+      runbooks/printer-wrong-output.md: '(?i)approved by L2'
+  - id: A26.2
+    topic: Star printer connection type
+    resolution: flag_and_handoff
+    affects: {device_family: printer, systems: [StarMC Print v2]}
+    claims:
+      system-specs/star-printer.md: "USB and Bluetooth only"
+      runbooks/printer-offline.md: "an Ethernet network printer"
+      runbooks/pos-printer-integration.md: "an Ethernet network printer"
+    attach:
+      system-specs/star-printer.md: '(?i)interface|connect'
+      runbooks/printer-offline.md: '(?i)star[^\n]{0,80}(?:network|ethernet|ip)'
+      runbooks/pos-printer-integration.md: '(?i)star[^\n]{0,80}(?:network|ethernet|ip)'
+  - id: A26.3
+    topic: StarMC Print v2 is a printer or driver software
+    resolution: flag_and_handoff
+    affects: {device_family: printer, systems: [StarMC Print v2]}
+    claims:
+      system-specs/star-printer.md: "a receipt printer"
+      runbooks/printer-wrong-output.md: "driver software"
+      faq/printers-faq.md: "driver software"
+    attach:
+      runbooks/printer-wrong-output.md: '(?i)starmc'
+      faq/printers-faq.md: '(?i)starmc'
+  - id: A26.4
+    topic: Receipt paper width
+    resolution: flag_and_handoff
+    affects: {device_family: printer}
+    claims:
+      system-specs/star-printer.md: "58mm"
+      runbooks/printer-paper-jam.md: "receipt 58mm, KDS 80mm"
+      runbooks/printer-wrong-output.md: "80mm"
+      system-specs/epson-printer.md: "80mm"
+    attach:
+      system-specs/star-printer.md: '\b58\s?mm'
+      runbooks/printer-paper-jam.md: '\b(?:58|80)\s?mm'
+      runbooks/printer-wrong-output.md: '\b(?:58|80)\s?mm'
+  - id: A26.5
+    topic: Printer configuration page and reset button
+    resolution: flag_and_handoff
+    affects: {device_family: printer}
+    claims:
+      runbooks/printer-offline.md: "FEED + POWER for 5 s prints the configuration page"
+      runbooks/pos-printer-integration.md: "reset button 3 s"
+      system-specs/star-printer.md: "reset button 10 s resets Bluetooth pairing"
+    attach:
+      runbooks/printer-offline.md: '(?i)FEED[^\n]{0,20}POWER|configuration page'
+      runbooks/pos-printer-integration.md: '(?i)reset button'
+      system-specs/star-printer.md: '(?i)reset button'
+  - id: A26.6
+    topic: POS power button hold
+    resolution: flag_and_handoff
+    affects: {device_family: pos}
+    claims:
+      runbooks/pos-startup-failure.md: "hold the power button 10 seconds"
+      runbooks/pos-screen-frozen.md: "Do NOT hold power for more than 10 seconds (data loss risk)"
+    attach:
+      runbooks/pos-startup-failure.md: '(?i)hold[^\n]{0,40}(?:power|10 seconds)'
+      runbooks/pos-screen-frozen.md: '(?i)hold[^\n]{0,40}power'
+  - id: A26.7
+    topic: POS operating system
+    resolution: flag_and_handoff
+    affects: {device_family: pos, systems: [FoodTech POS]}
+    claims:
+      system-specs/foodtech-pos.md: "Windows 10 IoT"
+      runbooks/pos-screen-frozen.md: "Windows Embedded / Windows 10 IoT"
+      runbooks/pos-startup-failure.md: "Linux commands (systemctl, apt)"
+      runbooks/pos-software-update.md: "names both"
+    attach:
+      system-specs/foodtech-pos.md: '(?i)operating system|windows 10 iot'
+      runbooks/pos-startup-failure.md: '(?i)systemctl|\bapt\b|sudo'
+      runbooks/pos-software-update.md: '(?i)linux|systemctl'
+  - id: A29.1
+    topic: NetLink admin address
+    resolution: flag_and_handoff
+    affects: {device_family: network, systems: [NetLink NL-3000]}
+    claims:
+      system-specs/netlink-router.md: "192.168.1.1"
+      runbooks/network-devices-not-connecting.md: "10.0.0.1"
+      runbooks/network-guest-wifi.md: "netlink-admin.local:8443"
+    attach:
+      system-specs/netlink-router.md: '192\.168\.1\.1\b'
+      runbooks/network-slow.md: '192\.168\.1\.1\b'
+      runbooks/network-router-offline.md: '192\.168\.1\.1\b'
+      runbooks/network-devices-not-connecting.md: '10\.0\.0\.1\b'
+      runbooks/network-guest-wifi.md: 'netlink-admin\.local'
+  - id: A29.2
+    topic: VPN type
+    resolution: flag_and_handoff
+    affects: {device_family: network}
+    claims:
+      runbooks/network-vpn.md: "IPsec IKEv2"
+      system-specs/netlink-router.md: "OpenVPN primary"
+    attach:
+      runbooks/network-vpn.md: '(?i)ipsec|ikev2'
+      system-specs/netlink-router.md: '(?i)openvpn|vpn'
+  - id: A29.3
+    topic: Peak hours
+    resolution: sop_wins
+    affects: {scope: peak_hours}
+    claims:
+      runbooks/network-router-offline.md: "11:00-13:30 and 17:00-20:00"
+      sop/escalation-procedure.md: "11:00-14:00 and 18:00-21:00"
+    attach:
+      runbooks/network-router-offline.md: '(?i)peak'
+      sop/escalation-procedure.md: '(?i)peak'
+  - id: A29.4
+    topic: NetLink reset button
+    resolution: flag_and_handoff
+    affects: {device_family: network, systems: [NetLink NL-3000]}
+    claims:
+      runbooks/network-guest-wifi.md: "5 s keeps settings"
+      system-specs/netlink-router.md: "15 s erases all settings"
+    attach:
+      runbooks/network-guest-wifi.md: '(?i)hard reset|hold reset'
+      system-specs/netlink-router.md: '(?i)reset button|factory reset'

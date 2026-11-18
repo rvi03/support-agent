@@ -79,7 +79,7 @@ def service_clients() -> list[ClientSpec]:
     return [
         ClientSpec("agent-reader", ("it-data:read", "kb:read")),
         ClientSpec("agent-actor", ("itsm:write", "itsm:run_fix")),
-        ClientSpec("eval-runner", ("api", "eval:replay")),
+        ClientSpec("eval-runner", ("api", "eval:replay", "kb:eval")),
     ]
 
 
@@ -203,6 +203,8 @@ def client_scopes() -> list[Json]:
         _scope("itsm:write", [_audience("itsm-actions")]),
         _scope("itsm:run_fix", [_audience("itsm-actions")]),
         _scope("eval:replay", [_audience("api")]),
+        # S6: run-scoped KB exclusions for the abstention test (eval-runner only).
+        _scope("kb:eval", [_audience("knowledge")]),
     ]
 
 

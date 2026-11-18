@@ -2,6 +2,7 @@
 # and only the service identity that owns that scope may call it.
 #   agent-reader: it-data and knowledge reads
 #   agent-actor:  itsm writes (run_fix also needs an approval check, P8, S7)
+#   eval-runner:  run-scoped KB exclusions for the abstention test (S6)
 # Input: {"action": "<server>.<tool>", "subject": {"client_id": ..., "scopes": [...], "aud": [...]}}
 package servewell.p7_agent_scopes
 
@@ -19,6 +20,8 @@ tools := {
 	"knowledge.search_kb": {"scope": "kb:read", "aud": "knowledge", "client": "agent-reader"},
 	"knowledge.get_document": {"scope": "kb:read", "aud": "knowledge", "client": "agent-reader"},
 	"knowledge.get_runbook_steps": {"scope": "kb:read", "aud": "knowledge", "client": "agent-reader"},
+	"knowledge.register_exclusions": {"scope": "kb:eval", "aud": "knowledge", "client": "eval-runner"},
+	"knowledge.is_excluded": {"scope": "kb:eval", "aud": "knowledge", "client": "eval-runner"},
 	"itsm.update_ticket": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.post_comment": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.message_store": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},

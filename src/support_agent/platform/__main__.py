@@ -10,6 +10,8 @@ Commands (run from the repo root):
   models        Ollama is up; pull missing models; check digests against the lock
   status        health of every container, model digests, Keycloak and OPA ping
   mock-stores   regenerate compose/keycloak/mock-stores.txt (needs DATASET_DIR)
+  realm-reload  re-render the realm, delete it in Keycloak and restart Keycloak so it
+                imports the new one (Keycloak skips an import when the realm exists)
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import os
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
@@ -257,6 +260,40 @@ def cmd_mock_stores() -> None:
     print(f"Wrote {count} store ids to {MOCK_STORES}")
 
 
+def cmd_realm_reload() -> None:
+    """Every realm object comes from the rendered file (clients, scopes, mock users), so
+    deleting the realm and re-importing it loses nothing."""
+    cmd_render()
+    env = _env()
+    (secret,) = envfile.require(env, "KEYCLOAK_ADMIN_CLIENT_SECRET")
+    base = "http://localhost:8080"
+    form = urllib.parse.urlencode(
+        {
+            "grant_type": "client_credentials",
+            "client_id": "servewell-admin",
+            "client_secret": secret,
+        }
+    ).encode()
+    req = urllib.request.Request(  # noqa: S310 - fixed local URL
+        f"{base}/realms/master/protocol/openid-connect/token", data=form, method="POST"
+    )
+    with urllib.request.urlopen(req, timeout=10) as resp:  # noqa: S310
+        token = json.loads(resp.read())["access_token"]
+    req = urllib.request.Request(  # noqa: S310 - fixed local URL
+        f"{base}/admin/realms/servewell",
+        method="DELETE",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=30)  # noqa: S310
+    except urllib.error.HTTPError as exc:
+        if exc.code != 404:
+            raise PlatformError(f"Keycloak realm delete failed: HTTP {exc.code}") from exc
+    subprocess.run([*COMPOSE, "restart", "keycloak"], check=True)
+    subprocess.run([*COMPOSE, "up", "-d", "--wait", "keycloak"], check=True)
+    print("Realm servewell re-imported")
+
+
 COMMANDS: dict[str, Callable[[], None]] = {
     "env": cmd_env,
     "colima-check": cmd_colima_check,
@@ -267,6 +304,7 @@ COMMANDS: dict[str, Callable[[], None]] = {
     "models": cmd_models,
     "status": cmd_status,
     "mock-stores": cmd_mock_stores,
+    "realm-reload": cmd_realm_reload,
 }
 
 

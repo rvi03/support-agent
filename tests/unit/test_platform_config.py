@@ -92,8 +92,10 @@ def test_service_clients_get_only_their_scopes(built: dict[str, Any]) -> None:
     assert not reader & {"itsm:write", "itsm:run_fix", "eval:replay", "api"}
     assert {"itsm:write", "itsm:run_fix"} <= actor
     assert not actor & {"it-data:read", "kb:read", "eval:replay"}
-    holders = {cid for cid, c in clients.items() if "eval:replay" in c["defaultClientScopes"]}
-    assert holders == {"eval-runner"}
+    for scope in ("eval:replay", "kb:eval"):
+        holders = {cid for cid, c in clients.items() if scope in c["defaultClientScopes"]}
+        assert holders == {"eval-runner"}, scope
+    assert "kb:eval" not in reader
 
 
 def test_mock_users_carry_roles_and_store(built: dict[str, Any]) -> None:
@@ -121,6 +123,7 @@ def test_scopes_add_their_audience(built: dict[str, Any]) -> None:
         "itsm:run_fix": "itsm-actions",
         "api": "api",
         "eval:replay": "api",
+        "kb:eval": "knowledge",
     }
     for scope, aud in expected.items():
         (mapper,) = scopes[scope]["protocolMappers"]

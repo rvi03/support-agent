@@ -12,7 +12,7 @@ export COMPOSE_PROFILES :=
 endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
-	opa-test env up down nuke status mock-stores seed split
+	opa-test env up down nuke status mock-stores seed split index realm k4
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -86,6 +86,15 @@ mock-stores: ## Regenerate compose/keycloak/mock-stores.txt from DATASET_DIR
 seed: ## Upload the dataset to S3, load Postgres from S3, load the split, then mask the train tickets (S4)
 	$(UV) run python -m support_agent.ingest.seed
 	$(UV) run python -m support_agent.intake.seed
+
+k4: ## K4 replay + retrieval ablation on the tune half (S6); writes eval/reports/ablation_tune.md
+	$(UV) run python -m support_agent.eval.k4 $(or $(SPLIT),tune)
+
+realm: ## Re-import the Keycloak realm after a realm.py change (deletes and re-imports it)
+	@$(PLATFORM) realm-reload
+
+index: ## Build and publish a sanitized KB revision from S3 (S6); ARGS=--force rebuilds an unchanged one
+	$(UV) run python -m support_agent.kb.index $(ARGS)
 
 split: ## Write eval/split.json from the uploaded labels (once, before any tuning; commit it)
 	$(UV) run python -m support_agent.ingest.seed split

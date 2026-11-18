@@ -45,6 +45,7 @@ EXPECTED_AUD = {
     "itsm:run_fix": "itsm-actions",
     "api": "api",
     "eval:replay": "api",
+    "kb:eval": "knowledge",
 }
 
 
@@ -251,7 +252,7 @@ ALLOWED: dict[str, set[str]] = {
     "seaweedfs": set(),
     "keycloak": {"KEYCLOAK_DB_PASSWORD", "KEYCLOAK_ADMIN_PASSWORD", "KEYCLOAK_ADMIN_CLIENT_SECRET"},
     "opa": set(),
-    "valkey": {"VALKEY_PASSWORD"},
+    "valkey": {"VALKEY_PASSWORD", "VALKEY_PASSWORD_KNOWLEDGE"},
     "clickhouse": {"CLICKHOUSE_PASSWORD"},
     "litellm": {
         "LITELLM_MASTER_KEY",
@@ -263,6 +264,9 @@ ALLOWED: dict[str, set[str]] = {
     "grafana": {"GRAFANA_ADMIN_PASSWORD"},
     # S5: its own read-only DB role only; no S3 key (D49), no Keycloak secret.
     "it-data": {"DATABASE_URL_IT_DATA"},
+    # S6: its own read-only DB role, the shared LiteLLM router key (D66) for query
+    # embeddings, and its own Valkey user (kb:* keys only); no S3 key, no Keycloak secret.
+    "knowledge": {"DATABASE_URL_KNOWLEDGE", "LITELLM_MASTER_KEY", "VALKEY_PASSWORD_KNOWLEDGE"},
 }
 _LANGFUSE = {
     "LANGFUSE_DB_PASSWORD",

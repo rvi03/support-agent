@@ -25,6 +25,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, Protocol, get_type_hints
 
@@ -100,6 +101,26 @@ def _validation_reason(exc: ValidationError) -> str:
         for e in exc.errors(include_input=False, include_url=False)
     ]
     return "; ".join(parts)[:300]
+
+
+@dataclass(frozen=True)
+class CallContext:
+    """Who is calling and for which run (S6): a tool reads it with `current_call()`.
+    The run and ticket come from the request `_meta`, never from tool arguments."""
+
+    client_id: str
+    ticket_id: str | None
+    run_id: uuid.UUID | None
+
+
+_CALL: ContextVar[CallContext | None] = ContextVar("mcp_call", default=None)
+
+
+def current_call() -> CallContext:
+    ctx = _CALL.get()
+    if ctx is None:
+        raise RuntimeError("current_call() outside a tool call")
+    return ctx
 
 
 class McpService:
@@ -178,6 +199,9 @@ class McpService:
         token = get_access_token()
         client_id = token.client_id if token else "unknown"
         fail: ToolFailure | None = None
+        reset = _CALL.set(
+            CallContext(client_id, _meta_str(meta, META_TICKET), _run_id(_meta_str(meta, META_RUN)))
+        )
         try:
             result = await self._checked_call(spec, raw, token)
         except ToolFailure as exc:
@@ -185,6 +209,8 @@ class McpService:
         except Exception as exc:
             _log.exception("mcp_tool_failed", server=self.name, tool=spec.name)
             fail = ToolFailure(ErrorCode.ERROR, type(exc).__name__)
+        finally:
+            _CALL.reset(reset)
         if fail is not None:
             await self._audit(spec, raw, meta, client_id, str(fail.code), fail.reason, started)
             raise ToolError(fail.as_json())
@@ -285,13 +311,19 @@ class McpService:
 
     # ---- the ASGI app -------------------------------------------------------------
 
+    def common_scopes(self) -> list[str]:
+        scopes = [{s.scope} for s in self.specs.values()]
+        return sorted(set.intersection(*scopes)) if scopes else []
+
     def build_server(self) -> MCPServer:
         auth = AuthSettings(
             issuer_url=self.issuer,
             resource_server_url=f"{self.public_url}{MCP_PATH}",
             # The verifier checks the audience itself (aud = this server's name).
             validate_token_resource=False,
-            required_scopes=sorted({s.scope for s in self.specs.values()}),
+            # Only scopes every tool needs; each tool's own scope is checked per call (step 2).
+            # A server with an eval-only tool (knowledge, S6) must still admit agent-reader.
+            required_scopes=self.common_scopes(),
         )
         return MCPServer(
             name=self.name,

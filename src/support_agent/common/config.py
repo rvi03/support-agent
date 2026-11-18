@@ -83,8 +83,15 @@ class ItDataSettings(BaseServiceSettings):
 
 class KnowledgeSettings(BaseServiceSettings):
     database_url_knowledge: SecretStr
+    # Query embeddings go through the router like every model call (D66).
+    litellm_master_key: SecretStr
     model_embed: str = "embed"
     embed_dim: int = Field(default=768, ge=1)
+    knowledge_host: str = "127.0.0.1"
+    knowledge_port: int = Field(default=8102, ge=1, le=65535)
+    # Per-run KB-text budget and eval exclusions live in Valkey; compose builds the URL.
+    valkey_url_knowledge: SecretStr | None = None
+    kb_budget_tokens: int = Field(default=12_000, ge=1)
 
 
 class KbIndexSettings(BaseServiceSettings):
@@ -92,6 +99,7 @@ class KbIndexSettings(BaseServiceSettings):
     s3_endpoint_url: str
     s3_access_key_kb_index: SecretStr
     s3_secret_key_kb_index: SecretStr
+    litellm_master_key: SecretStr
     model_embed: str = "embed"
     embed_dim: int = Field(default=768, ge=1)
 
@@ -135,6 +143,10 @@ class EvalSettings(BaseServiceSettings):
     model_judge: str = "judge"
     model_simulator: str = "simulator"
     keycloak_secret_eval_runner: SecretStr
+    # Shared router key (D66): query embeddings in the K4 replay (S6), judge calls later.
+    litellm_master_key: SecretStr
+    model_embed: str = "embed"
+    embed_dim: int = Field(default=768, ge=1)
 
 
 class CheckerSettings(BaseServiceSettings):

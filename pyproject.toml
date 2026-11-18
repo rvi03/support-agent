@@ -18,7 +18,9 @@ dependencies = [
     "pyyaml>=6.0.3",
     "spacy>=3.8.18",
     "structlog>=26.1.0",
+    "tiktoken>=0.12",
     "uvicorn>=0.31",
+    "valkey>=6.1",
 ]
 
 [build-system]
@@ -97,6 +99,11 @@ include = [
     "src/support_agent/mcp/it_data/logic.py",
     "src/support_agent/mcp/it_data/models.py",
     "src/support_agent/agent/tools.py",
+    "src/support_agent/kb/clean.py",
+    "src/support_agent/kb/chunk.py",
+    "src/support_agent/kb/metadata.py",
+    "src/support_agent/kb/conflicts.py",
+    "src/support_agent/mcp/knowledge/tokenizer.py",
 ]
 fail_under = 85
 show_missing = true

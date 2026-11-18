@@ -135,9 +135,11 @@ services:
 
   valkey:
     image: valkey/valkey:8.1.11-alpine
-    command: ["sh", "-c", "exec valkey-server --requirepass \"$$VALKEY_PASSWORD\" --maxmemory-policy noeviction --save '' --appendonly no"]
+    # S6: user `knowledge` may touch only `kb:*` keys (per-run budget, eval exclusions).
+    command: ["sh", "-c", "exec valkey-server --requirepass \"$$VALKEY_PASSWORD\" --user knowledge on \">$$VALKEY_PASSWORD_KNOWLEDGE\" '~kb:*' +@all -@dangerous --maxmemory-policy noeviction --save '' --appendonly no"]
     environment:
       VALKEY_PASSWORD: ${VALKEY_PASSWORD:?}
+      VALKEY_PASSWORD_KNOWLEDGE: ${VALKEY_PASSWORD_KNOWLEDGE:?}
     healthcheck:
       test: ["CMD-SHELL", "valkey-cli -a \"$$VALKEY_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 5s
@@ -256,7 +258,7 @@ services:
     build:
       context: ..
       dockerfile: compose/app/Dockerfile
-    image: servewell-app:s5
+    image: servewell-app:s6
     command: ["python", "-m", "support_agent.mcp.it_data"]
     environment:
       DATABASE_URL_IT_DATA: ${DATABASE_URL_IT_DATA:?}
@@ -284,6 +286,48 @@ services:
     deploy: {resources: {limits: {memory: 256m}}}
     restart: unless-stopped
 
+
+  knowledge:
+    # S6: retrieval-only KB MCP server (hybrid search over the published kb revision).
+    build:
+      context: ..
+      dockerfile: compose/app/Dockerfile
+    image: servewell-app:s6
+    command: ["python", "-m", "support_agent.mcp.knowledge"]
+    environment:
+      DATABASE_URL_KNOWLEDGE: ${DATABASE_URL_KNOWLEDGE:?}
+      DB_HOST: postgres
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:?}
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/servewell/protocol/openid-connect/certs
+      OPA_URL: http://opa:8181
+      LITELLM_BASE_URL: http://litellm:4000
+      # The router's key for query embeddings (D66).
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?}
+      MODEL_EMBED: ${MODEL_EMBED:-embed}
+      EMBED_DIM: ${EMBED_DIM:-768}
+      # Database 1: Langfuse uses database 0 of the same Valkey.
+      VALKEY_URL_KNOWLEDGE: redis://knowledge:${VALKEY_PASSWORD_KNOWLEDGE:?}@valkey:6379/1
+      KB_BUDGET_TOKENS: ${KB_BUDGET_TOKENS:-12000}
+      LOG_DIR: /logs
+      KNOWLEDGE_HOST: 0.0.0.0
+      KNOWLEDGE_PORT: "8102"
+    ports: ["127.0.0.1:8102:8102"]
+    volumes:
+      - ../logs:/logs
+    depends_on:
+      postgres: {condition: service_healthy}
+      keycloak: {condition: service_healthy}
+      opa: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+      litellm: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8102/health', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy: {resources: {limits: {memory: 256m}}}
+    restart: unless-stopped
   prometheus:
     image: prom/prometheus:v3.16.0
     profiles: [observability]
