@@ -29,10 +29,10 @@ from support_agent.common.db import dsn
 from support_agent.kb import chunk, clean, conflicts, metadata
 from support_agent.kb.embed import embed, vector_literal
 from support_agent.kb.load import SourceFile, load, s3_client
+from support_agent.mcp.itsm.registry import REGISTRY_PATH, registry_version
 from support_agent.mcp.knowledge import tokenizer
 
 PIPELINE_VERSION = "kb-pipeline-v1"
-REGISTRY_VERSION = "none (S9)"  # the action registry joins kb_rev in S9
 TOKENIZER_VERSION = "bm25-tok-v1"
 DB_EMBED_DIM = 768  # the vector width in db/sql/007_kb.sql
 REPORT_PATH = Path("eval/reports/index_report.md")
@@ -89,7 +89,8 @@ def _rule_versions(conflicts_version: str) -> dict[str, str]:
         "chunk_budget": str(chunk.CHUNK_BUDGET),
         "metadata_expected": str(metadata.expected()["version"]),
         "conflicts": conflicts_version,
-        "action_registry": REGISTRY_VERSION,
+        # The registry file hash (S7): run_fix refuses a registry that drifted from it.
+        "action_registry": registry_version(REGISTRY_PATH.read_bytes()),
     }
 
 
@@ -228,7 +229,7 @@ def add_embeddings(built: Built, embedder: Embedder) -> None:
         row.embedding = vec
 
 
-_TABLES = ("revisions", "documents", "sections", "conflicts", "redactions", "gaps")
+_TABLES = ("revisions", "documents", "sections", "conflicts", "redactions", "gaps", "runbook_steps")
 
 
 def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:

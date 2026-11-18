@@ -267,6 +267,7 @@ ALLOWED: dict[str, set[str]] = {
     # S6: its own read-only DB role, the shared LiteLLM router key (D66) for query
     # embeddings, and its own Valkey user (kb:* keys only); no S3 key, no Keycloak secret.
     "knowledge": {"DATABASE_URL_KNOWLEDGE", "LITELLM_MASTER_KEY", "VALKEY_PASSWORD_KNOWLEDGE"},
+    "itsm-actions": {"DATABASE_URL_ITSM"},
 }
 _LANGFUSE = {
     "LANGFUSE_DB_PASSWORD",

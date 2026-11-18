@@ -12,7 +12,8 @@ the SDK sees lenient arguments and publishes the tool's own Pydantic schema.
 
 A tool is an async function `(args: InModel, conn: AsyncConnection) -> OutModel`
 registered with `@service.tool(scope=...)`. A call carries the ticket in the
-request `_meta` (`servewell/ticket_id`, `servewell/run_id`) for the audit row.
+request `_meta` (`servewell/ticket_id`, `servewell/run_id`, and for writes the
+bound `servewell/store_id`, S7) for the audit row.
 If the audit write fails, the call fails (D9).
 """
 
@@ -54,6 +55,9 @@ _log = structlog.get_logger(__name__)
 
 META_TICKET = "servewell/ticket_id"
 META_RUN = "servewell/run_id"
+# The ticket's store, set by agent code from intake (the token or the source row),
+# never by the LLM; itsm-actions checks every write against it (S7).
+META_STORE = "servewell/store_id"
 MCP_PATH = "/mcp"
 
 ToolFn = Callable[[Any, AsyncConnection[Any]], Awaitable[BaseModel]]
@@ -106,11 +110,12 @@ def _validation_reason(exc: ValidationError) -> str:
 @dataclass(frozen=True)
 class CallContext:
     """Who is calling and for which run (S6): a tool reads it with `current_call()`.
-    The run and ticket come from the request `_meta`, never from tool arguments."""
+    The run, ticket and store come from the request `_meta`, never from tool arguments."""
 
     client_id: str
     ticket_id: str | None
     run_id: uuid.UUID | None
+    store_id: str | None = None
 
 
 _CALL: ContextVar[CallContext | None] = ContextVar("mcp_call", default=None)
@@ -200,7 +205,12 @@ class McpService:
         client_id = token.client_id if token else "unknown"
         fail: ToolFailure | None = None
         reset = _CALL.set(
-            CallContext(client_id, _meta_str(meta, META_TICKET), _run_id(_meta_str(meta, META_RUN)))
+            CallContext(
+                client_id,
+                _meta_str(meta, META_TICKET),
+                _run_id(_meta_str(meta, META_RUN)),
+                _meta_str(meta, META_STORE),
+            )
         )
         try:
             result = await self._checked_call(spec, raw, token)

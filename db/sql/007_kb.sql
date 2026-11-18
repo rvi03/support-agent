@@ -91,6 +91,25 @@ BEGIN
         created_at timestamptz NOT NULL DEFAULT now()
       );
 
+      -- Group A runbooks parsed into rule-tagged steps (rag-design.md 6.2). S7 reads
+      -- them to bind run_fix to a step; S9 fills them.
+      CREATE TABLE IF NOT EXISTS %1$I.runbook_steps (
+        kb_rev       text NOT NULL,
+        doc_id       text NOT NULL,
+        step_id      text NOT NULL,
+        ord          int NOT NULL,
+        stage        text NOT NULL CHECK (stage IN ('immediate', 'diagnosis', 'resolution')),
+        scope        jsonb NOT NULL DEFAULT '{}'::jsonb,
+        team         text NOT NULL CHECK (team IN ('store', 'it')),
+        text         text NOT NULL,
+        safety_lines text[] NOT NULL DEFAULT '{}',
+        tags         jsonb NOT NULL DEFAULT '{}'::jsonb,
+        generic      boolean NOT NULL DEFAULT false,
+        action_id    text,
+        section_id   text,
+        PRIMARY KEY (kb_rev, doc_id, step_id)
+      );
+
       CREATE TABLE IF NOT EXISTS %1$I.gaps (
         kb_rev text NOT NULL,
         doc_id text NOT NULL,
@@ -108,13 +127,15 @@ CREATE OR REPLACE FUNCTION kb_admin.apply_grants() RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $f$
 BEGIN
   REVOKE ALL ON ALL TABLES IN SCHEMA kb, kb_staging
-    FROM kb_index_rw, knowledge_ro, checker_ro, eval_ro;
+    FROM kb_index_rw, knowledge_ro, checker_ro, eval_ro, itsm_rw;
   GRANT USAGE ON SCHEMA kb, kb_staging TO kb_index_rw;
-  GRANT SELECT ON ALL TABLES IN SCHEMA kb TO kb_index_rw, knowledge_ro, checker_ro, eval_ro;
+  -- itsm_rw (S7) reads the revision and the parsed steps to bind run_fix.
+  GRANT SELECT ON ALL TABLES IN SCHEMA kb TO kb_index_rw, knowledge_ro, checker_ro, eval_ro,
+    itsm_rw;
   GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA kb_staging
     TO kb_index_rw;
-  REVOKE ALL ON SCHEMA kb_staging FROM knowledge_ro, checker_ro, eval_ro;
-  GRANT USAGE ON SCHEMA kb TO knowledge_ro, checker_ro, eval_ro;
+  REVOKE ALL ON SCHEMA kb_staging FROM knowledge_ro, checker_ro, eval_ro, itsm_rw;
+  GRANT USAGE ON SCHEMA kb TO knowledge_ro, checker_ro, eval_ro, itsm_rw;
 END
 $f$;
 

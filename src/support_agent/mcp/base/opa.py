@@ -39,5 +39,17 @@ class OpaClient:
         allowed = result.get("allow") is True
         return Decision(allowed, str(result.get("reason") or ("allowed" if allowed else "denied")))
 
+    async def decide(self, package: str, policy_input: dict[str, Any]) -> dict[str, Any] | None:
+        """The whole result of one policy package (`servewell/p8_run_fix`), or None if
+        OPA can't be reached or has no such package; callers treat None as deny (S7)."""
+        url = self.url.removesuffix(DECISION_PATH) + "/v1/data/" + package.strip("/")
+        try:
+            response = await self._http.post(url, json={"input": policy_input})
+            response.raise_for_status()
+            result = response.json().get("result")
+        except (httpx.HTTPError, ValueError):
+            return None
+        return result if isinstance(result, dict) else None
+
     async def aclose(self) -> None:
         await self._http.aclose()

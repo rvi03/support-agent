@@ -33,7 +33,7 @@ from pydantic import BaseModel
 
 from support_agent.intake.safety_net import Channel
 from support_agent.mcp.base.errors import ErrorCode, ToolFailure
-from support_agent.mcp.base.server import META_RUN, META_TICKET
+from support_agent.mcp.base.server import META_RUN, META_STORE, META_TICKET
 from support_agent.mcp.it_data.models import (
     AssetResult,
     KnownBugResult,
@@ -207,12 +207,15 @@ class McpToolClient:
         *,
         ticket_id: str | None = None,
         run_id: uuid.UUID | None = None,
+        store_id: str | None = None,
     ) -> dict[str, Any]:
         meta: dict[str, Any] = {}
         if ticket_id:
             meta[META_TICKET] = ticket_id
         if run_id:
             meta[META_RUN] = str(run_id)
+        if store_id:
+            meta[META_STORE] = store_id
         refreshed = False
         attempt = 0
         while True:

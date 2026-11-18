@@ -109,6 +109,8 @@ class ItsmSettings(BaseServiceSettings):
     # Safety setting: required, no default (D46, A35).
     action_autonomy_runs: int = Field(ge=1)
     approval_ttl_min: int = Field(default=15, ge=1)
+    itsm_host: str = "127.0.0.1"
+    itsm_port: int = Field(default=8103, ge=1, le=65535)
 
 
 class AgentSettings(BaseServiceSettings):

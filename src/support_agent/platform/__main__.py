@@ -242,6 +242,14 @@ def cmd_status() -> None:
             "it-data MCP",
             lambda: _ping(f"http://localhost:{env.get('IT_DATA_PORT', '8101')}/health"),
         ),
+        (
+            "knowledge MCP",
+            lambda: _ping(f"http://localhost:{env.get('KNOWLEDGE_PORT', '8102')}/health"),
+        ),
+        (
+            "itsm-actions MCP",
+            lambda: _ping(f"http://localhost:{env.get('ITSM_PORT', '8103')}/health"),
+        ),
     ]
     print()
     for name, check in checks:

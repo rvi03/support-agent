@@ -1,0 +1,41 @@
+# Action registry (D37, rag-design.md 6.3). Plain data: itsm-actions loads it with
+# registry.py; the S14 safety checker reads it with its own loader (D42).
+# Its version is the file's hash, which goes into kb_rev, so any edit here
+# makes the KB revision change and needs `make index`.
+#
+# S7 ships the schema and one test entry per tier; S9 adds the Group A entries.
+#   tier: read_only (autonomous) | reversible (supervised -> autonomous) | destructive (always supervised)
+#   match: runbook step-text patterns; every regex in one group must match (case-insensitive)
+#   simulated_result: what the default outcome provider returns (eval uses fault cards, D40)
+#   approver: optional; vendor -> vendor_approver, l2 -> l2_engineer (else from the step)
+actions:
+  - action_id: check_printer_status
+    description: Read the printer's status from the POS (online, paper, cover).
+    device_families: [printer]
+    tier: read_only
+    match:
+      - ["printer", "status"]
+    simulated_result:
+      outcome: no_change
+      text: "Printer status read: online, paper present, cover closed."
+
+  - action_id: restart_print_spooler
+    description: Restart the Windows Print Spooler service on the POS terminal.
+    device_families: [printer, pos]
+    tier: reversible
+    match:
+      - ["print spooler", "restart"]
+    simulated_result:
+      outcome: fixed
+      text: "Print Spooler restarted; printer status online."
+
+  - action_id: clear_print_queue
+    description: Delete every pending job in the POS print queue.
+    device_families: [printer]
+    tier: destructive
+    approver: l2
+    match:
+      - ["clear", "print queue"]
+    simulated_result:
+      outcome: fixed
+      text: "Print queue cleared; 0 jobs pending."

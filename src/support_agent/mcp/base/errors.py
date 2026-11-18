@@ -16,6 +16,7 @@ class ErrorCode(StrEnum):
     DENIED = "denied"  # no token, wrong scope or audience, OPA said no or is down
     INVALID = "invalid"  # arguments do not fit the tool's input model
     NOT_FOUND = "not_found"  # reserved for tools whose whole reply is one record
+    CONFLICT = "conflict"  # an idempotency key or record reused with a different payload
     ERROR = "error"  # anything else: the server failed, the agent hands off
 
 

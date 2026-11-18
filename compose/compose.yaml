@@ -258,7 +258,7 @@ services:
     build:
       context: ..
       dockerfile: compose/app/Dockerfile
-    image: servewell-app:s6
+    image: servewell-app:s7
     command: ["python", "-m", "support_agent.mcp.it_data"]
     environment:
       DATABASE_URL_IT_DATA: ${DATABASE_URL_IT_DATA:?}
@@ -292,7 +292,7 @@ services:
     build:
       context: ..
       dockerfile: compose/app/Dockerfile
-    image: servewell-app:s6
+    image: servewell-app:s7
     command: ["python", "-m", "support_agent.mcp.knowledge"]
     environment:
       DATABASE_URL_KNOWLEDGE: ${DATABASE_URL_KNOWLEDGE:?}
@@ -328,6 +328,44 @@ services:
       start_period: 10s
     deploy: {resources: {limits: {memory: 256m}}}
     restart: unless-stopped
+
+  itsm-actions:
+    # S7: local ITSM writes (tickets, comments, store messages, approvals, simulated fixes).
+    build:
+      context: ..
+      dockerfile: compose/app/Dockerfile
+    image: servewell-app:s7
+    command: ["python", "-m", "support_agent.mcp.itsm"]
+    environment:
+      DATABASE_URL_ITSM: ${DATABASE_URL_ITSM:?}
+      DB_HOST: postgres
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:?}
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/servewell/protocol/openid-connect/certs
+      OPA_URL: http://opa:8181
+      LITELLM_BASE_URL: http://litellm:4000
+      # Safety setting with no default (D46, A35).
+      ACTION_AUTONOMY_RUNS: ${ACTION_AUTONOMY_RUNS:?}
+      APPROVAL_TTL_MIN: ${APPROVAL_TTL_MIN:-15}
+      EVAL_MODE: ${EVAL_MODE:-false}
+      LOG_DIR: /logs
+      ITSM_HOST: 0.0.0.0
+      ITSM_PORT: "8103"
+    ports: ["127.0.0.1:8103:8103"]
+    volumes:
+      - ../logs:/logs
+    depends_on:
+      postgres: {condition: service_healthy}
+      keycloak: {condition: service_healthy}
+      opa: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8103/health', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy: {resources: {limits: {memory: 256m}}}
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:v3.16.0
     profiles: [observability]
