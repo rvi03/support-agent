@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Secrets: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# Runtime logs (LOG_DIR)
+logs/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

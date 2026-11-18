@@ -1,0 +1,68 @@
+[project]
+name = "support-agent"
+version = "0.1.0"
+description = "L1 IT support agent POC for ServeWell's pilot stores"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic>=2.14.3",
+    "pydantic-settings>=2.16.3",
+    "structlog>=26.1.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pre-commit-hooks>=6.0.0",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "N"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use assert and run subprocesses with fixed arguments.
+"tests/**" = ["S101", "S603"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+plugins = ["pydantic.mypy"]
+# Untyped third-party modules get a named override with the reason, never a blanket one.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# -p no:logging: pytest's own log capture would bypass the PII filter in reports.
+addopts = "--strict-markers -ra -p no:logging"
+markers = [
+    "unit: fast tests with no running services",
+    "integration: needs git, pre-commit or `make up` services",
+    "e2e: full ticket runs through the API",
+]
+
+[tool.coverage.run]
+source = ["support_agent"]
+branch = true
+
+[tool.coverage.report]
+# Core modules from PRD quality bar 2; the list grows as modules land.
+include = [
+    "src/support_agent/common/config.py",
+    "src/support_agent/common/logging.py",
+    "src/support_agent/common/pii_filter.py",
+]
+fail_under = 85
+show_missing = true

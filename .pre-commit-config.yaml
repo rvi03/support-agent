@@ -1,0 +1,30 @@
+# Local hooks run the project's pinned tools from uv.lock, so no hook repo is fetched.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff lint
+        entry: uv run ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check --force-exclude
+        language: system
+        types_or: [python, pyi]
+      - id: check-added-large-files
+        name: check for added large files
+        entry: uv run check-added-large-files --maxkb=500
+        language: system
+        stages: [pre-commit]
+      - id: detect-private-key
+        name: detect private key
+        entry: uv run detect-private-key
+        language: system
+        types: [text]
+      - id: block-env-files
+        name: block .env files (only .env.example allowed)
+        entry: "Do not commit .env files; only .env.example is allowed."
+        language: fail
+        files: '(^|/)\.env(\..+)?$'
+        exclude: '(^|/)\.env\.example$'
