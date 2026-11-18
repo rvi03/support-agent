@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import sys
 from enum import StrEnum
+from pathlib import Path
 from typing import NoReturn
 
 from pydantic import Field, SecretStr, ValidationError
@@ -26,7 +27,11 @@ class ClockMode(StrEnum):
 
 
 class BaseServiceSettings(BaseSettings):
-    """Fields every service shares. Holds no credentials."""
+    """Fields every service shares. Holds no credentials.
+
+    Model fields hold LiteLLM aliases (`agent`, `embed`, ...), never a model
+    name: compose/litellm/config.yaml maps each alias to a model (D21).
+    """
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -49,11 +54,13 @@ class IngestSettings(BaseServiceSettings):
     s3_endpoint_url: str
     s3_access_key_ingest: SecretStr
     s3_secret_key_ingest: SecretStr
+    # The given dataset folder, read-only; the default fits the tsk task layout.
+    dataset_dir: Path = Path("../../references/assignment/dataset")
 
 
 class IntakeSettings(BaseServiceSettings):
     database_url_intake: SecretStr
-    model_moderation: str = "granite3-guardian:2b"
+    model_moderation: str = "moderation"
     # Moderation has its own cap, outside LLM_MAX_CALLS (review m1).
     moderation_max_calls: int = Field(default=10, ge=1)
 
@@ -64,7 +71,16 @@ class ItDataSettings(BaseServiceSettings):
 
 class KnowledgeSettings(BaseServiceSettings):
     database_url_knowledge: SecretStr
-    model_embed: str = "nomic-embed-text"
+    model_embed: str = "embed"
+    embed_dim: int = Field(default=768, ge=1)
+
+
+class KbIndexSettings(BaseServiceSettings):
+    database_url_kb_index: SecretStr
+    s3_endpoint_url: str
+    s3_access_key_kb_index: SecretStr
+    s3_secret_key_kb_index: SecretStr
+    model_embed: str = "embed"
     embed_dim: int = Field(default=768, ge=1)
 
 
@@ -77,8 +93,8 @@ class ItsmSettings(BaseServiceSettings):
 
 class AgentSettings(BaseServiceSettings):
     database_url_agent: SecretStr
-    model_agent: str = "qwen3:8b"
-    model_embed: str = "nomic-embed-text"
+    model_agent: str = "agent"
+    model_embed: str = "embed"
     embed_dim: int = Field(default=768, ge=1)
     llm_max_calls: int = Field(default=15, ge=1)
     triage_max_tool_calls: int = Field(default=6, ge=1)
@@ -86,6 +102,9 @@ class AgentSettings(BaseServiceSettings):
     approval_ttl_min: int = Field(default=15, ge=1)
     # Safety setting: required, no default (D46, A35).
     action_autonomy_runs: int = Field(ge=1)
+    # Keycloak client-credentials secrets of the two agent identities (D25).
+    keycloak_secret_agent_reader: SecretStr
+    keycloak_secret_agent_actor: SecretStr
 
 
 class ApiSettings(BaseServiceSettings):
@@ -100,8 +119,9 @@ class EvalSettings(BaseServiceSettings):
     s3_endpoint_url: str
     s3_access_key_eval: SecretStr
     s3_secret_key_eval: SecretStr
-    model_judge: str = "phi4"
-    model_simulator: str = "granite3.3:8b"
+    model_judge: str = "judge"
+    model_simulator: str = "simulator"
+    keycloak_secret_eval_runner: SecretStr
 
 
 class CheckerSettings(BaseServiceSettings):
@@ -113,6 +133,7 @@ SERVICES: dict[str, type[BaseServiceSettings]] = {
     "intake": IntakeSettings,
     "it_data": ItDataSettings,
     "knowledge": KnowledgeSettings,
+    "kb_index": KbIndexSettings,
     "itsm": ItsmSettings,
     "agent": AgentSettings,
     "api": ApiSettings,

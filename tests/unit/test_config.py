@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -13,7 +14,13 @@ from support_agent.common import config
 
 pytestmark = pytest.mark.unit
 
-AGENT_REQUIRED = {"DATABASE_URL_AGENT", "ACTION_AUTONOMY_RUNS"}
+AGENT_REQUIRED = {
+    "DATABASE_URL_AGENT",
+    "ACTION_AUTONOMY_RUNS",
+    "KEYCLOAK_SECRET_AGENT_READER",
+    "KEYCLOAK_SECRET_AGENT_ACTOR",
+}
+AGENT_SECRETS = {"KEYCLOAK_SECRET_AGENT_READER": "r", "KEYCLOAK_SECRET_AGENT_ACTOR": "a"}
 SHARED_REQUIRED = {"KEYCLOAK_ISSUER", "OPA_URL", "LITELLM_BASE_URL"}
 
 
@@ -49,6 +56,7 @@ def test_one_missing_setting_is_named_alone(tmp_path: Path) -> None:
         "OPA_URL": "http://localhost:8181",
         "LITELLM_BASE_URL": "http://localhost:4000",
         "DATABASE_URL_AGENT": "postgresql://agent:x@localhost/servewell",
+        **AGENT_SECRETS,
     }
     result = _run_config("agent", env, tmp_path)
 
@@ -63,6 +71,7 @@ def test_invalid_value_is_named(tmp_path: Path) -> None:
         "LITELLM_BASE_URL": "l",
         "DATABASE_URL_AGENT": "d",
         "ACTION_AUTONOMY_RUNS": "0",
+        **AGENT_SECRETS,
     }
     result = _run_config("agent", env, tmp_path)
 
@@ -77,6 +86,7 @@ def test_complete_env_loads_without_printing_secrets(tmp_path: Path) -> None:
         "LITELLM_BASE_URL": "l",
         "DATABASE_URL_AGENT": "postgresql://agent:topsecret@localhost/db",
         "ACTION_AUTONOMY_RUNS": "1",
+        **AGENT_SECRETS,
     }
     result = _run_config("agent", env, tmp_path)
 
@@ -106,7 +116,9 @@ def test_each_service_owns_only_its_credentials() -> None:
             f for f, info in cls.model_fields.items() if info.annotation is config.SecretStr
         }
         assert secret_fields, name
-        assert all(f.endswith(f"_{name}") for f in secret_fields), (name, secret_fields)
+        # Each secret names its own service as a whole token (`..._agent` or `..._agent_...`).
+        own = re.compile(rf"_{name}(_|$)")
+        assert all(own.search(f) for f in secret_fields), (name, secret_fields)
 
 
 def test_get_settings_in_process(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -122,15 +134,23 @@ def test_get_settings_in_process(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert config.main(["checker"]) == 0
 
 
-def test_env_example_lists_every_setting_and_nothing_else() -> None:
-    example = Path(__file__).resolve().parents[2] / ".env.example"
-    keys = {
-        line.split("=", 1)[0]
-        for line in example.read_text().splitlines()
-        if line and not line.startswith("#")
+PLATFORM_MARKER = "# ===== Platform"
+
+
+def _keys(text: str) -> set[str]:
+    return {
+        line.split("=", 1)[0] for line in text.splitlines() if line and not line.startswith("#")
     }
+
+
+def test_env_example_lists_every_setting_and_nothing_else() -> None:
+    example = (Path(__file__).resolve().parents[2] / ".env.example").read_text()
+    services, platform = example.split(PLATFORM_MARKER, 1)
     fields = {f.upper() for cls in config.SERVICES.values() for f in cls.model_fields}
-    assert keys == fields
+    # Above the marker: exactly the service settings. Below: platform-only keys
+    # (compose and `make up`), which no service settings class may read.
+    assert _keys(services) == fields
+    assert not _keys(platform) & fields
 
 
 def test_get_settings_in_process_exits_2(

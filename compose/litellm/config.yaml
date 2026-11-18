@@ -1,0 +1,43 @@
+# LiteLLM proxy: one alias per job (D21, D22). Services call the alias only, so a
+# model swap is an edit here and nothing else. A non-Ollama model is refused by
+# `make up` unless ALLOW_EXTERNAL_MODELS=true is set for that run (Codex P1).
+# Ollama runs natively on the Mac (no GPU in Docker); tags are pinned by digest in
+# compose/ollama-models.lock.
+model_list:
+  - model_name: agent
+    litellm_params:
+      model: ollama_chat/qwen3:8b
+      api_base: os.environ/OLLAMA_API_BASE
+      temperature: 0
+  - model_name: embed
+    litellm_params:
+      model: ollama/nomic-embed-text:v1.5
+      api_base: os.environ/OLLAMA_API_BASE
+    model_info:
+      mode: embedding
+  - model_name: moderation
+    litellm_params:
+      model: ollama_chat/granite3-guardian:2b
+      api_base: os.environ/OLLAMA_API_BASE
+      temperature: 0
+  - model_name: judge
+    litellm_params:
+      model: ollama_chat/phi4:14b
+      api_base: os.environ/OLLAMA_API_BASE
+      temperature: 0
+  - model_name: simulator
+    litellm_params:
+      model: ollama_chat/granite3.3:8b
+      api_base: os.environ/OLLAMA_API_BASE
+      temperature: 0
+
+litellm_settings:
+  # Traces go to the self-hosted Langfuse over OTLP. Callers send masked text only (S4).
+  callbacks: ["langfuse_otel"]
+  drop_params: true
+  request_timeout: 600
+  telemetry: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  disable_spend_logs: true

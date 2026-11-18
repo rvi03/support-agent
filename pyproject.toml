@@ -5,8 +5,11 @@ description = "L1 IT support agent POC for ServeWell's pilot stores"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "boto3>=1.40",
+    "psycopg[binary]>=3.3",
     "pydantic>=2.14.3",
     "pydantic-settings>=2.16.3",
+    "pyyaml>=6.0.3",
     "structlog>=26.1.0",
 ]
 
@@ -16,12 +19,16 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "boto3-stubs[s3]>=1.44.5",
+    "httpx>=0.28",
     "mypy>=2.4.1",
     "pre-commit>=4.7.0",
     "pre-commit-hooks>=6.0.0",
+    "pyjwt[crypto]>=2.10",
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.5",
+    "types-pyyaml>=6.0.12.20261113",
 ]
 
 [tool.ruff]
@@ -34,7 +41,9 @@ select = ["E", "F", "I", "B", "UP", "S", "N"]
 
 [tool.ruff.lint.per-file-ignores]
 # Tests use assert and run subprocesses with fixed arguments.
-"tests/**" = ["S101", "S603"]
+"tests/**" = ["S101", "S603", "S607"]
+# Platform CLI runs docker, colima and psql with fixed argument lists, found on PATH.
+"src/support_agent/platform/__main__.py" = ["S603", "S607"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -63,6 +72,15 @@ include = [
     "src/support_agent/common/config.py",
     "src/support_agent/common/logging.py",
     "src/support_agent/common/pii_filter.py",
+    "src/support_agent/common/audit.py",
+    "src/support_agent/platform/envfile.py",
+    "src/support_agent/platform/realm.py",
+    "src/support_agent/platform/models.py",
+    "src/support_agent/platform/dbinit.py",
+    "src/support_agent/platform/s3config.py",
+    "src/support_agent/platform/mock_secrets.py",
+    "src/support_agent/ingest/csv_clean.py",
+    "src/support_agent/ingest/split.py",
 ]
 fail_under = 85
 show_missing = true

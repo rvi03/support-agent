@@ -24,3 +24,6 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+# Rendered platform config with secrets (make up)
+.run/
