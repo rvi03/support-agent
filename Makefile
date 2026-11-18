@@ -66,7 +66,7 @@ up: env ## Start the platform: checks, render, Postgres + init SQL, buckets, all
 	$(COMPOSE) up -d --build --wait postgres seaweedfs
 	@$(PLATFORM) db-init
 	@$(PLATFORM) buckets
-	$(COMPOSE) up -d --wait
+	$(COMPOSE) up -d --build --wait
 	@$(PLATFORM) models
 	@$(PLATFORM) status
 

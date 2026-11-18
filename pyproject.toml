@@ -8,13 +8,17 @@ dependencies = [
     "boto3>=1.40",
     "en-core-web-lg",
     "httpx>=0.28",
+    "mcp>=2.3,<3",
     "presidio-analyzer>=2.2.366",
+    "psycopg-pool>=3.2",
     "psycopg[binary]>=3.3",
     "pydantic>=2.14.3",
     "pydantic-settings>=2.16.3",
+    "pyjwt[crypto]>=2.15",
     "pyyaml>=6.0.3",
     "spacy>=3.8.18",
     "structlog>=26.1.0",
+    "uvicorn>=0.31",
 ]
 
 [build-system]
@@ -85,6 +89,14 @@ include = [
     "src/support_agent/platform/mock_secrets.py",
     "src/support_agent/ingest/csv_clean.py",
     "src/support_agent/ingest/split.py",
+    "src/support_agent/common/db.py",
+    "src/support_agent/mcp/base/auth.py",
+    "src/support_agent/mcp/base/errors.py",
+    "src/support_agent/mcp/base/opa.py",
+    "src/support_agent/mcp/base/server.py",
+    "src/support_agent/mcp/it_data/logic.py",
+    "src/support_agent/mcp/it_data/models.py",
+    "src/support_agent/agent/tools.py",
 ]
 fail_under = 85
 show_missing = true

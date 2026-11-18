@@ -65,3 +65,21 @@ def write_event(conn: _Connection, event: AuditEvent) -> int:
     if not row:
         raise AuditWriteError(f"audit write returned no id for {event.step}/{event.action}")
     return int(row[0])
+
+
+class _AsyncConnection(Protocol):
+    async def execute(self, query: Any, params: Any = ..., /) -> Any: ...
+
+
+async def awrite_event(conn: _AsyncConnection, event: AuditEvent) -> int:
+    """The async form of `write_event`, for the MCP servers (S5)."""
+    values = asdict(event)
+    values["payload"] = Jsonb(values["payload"])
+    try:
+        cursor = await conn.execute(_INSERT, tuple(values[c] for c in _COLUMNS))
+        row = await cursor.fetchone()
+    except Exception as exc:
+        raise AuditWriteError(f"audit write failed for {event.step}/{event.action}") from exc
+    if not row:
+        raise AuditWriteError(f"audit write returned no id for {event.step}/{event.action}")
+    return int(row[0])

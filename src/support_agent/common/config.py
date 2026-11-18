@@ -42,11 +42,19 @@ class BaseServiceSettings(BaseSettings):
     )
 
     keycloak_issuer: str
+    # Where a container fetches the signing keys; the issuer stays the public URL (S5).
+    keycloak_jwks_url: str | None = None
     opa_url: str
     litellm_base_url: str
     log_dir: str = "logs"
     clock_mode: ClockMode = ClockMode.LIVE
     eval_mode: bool = False
+    # Inside a container the DSN's `localhost` is replaced by this host (S5).
+    db_host: str | None = None
+
+    @property
+    def jwks_url(self) -> str:
+        return self.keycloak_jwks_url or self.keycloak_issuer + "/protocol/openid-connect/certs"
 
 
 class IngestSettings(BaseServiceSettings):
@@ -69,6 +77,8 @@ class IntakeSettings(BaseServiceSettings):
 
 class ItDataSettings(BaseServiceSettings):
     database_url_it_data: SecretStr
+    it_data_host: str = "127.0.0.1"
+    it_data_port: int = Field(default=8101, ge=1, le=65535)
 
 
 class KnowledgeSettings(BaseServiceSettings):
@@ -107,6 +117,7 @@ class AgentSettings(BaseServiceSettings):
     # Keycloak client-credentials secrets of the two agent identities (D25).
     keycloak_secret_agent_reader: SecretStr
     keycloak_secret_agent_actor: SecretStr
+    it_data_url: str = "http://localhost:8101/mcp"
 
 
 class ApiSettings(BaseServiceSettings):

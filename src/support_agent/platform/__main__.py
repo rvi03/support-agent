@@ -235,6 +235,10 @@ def cmd_status() -> None:
             lambda: _ping(env["KEYCLOAK_ISSUER"] + "/.well-known/openid-configuration"),
         ),
         ("OPA", lambda: _ping(env["OPA_URL"] + "/health")),
+        (
+            "it-data MCP",
+            lambda: _ping(f"http://localhost:{env.get('IT_DATA_PORT', '8101')}/health"),
+        ),
     ]
     print()
     for name, check in checks:

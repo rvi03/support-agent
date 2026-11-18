@@ -37,6 +37,7 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | OPA | `localhost:8181` | Policies in `compose/opa/policies/` (default deny) |
 | LiteLLM | `localhost:4000` | Aliases `agent`, `moderation`, `judge`, `simulator` (gpt-6-luna) and `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
 | Langfuse (web, worker) + ClickHouse + Valkey | `localhost:3000` | LLM traces; project and keys created headless |
+| it-data MCP server | `localhost:8101/mcp` | 7 read-only IT data tools (Streamable HTTP; bearer token with `it-data:read`), `/health` |
 | Prometheus, Grafana | `localhost:9090`, `localhost:3001` | Metrics (profile `observability`; `make up LEAN=1` skips them) |
 
 - All ports bind to 127.0.0.1. Each container gets only its own variables from `.env` (D46).
@@ -73,7 +74,8 @@ src/support_agent/
   platform/    make up / status tooling: .env, realm, S3 identities, DB init, model lock
   ingest/      source data loading            (S3)
   intake/      schema, masking, moderation    (S4)
-  mcp/         base, it_data, knowledge, itsm (S5-S7, S9)
+  mcp/         base (auth, OPA, audit, typed errors), it_data, knowledge, itsm (S5-S7, S9)
+  agent/tools  MCP client: tokens, retry, mask + safety-net scan of every result (S5)
   kb/          index pipeline, runbook steps  (S6, S9)
   agent/       LangGraph graph and nodes      (S8-S11)
   api/, cli/   FastAPI service and CLI        (S12)
@@ -84,6 +86,10 @@ db/sql/       NNN_<name>.sql, applied in order by make up, idempotent
 ```
 
 Each service loads only its own settings: `python -m support_agent.common.config <service>` checks them and exits with code 2, naming every missing or invalid setting.
+
+## MCP servers
+
+Every tool call runs one fixed order in `mcp/base`: verify the JWT (Keycloak JWKS, issuer, audience = server name, expiry) → the tool's scope → OPA (P10 → P7; 1 s timeout, fail closed) → validate the arguments (Pydantic) → the tool → validate the result → one `audit.events` row (client, tool, argument hash, ticket id from the request `_meta`, result, latency). A refused token (401/403) is audited too. Typed error replies: `denied`, `invalid`, `error`; domain outcomes (`not_found`, `unknown_system`, `fallback_general`) are normal results. The servers run on the MCP Python SDK 2.x (`MCPServer`); the agent uses the SDK's own client, because langchain-mcp-adapters still pins `mcp<2`.
 
 ## Limits
 

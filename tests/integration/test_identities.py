@@ -261,6 +261,8 @@ ALLOWED: dict[str, set[str]] = {
     },
     "prometheus": set(),
     "grafana": {"GRAFANA_ADMIN_PASSWORD"},
+    # S5: its own read-only DB role only; no S3 key (D49), no Keycloak secret.
+    "it-data": {"DATABASE_URL_IT_DATA"},
 }
 _LANGFUSE = {
     "LANGFUSE_DB_PASSWORD",
@@ -304,8 +306,12 @@ def test_no_container_holds_another_services_credentials() -> None:
     services = json.loads(out)["services"]
     assert set(services) == set(ALLOWED)
     secret_names = ("PASSWORD", "SECRET", "KEY", "SALT", "DATABASE_URL")
+    # Public values whose names merely contain "KEY" (KEYCLOAK_...).
+    public = {"KEYCLOAK_ISSUER", "KEYCLOAK_JWKS_URL"}
     secrets = {
-        k: v for k, v in load_env().items() if any(n in k for n in secret_names) and len(v) >= 16
+        k: v
+        for k, v in load_env().items()
+        if any(n in k for n in secret_names) and len(v) >= 16 and k not in public
     }
     for name, svc in services.items():
         blob = json.dumps(svc.get("environment", {})) + json.dumps(svc.get("command", ""))
