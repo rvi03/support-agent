@@ -97,12 +97,13 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
     healthcheck:
+      # Healthy only once the realm import has finished, not just the server.
       test:
         - CMD-SHELL
         - >-
-          exec 3<>/dev/tcp/127.0.0.1/9000 &&
-          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
-          grep -q '"status": "UP"' <&3
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /realms/servewell/.well-known/openid-configuration HTTP/1.1\r\nHost: localhost:8080\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"issuer"' <&3
       interval: 10s
       timeout: 5s
       retries: 30
@@ -223,6 +224,8 @@ services:
       - litellm
     command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "1"]
     environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is empty in .env}
+      # Only for the Ollama fallback (D64).
       OLLAMA_API_BASE: http://host.docker.internal:11434
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?}

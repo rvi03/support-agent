@@ -1,41 +1,46 @@
 # LiteLLM proxy: one alias per job (D21, D22). Services call the alias only, so a
-# model swap is an edit here and nothing else. A non-Ollama model is refused by
-# `make up` unless ALLOW_EXTERNAL_MODELS=true is set for that run (Codex P1).
-# Ollama runs natively on the Mac (no GPU in Docker); tags are pinned by digest in
-# compose/ollama-models.lock.
+# model swap is an edit here and nothing else.
+# Models run on the OpenAI API (D64); OPENAI_API_KEY comes from .env and reaches
+# only this container. Callers send masked text only (S4 safety net before every call).
+# Ollama fallback: point an alias at `ollama_chat/<tag>` with
+# `api_base: os.environ/OLLAMA_API_BASE`; `make up` then pulls and pins it.
 model_list:
   - model_name: agent
     litellm_params:
-      model: ollama_chat/qwen3:8b
-      api_base: os.environ/OLLAMA_API_BASE
+      model: openai/gpt-6-luna
+      api_key: os.environ/OPENAI_API_KEY
       temperature: 0
   - model_name: embed
     litellm_params:
-      model: ollama/nomic-embed-text:v1.5
-      api_base: os.environ/OLLAMA_API_BASE
+      model: openai/text-embedding-3-small
+      api_key: os.environ/OPENAI_API_KEY
+      # Keeps EMBED_DIM at 768 (text-embedding-3 supports shortened vectors).
+      dimensions: 768
     model_info:
       mode: embedding
   - model_name: moderation
     litellm_params:
-      model: ollama_chat/granite3-guardian:2b
-      api_base: os.environ/OLLAMA_API_BASE
+      model: openai/gpt-6-luna
+      api_key: os.environ/OPENAI_API_KEY
       temperature: 0
   - model_name: judge
     litellm_params:
-      model: ollama_chat/phi4:14b
-      api_base: os.environ/OLLAMA_API_BASE
+      model: openai/gpt-6.1-terra
+      api_key: os.environ/OPENAI_API_KEY
       temperature: 0
   - model_name: simulator
     litellm_params:
-      model: ollama_chat/granite3.3:8b
-      api_base: os.environ/OLLAMA_API_BASE
+      model: openai/gpt-5.4-nano
+      api_key: os.environ/OPENAI_API_KEY
       temperature: 0
 
 litellm_settings:
-  # Traces go to the self-hosted Langfuse over OTLP. Callers send masked text only (S4).
+  # Traces go to the self-hosted Langfuse over OTLP.
   callbacks: ["langfuse_otel"]
+  # Drops a parameter a model does not accept (e.g. temperature on a reasoning model).
   drop_params: true
   request_timeout: 600
+  num_retries: 2
   telemetry: false
 
 general_settings:

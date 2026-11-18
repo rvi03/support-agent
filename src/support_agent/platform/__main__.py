@@ -92,7 +92,11 @@ def cmd_colima_check() -> None:
 def cmd_model_check() -> None:
     env = _env()
     aliases = models.load_aliases(LITELLM_CONFIG)
-    models.check_external(aliases, env.get("ALLOW_EXTERNAL_MODELS", "false").lower() == "true")
+    models.check_external(
+        aliases,
+        env.get("ALLOW_EXTERNAL_MODELS", "false").lower() == "true",
+        env.get("OPENAI_API_KEY", ""),
+    )
     print("LiteLLM aliases: " + ", ".join(f"{a}={m}" for a, m in sorted(aliases.items())))
 
 
@@ -173,7 +177,13 @@ def cmd_buckets() -> None:
 
 
 def cmd_models() -> None:
-    wanted = models.ollama_models(models.load_aliases(LITELLM_CONFIG))
+    aliases = models.load_aliases(LITELLM_CONFIG)
+    wanted = models.ollama_models(aliases)
+    if not wanted:
+        # D64: no Ollama alias, so nothing to pull or pin; list what each alias uses.
+        for alias, model in sorted(aliases.items()):
+            print(f"  {alias:<12} {model}")
+        return
     pinned = models.ensure_models(wanted, MODEL_LOCK, OLLAMA_URL)
     for tag, digest in pinned.items():
         print(f"  {tag:<24} {digest[:12]}  matches lock")
@@ -203,17 +213,22 @@ def cmd_status() -> None:
     if not rows:
         print("(no containers)")
         failed = True
-    print("\nOllama models (digest vs compose/ollama-models.lock):")
-    lock = models.read_lock(MODEL_LOCK)
-    try:
-        local = models.local_digests(OLLAMA_URL)
-    except models.ModelError as exc:
-        print(f"  {exc}")
-        local, failed = {}, True
-    for tag, digest in sorted(lock.items()):
-        ok = local.get(tag) == digest
-        failed |= not ok
-        print(f"  {tag:<24} {digest[:12]}  {'ok' if ok else 'MISSING OR DRIFT'}")
+    aliases = models.load_aliases(LITELLM_CONFIG)
+    print("\nLiteLLM aliases:")
+    for alias, model in sorted(aliases.items()):
+        print(f"  {alias:<12} {model}")
+    if models.ollama_models(aliases):
+        print("Ollama models (digest vs compose/ollama-models.lock):")
+        lock = models.read_lock(MODEL_LOCK)
+        try:
+            local = models.local_digests(OLLAMA_URL)
+        except models.ModelError as exc:
+            print(f"  {exc}")
+            local, failed = {}, True
+        for tag, digest in sorted(lock.items()):
+            ok = local.get(tag) == digest
+            failed |= not ok
+            print(f"  {tag:<24} {digest[:12]}  {'ok' if ok else 'MISSING OR DRIFT'}")
     checks: list[tuple[str, Callable[[], bool]]] = [
         (
             "Keycloak realm",

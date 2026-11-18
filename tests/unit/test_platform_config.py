@@ -217,17 +217,37 @@ def test_sql_files_missing_dir(tmp_path: Path) -> None:
 CONFIG = ROOT / "compose" / "litellm" / "config.yaml"
 
 
-def test_config_has_every_alias_on_ollama() -> None:
+def test_config_maps_every_alias_to_its_openai_model() -> None:
     aliases = models.load_aliases(CONFIG)
-    assert set(models.REQUIRED_ALIASES) <= set(aliases)
+    assert aliases == {
+        "agent": "openai/gpt-6-luna",
+        "embed": "openai/text-embedding-3-small",
+        "moderation": "openai/gpt-6-luna",
+        "judge": "openai/gpt-6.1-terra",
+        "simulator": "openai/gpt-5.4-nano",
+    }
+    assert models.ollama_models(aliases) == []
+    models.check_external(aliases, allow_external=True, openai_key="sk-test")
+
+
+def test_embed_alias_keeps_embed_dim() -> None:
+    import yaml
+
+    config = yaml.safe_load(CONFIG.read_text())
+    embed = next(m for m in config["model_list"] if m["model_name"] == "embed")
+    assert embed["litellm_params"]["dimensions"] == 768
+
+
+def test_openai_alias_needs_a_key() -> None:
+    aliases = {"agent": "openai/gpt-6-luna"}
+    with pytest.raises(models.ModelError, match="OPENAI_API_KEY"):
+        models.check_external(aliases, allow_external=True, openai_key=" ")
+
+
+def test_ollama_fallback_tags() -> None:
+    aliases = {"agent": "ollama_chat/qwen3:8b", "embed": "ollama/nomic-embed-text"}
     models.check_external(aliases, allow_external=False)
-    assert models.ollama_models(aliases) == [
-        "granite3-guardian:2b",
-        "granite3.3:8b",
-        "nomic-embed-text:v1.5",
-        "phi4:14b",
-        "qwen3:8b",
-    ]
+    assert models.ollama_models(aliases) == ["nomic-embed-text:latest", "qwen3:8b"]
 
 
 def test_external_model_refused_unless_allowed() -> None:

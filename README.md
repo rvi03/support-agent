@@ -10,8 +10,8 @@ A working POC of an L1 IT support agent for ServeWell's pilot stores: it reads e
   `"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]` to `~/.docker/config.json`.
 - Colima started with the memory cap `make up` checks (A30):
   `colima start --cpu 6 --memory 8 --disk 100 --vm-type vz --mount-type virtiofs`.
-- Ollama running natively (Docker on a Mac has no GPU): `brew install ollama && brew services start ollama`.
-  `make up` pulls the 5 models (about 23 GB) on first run.
+- An OpenAI API key: put it in `.env` as `OPENAI_API_KEY` (models run on the OpenAI API, D64).
+  Ollama is needed only if you point an alias back at a local model.
 
 ## Quick start
 
@@ -27,7 +27,7 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 
 ## Local platform (`make up`)
 
-`make up` checks Colima's memory cap and the LiteLLM model slots, renders the files that need secrets into `.run/` (git-ignored), starts Postgres and SeaweedFS, applies `db/sql/` (idempotent), creates the buckets, starts the rest with `--wait` (every container has a healthcheck), checks the Ollama models against `compose/ollama-models.lock` and prints `make status`.
+`make up` checks Colima's memory cap and the LiteLLM model slots, renders the files that need secrets into `.run/` (git-ignored), starts Postgres and SeaweedFS, applies `db/sql/` (idempotent), creates the buckets, starts the rest with `--wait` (every container has a healthcheck), lists the model per alias (an Ollama alias is pulled and pinned in `compose/ollama-models.lock`) and prints `make status`.
 
 | Service | Local URL | Purpose |
 |---|---|---|
@@ -35,14 +35,14 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | SeaweedFS (S3 API) | `localhost:8333` | Buckets `servewell` and `langfuse`; one S3 identity per service |
 | Keycloak | `localhost:8080` | Realm `servewell`: roles, `ui` (PKCE), service clients, mock-user clients |
 | OPA | `localhost:8181` | Policies in `compose/opa/policies/` (default deny) |
-| LiteLLM | `localhost:4000` | Aliases `agent`, `embed`, `moderation`, `judge`, `simulator` → Ollama |
+| LiteLLM | `localhost:4000` | Aliases `agent`, `moderation` (gpt-6-luna), `judge` (gpt-6.1-terra), `simulator` (gpt-5.4-nano), `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
 | Langfuse (web, worker) + ClickHouse + Valkey | `localhost:3000` | LLM traces; project and keys created headless |
 | Prometheus, Grafana | `localhost:9090`, `localhost:3001` | Metrics (profile `observability`; `make up LEAN=1` skips them) |
 
 - All ports bind to 127.0.0.1. Each container gets only its own variables from `.env` (D46).
 - Keycloak imports the realm on first start only. After changing the realm or its secrets, reset with `make nuke && make up`.
 - `audit.events` is append-only: INSERT is the only grant, and a trigger refuses UPDATE, DELETE and TRUNCATE for every role.
-- A model swap is an edit of `compose/litellm/config.yaml`; a non-Ollama model needs `ALLOW_EXTERNAL_MODELS=true` for that run.
+- A model swap is an edit of `compose/litellm/config.yaml`. Only masked text is sent to the models (S4 safety net). `ALLOW_EXTERNAL_MODELS=false` forces local Ollama aliases only.
 - `scripts/mem_probe.sh` records memory and swap (CP2.4) into `docs/measurements.md`.
 
 ## Make targets

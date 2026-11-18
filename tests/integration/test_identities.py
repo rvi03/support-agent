@@ -253,7 +253,12 @@ ALLOWED: dict[str, set[str]] = {
     "opa": set(),
     "valkey": {"VALKEY_PASSWORD"},
     "clickhouse": {"CLICKHOUSE_PASSWORD"},
-    "litellm": {"LITELLM_MASTER_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"},
+    "litellm": {
+        "LITELLM_MASTER_KEY",
+        "LANGFUSE_PUBLIC_KEY",
+        "LANGFUSE_SECRET_KEY",
+        "OPENAI_API_KEY",
+    },
     "prometheus": set(),
     "grafana": {"GRAFANA_ADMIN_PASSWORD"},
 }

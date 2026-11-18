@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# CP2.4: record memory and swap with `make up` running, one LiteLLM call per
-# alias, and agent + simulator loaded together (A30). Appends the result to
-# docs/measurements.md and exits non-zero if macOS swap-ins rose.
+# CP2.4: record memory and swap with `make up` running and one LiteLLM call per
+# alias with its job check, tokens and cost (A30, D64). Appends the result to
+# docs/measurements.md and exits non-zero if a check fails or swap-ins rose.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p docs

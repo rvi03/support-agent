@@ -39,7 +39,7 @@ def load_aliases(config_path: Path) -> dict[str, str]:
     return aliases
 
 
-def check_external(aliases: dict[str, str], allow_external: bool) -> None:
+def check_external(aliases: dict[str, str], allow_external: bool, openai_key: str = "") -> None:
     external = {a: m for a, m in aliases.items() if not m.startswith(OLLAMA_PREFIXES)}
     if external and not allow_external:
         listed = ", ".join(f"{a}={m}" for a, m in sorted(external.items()))
@@ -47,6 +47,8 @@ def check_external(aliases: dict[str, str], allow_external: bool) -> None:
             f"Non-Ollama model(s) in the LiteLLM config: {listed}. "
             "Set ALLOW_EXTERNAL_MODELS=true for this run to allow them."
         )
+    if any(m.startswith("openai/") for m in external.values()) and not openai_key.strip():
+        raise ModelError("OPENAI_API_KEY is empty in .env; add your key (D64).")
 
 
 def normalize_tag(name: str) -> str:
