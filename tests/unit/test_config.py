@@ -110,15 +110,19 @@ def test_agent_and_api_hold_no_eval_checker_or_ingest_field(
     assert not fields & {"model_judge", "model_simulator"}  # eval-only settings
 
 
+SHARED_SECRETS = {"litellm_master_key"}
+
+
 def test_each_service_owns_only_its_credentials() -> None:
     for name, cls in config.SERVICES.items():
         secret_fields = {
             f for f, info in cls.model_fields.items() if info.annotation is config.SecretStr
         }
         assert secret_fields, name
-        # Each secret names its own service as a whole token (`..._agent` or `..._agent_...`).
+        # Each secret names its own service as a whole token (`..._agent` or `..._agent_...`),
+        # except the LiteLLM router key, which every model caller shares (D66).
         own = re.compile(rf"_{name}(_|$)")
-        assert all(own.search(f) for f in secret_fields), (name, secret_fields)
+        assert all(own.search(f) for f in secret_fields - SHARED_SECRETS), (name, secret_fields)
 
 
 def test_get_settings_in_process(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

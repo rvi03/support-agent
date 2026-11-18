@@ -46,4 +46,8 @@ REVOKE ALL ON audit.events FROM PUBLIC;
 REVOKE ALL ON audit.events FROM intake_rw, it_data_ro, knowledge_ro, itsm_rw, agent_actor,
     api_rw, checker_ro, ingest_rw, kb_index_rw, eval_ro;
 GRANT INSERT ON audit.events TO intake_rw, it_data_ro, knowledge_ro, itsm_rw, agent_actor, api_rw;
+-- `INSERT ... RETURNING id` needs SELECT on the returned column: the writers may
+-- read back ids only, never an event's content (write_event, S4 fix).
+GRANT SELECT (id) ON audit.events TO intake_rw, it_data_ro, knowledge_ro, itsm_rw, agent_actor,
+    api_rw;
 GRANT SELECT ON audit.events TO checker_ro;

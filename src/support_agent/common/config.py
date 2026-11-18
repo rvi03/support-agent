@@ -60,6 +60,8 @@ class IngestSettings(BaseServiceSettings):
 
 class IntakeSettings(BaseServiceSettings):
     database_url_intake: SecretStr
+    # LiteLLM has no database for per-service virtual keys yet, so intake uses the master key.
+    litellm_master_key: SecretStr
     model_moderation: str = "moderation"
     # Moderation has its own cap, outside LLM_MAX_CALLS (review m1).
     moderation_max_calls: int = Field(default=10, ge=1)

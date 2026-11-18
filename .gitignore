@@ -27,3 +27,4 @@ logs/
 
 # Rendered platform config with secrets (make up)
 .run/
+.hypothesis/

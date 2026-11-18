@@ -83,8 +83,9 @@ status: ## Container health, model digests, Keycloak and OPA ping
 mock-stores: ## Regenerate compose/keycloak/mock-stores.txt from DATASET_DIR
 	@$(PLATFORM) mock-stores
 
-seed: ## Upload the dataset to S3 (SHA-256 checked), load Postgres from S3, check and load the split
+seed: ## Upload the dataset to S3, load Postgres from S3, load the split, then mask the train tickets (S4)
 	$(UV) run python -m support_agent.ingest.seed
+	$(UV) run python -m support_agent.intake.seed
 
 split: ## Write eval/split.json from the uploaded labels (once, before any tuning; commit it)
 	$(UV) run python -m support_agent.ingest.seed split

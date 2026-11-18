@@ -6,10 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "boto3>=1.40",
+    "en-core-web-lg",
+    "httpx>=0.28",
+    "presidio-analyzer>=2.2.366",
     "psycopg[binary]>=3.3",
     "pydantic>=2.14.3",
     "pydantic-settings>=2.16.3",
     "pyyaml>=6.0.3",
+    "spacy>=3.8.18",
     "structlog>=26.1.0",
 ]
 
@@ -20,7 +24,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "boto3-stubs[s3]>=1.44.5",
-    "httpx>=0.28",
+    "hypothesis>=6.170.15",
     "mypy>=2.4.1",
     "pre-commit>=4.7.0",
     "pre-commit-hooks>=6.0.0",
@@ -84,3 +88,6 @@ include = [
 ]
 fail_under = 85
 show_missing = true
+
+[tool.uv.sources]
+en-core-web-lg = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl" }

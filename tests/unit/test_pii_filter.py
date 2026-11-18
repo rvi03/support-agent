@@ -119,7 +119,9 @@ def test_exception_traceback_is_clean(log_file: Path, capsys: pytest.CaptureFixt
 def test_exact_values_match_case_and_phone_separators() -> None:
     register_exact_values("INC-1", ["Testa Mockwell", "90000 00005"])
     try:
-        text = pii_filter.scrub_text("TESTA MOCKWELL at 9000000005 or +91-90000-00005, Mockwellville")
+        text = pii_filter.scrub_text(
+            "TESTA MOCKWELL at 9000000005 or +91-90000-00005, Mockwellville"
+        )
     finally:
         clear_exact_values("INC-1")
 

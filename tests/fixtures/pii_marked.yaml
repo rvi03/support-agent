@@ -1,0 +1,71 @@
+# CP4.2 independent PII fixture (Codex S4). Hand-written strings with their PII
+# marked by hand: the masker must remove every `pii` value and keep every other
+# word. All names, phones, emails and cards are FAKE mock values; never put
+# real or real-looking personal data here (tests/unit/test_no_real_pii.py).
+# `submitter` / `phone`: the ticket's contact, when the case needs the exact match.
+# A name part equal to a place or brand on the never-mask list stays (design.md, Intake 4d).
+- text: "Mockesh Testwani called about the OrbitPOS freeze at SW-0002."
+  pii: ["Mockesh Testwani"]
+- text: "Call me on +91 90000 00011, printer StarMC Print v2 jammed."
+  pii: ["+91 90000 00011"]
+- text: "Numbers tried: 90000-00012 and 09000000013, both busy."
+  pii: ["90000-00012", "09000000013"]
+- text: "Alternate +91-90000 00015 after 6 pm, KOT printer still offline."
+  pii: ["+91-90000 00015"]
+- text: "Fakeesha Dummyrao from the Indiranagar store says the KOT printer is offline."
+  pii: ["Fakeesha Dummyrao"]
+- text: "Email testa.mockwell@example.invalid for the invoice copy."
+  pii: ["testa.mockwell@example.invalid"]
+- text: "Card 4111 1111 1111 1111 was declined on the Pine Labs terminal."
+  pii: ["4111 1111 1111 1111"]
+- text: "Rider Mocknath Fakeswamy is waiting next to the Zomato tablet."
+  pii: ["Mocknath Fakeswamy"]
+- text: "Cisco SG350 port 4 is down; Testiya Mockarjun checked the cables."
+  pii: ["Testiya Mockarjun"]
+- text: "Store manager Mrs. Fakeshree Testpillai approved the ERR-4521 workaround."
+  pii: ["Fakeshree Testpillai"]
+- text: "Mockesh Testwani's phone is 9000000016, call after lunch."
+  pii: ["Mockesh Testwani", "9000000016"]
+- text: "KitchenBridge v2.3 is not in the matrix; contact Fakeraj Testgowda in IT."
+  pii: ["Fakeraj Testgowda"]
+- text: "WhatsApp +919000000017 for the photos of the error screen."
+  pii: ["+919000000017"]
+- text: "Asset POS-0023-T2 with serial FT962050 keeps failing."
+  pii: []
+- text: "Error E-402 at 10:15, linked to ticket INC-00045 and SW-0101."
+  pii: []
+- text: "Submitted by MOCKESH TESTWANI from the front counter."
+  submitter: "Mockesh Testwani"
+  pii: ["MOCKESH TESTWANI"]
+- text: "testa says the soft serve CreamTech SC-300 is leaking again."
+  submitter: "Testa Mockwell"
+  pii: ["testa"]
+- text: "Reach me on 90000 00018 or 900.000.0018 today."
+  submitter: "Testa Mockwell"
+  phone: "+91-90000-00018"
+  pii: ["90000 00018", "900.000.0018"]
+- text: "Dummyrani Fakebai from Brookefield and Fakevel Mockan from Adyar both called."
+  pii: ["Dummyrani Fakebai", "Fakevel Mockan"]
+- text: "Wi-Fi reset was done by Testanna Mockiah at Yelahanka this morning."
+  pii: ["Testanna Mockiah"]
+- text: "Paytm and PhonePe UPI are failing, cashier Mockini Fakedas says Payment Pending."
+  pii: ["Mockini Fakedas"]
+- text: "Swiggy order 123456 for Fakeer Mockhan is stuck at the kitchen display."
+  pii: ["Fakeer Mockhan"]
+- text: "Router NetLink NL-3000 rebooted at 2026-01-03T09:47:00+05:30 by itself."
+  pii: []
+- text: "Landline 040-90000019 is not reachable from the Hyderabad office."
+  pii: ["040-90000019"]
+- text: "Hebbal Testkar at the Hebbal store restarted the FrostyPro 800."
+  pii: ["Testkar"]
+- text: "Dr. Mockaditya Fakesharma, the vendor tech for FoodTech POS, visited."
+  pii: ["Mockaditya Fakesharma"]
+- text: "Please ask for Testmohan Fakereddy, he knows the EpsonTM-T88VI driver issue."
+  pii: ["Testmohan Fakereddy"]
+- text: "Outlook and Teams work but Chrome shows ERR-NAME on the ServeWell Kiosk."
+  pii: []
+- text: "Contact: Mocklata Fakeiyer (90000 00020), shift lead at Electronic City."
+  pii: ["Mocklata Fakeiyer", "90000 00020"]
+- text: "Shift lead fakeprasad mocknair said the printer printed blank bills."
+  submitter: "Fakeprasad Mocknair"
+  pii: ["fakeprasad mocknair"]

@@ -146,3 +146,15 @@ def test_copy_source_contact_only_by_intake(su: psycopg.Connection) -> None:
             conn.execute("SELECT pii.copy_source_contact('INC-NONE', 'INC-X')")
     finally:
         su.execute("DELETE FROM pii.vault WHERE ticket_id IN (%s, %s)", (source, target))
+
+
+@pytest.mark.parametrize("role", sorted(AUDIT_WRITERS))
+def test_writer_roles_can_use_write_event_but_not_read_content(role: str) -> None:
+    """`write_event` uses INSERT ... RETURNING id: writers may read back ids only (S4 fix)."""
+    from support_agent.common.audit import AuditEvent, write_event
+
+    with _connect(_url(role)) as conn:
+        event = AuditEvent(step="test", actor=role, action="s4 write_event", result="ok")
+        assert write_event(conn, event) > 0
+        with pytest.raises(errors.InsufficientPrivilege):
+            conn.execute("SELECT result FROM audit.events LIMIT 1")

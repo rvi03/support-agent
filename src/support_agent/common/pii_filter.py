@@ -49,6 +49,13 @@ class _ExactValues:
             self._entries[ticket_id] = (cleaned, time.monotonic() + ttl_seconds)
             self._pattern = None
 
+    def values(self, ticket_id: str) -> frozenset[str]:
+        with self._lock:
+            entry = self._entries.get(ticket_id)
+            if entry is None or entry[1] <= time.monotonic():
+                return frozenset()
+            return entry[0]
+
     def clear(self, ticket_id: str) -> None:
         with self._lock:
             if self._entries.pop(ticket_id, None) is not None:
@@ -92,6 +99,11 @@ def register_exact_values(
 ) -> None:
     """Strip these exact values (names, phones) from all logs until cleared or expired."""
     _REGISTRY.register(ticket_id, values, ttl_seconds)
+
+
+def registered_values(ticket_id: str) -> frozenset[str]:
+    """This ticket's registered exact values (the safety net's vault detector, D43)."""
+    return _REGISTRY.values(ticket_id)
 
 
 def clear_exact_values(ticket_id: str) -> None:
