@@ -35,7 +35,7 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | SeaweedFS (S3 API) | `localhost:8333` | Buckets `servewell` and `langfuse`; one S3 identity per service |
 | Keycloak | `localhost:8080` | Realm `servewell`: roles, `ui` (PKCE), service clients, mock-user clients |
 | OPA | `localhost:8181` | Policies in `compose/opa/policies/` (default deny) |
-| LiteLLM | `localhost:4000` | Aliases `agent`, `moderation` (gpt-6-luna), `judge` (gpt-6.1-terra), `simulator` (gpt-5.4-nano), `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
+| LiteLLM | `localhost:4000` | Aliases `agent`, `moderation`, `judge`, `simulator` (gpt-6-luna) and `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
 | Langfuse (web, worker) + ClickHouse + Valkey | `localhost:3000` | LLM traces; project and keys created headless |
 | Prometheus, Grafana | `localhost:9090`, `localhost:3001` | Metrics (profile `observability`; `make up LEAN=1` skips them) |
 

@@ -45,12 +45,12 @@ MODERATION_SCHEMA = {
     "required": ["label"],
     "additionalProperties": False,
 }
-# USD per 1M tokens (input, output), from design.md LLM section (D64). Estimate only.
+# USD per 1M tokens (input, output), from design.md LLM section (D64, D65). Estimate only.
 PRICES = {
     "agent": (0.10, 0.50),
     "moderation": (0.10, 0.50),
-    "simulator": (0.20, 1.25),
-    "judge": (1.00, 5.00),
+    "simulator": (0.10, 0.50),
+    "judge": (0.10, 0.50),
     "embed": (0.02, 0.0),
 }
 TICKET = "Store SW-0042: the receipt printer shows offline on the POS since this morning."

@@ -1,7 +1,7 @@
 # LiteLLM proxy: one alias per job (D21, D22). Services call the alias only, so a
 # model swap is an edit here and nothing else.
-# Models run on the OpenAI API (D64); OPENAI_API_KEY comes from .env and reaches
-# only this container. Callers send masked text only (S4 safety net before every call).
+# Models run on the OpenAI API (D64, D65: gpt-6-luna on every chat slot).
+# OPENAI_API_KEY comes from .env and reaches only this container. Callers send masked text only (S4 safety net before every call).
 # Ollama fallback: point an alias at `ollama_chat/<tag>` with
 # `api_base: os.environ/OLLAMA_API_BASE`; `make up` then pulls and pins it.
 model_list:
@@ -25,12 +25,12 @@ model_list:
       temperature: 0
   - model_name: judge
     litellm_params:
-      model: openai/gpt-6.1-terra
+      model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
       temperature: 0
   - model_name: simulator
     litellm_params:
-      model: openai/gpt-5.4-nano
+      model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
       temperature: 0
 

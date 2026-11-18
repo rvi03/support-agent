@@ -223,8 +223,8 @@ def test_config_maps_every_alias_to_its_openai_model() -> None:
         "agent": "openai/gpt-6-luna",
         "embed": "openai/text-embedding-3-small",
         "moderation": "openai/gpt-6-luna",
-        "judge": "openai/gpt-6.1-terra",
-        "simulator": "openai/gpt-5.4-nano",
+        "judge": "openai/gpt-6-luna",
+        "simulator": "openai/gpt-6-luna",
     }
     assert models.ollama_models(aliases) == []
     models.check_external(aliases, allow_external=True, openai_key="sk-test")
