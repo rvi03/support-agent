@@ -1,0 +1,293 @@
+# Triage few-shot examples (S9, CP9.1). Tune half only and none of the 40
+# model-check or 20 abstention tickets, so CP9.2 is not scored on an example
+# (D39). Ticket text is the masked source row; long descriptions are cut with
+# "[...]" but every evidence quote is in the text shown. Facts are what Enrich
+# returned for the ticket; lookups are real results on kb-d502addba1b876a6.
+version: triage-examples v1
+examples:
+  - id: INC-00221
+    case: plain L1 fix
+    ticket:
+      subject: Receipt printer printing garbled text and wrong format
+      description: Receipt printer PRN-0011-P1 is printing orders in wrong format—text is jumbled and columns are misaligned. Affecting order fulfillment at counter. Started this morning around 10 AM.
+      category: Printers
+      asset_id: PRN-0011-P1
+      system_version: StarMC Print v2 v3.0
+      history: []
+    facts: "flags none; asset PRN-0011-P1 = Receipt Printer, StarMC Print v2 v3.0, in warranty; store has Network Router, POS Terminal, Receipt Printer, Self-Order Kiosk; no known bug"
+    lookups:
+      - search_kb("receipt printer garbled text wrong format misaligned", printer) -> runbooks/printer-wrong-output.md first
+      - get_document("runbooks/printer-wrong-output.md") -> Symptoms lists garbled characters and misaligned text
+    verdict:
+      real_category: Printers
+      real_device: Receipt Printer
+      trick_flags: []
+      runbook_id: runbooks/printer-wrong-output.md
+      runbook_evidence:
+        section_id: runbooks/printer-wrong-output.md#symptoms
+        quote: Characters display as random symbols, boxes, or unreadable garbled text
+      sop_triggers: []
+      doc_conflicts: []
+      route: l1_guided
+      reason: Garbled, misaligned receipts on the linked StarMC printer match printer-wrong-output; nothing was tried yet, so its L1 steps (encoding, print width) can fix it.
+      confidence: 0.92
+    why: The device, asset and runbook all agree and nothing was tried, so the runbook's own L1 path is the default.
+
+  - id: INC-00305
+    case: guide first, then L2 (cause looks like hardware)
+    ticket:
+      subject: Receipt printer outputting blank pages at Wakad location
+      description: The receipt printer (StarMC Print v2) at the counter is producing completely blank receipts since this afternoon. Customers are unable to receive itemized receipts for their orders. The printer powers on and feeds paper normally, but no text or images are appearing on the output. This is affecting order fulfillment and customer experience during peak dinner service.
+      category: Printers
+      asset_id: PRN-0100-P2
+      system_version: StarMC Print v2 v3.0
+      history:
+        - "L1 Agent: Ticket acknowledged and assigned. Initial troubleshooting steps recommended: verify print driver is active and check for paper jam or ribbon issues."
+    facts: "flags none; asset PRN-0100-P2 = Receipt Printer, StarMC Print v2 v3.0, warranty expired; no known bug"
+    lookups:
+      - search_kb("receipt printer blank receipts no text", printer) -> runbooks/printer-wrong-output.md first
+      - get_document("runbooks/printer-wrong-output.md") -> Symptoms lists completely blank receipts; escalation criteria include a test print that stays blank
+    verdict:
+      real_category: Printers
+      real_device: Receipt Printer
+      trick_flags: []
+      runbook_id: runbooks/printer-wrong-output.md
+      runbook_evidence:
+        section_id: runbooks/printer-wrong-output.md#symptoms
+        quote: Receipts print completely blank (no text or images)
+      sop_triggers: []
+      doc_conflicts: []
+      route: l1_then_l2
+      reason: Blank output while the printer powers on and feeds paper normally points to the print head or thermal paper (hardware); walk printer-wrong-output for the store-side checks, then hand to L2.
+      confidence: 0.8
+    why: The runbook fits, but the symptom profile is hardware, so L1 steps are unlikely to be enough; peak dinner service is impact, not a trigger.
+
+  - id: INC-00148
+    case: escalate-now trigger
+    ticket:
+      subject: Zomato integration offline - no online orders received since 13:45 IST
+      description: "The Zomato integration for ServeWell - Velachery has been completely non-functional since approximately 13:45 IST today (14 February 2026). No new online orders from Zomato are being received in the StarMC Print v2 system (PRN-0086-P1), though the ordering app shows our restaurant as open and accepting orders. We have verified that: (1) the printer is powered on and connected to the network, (2) manual test prints from the terminal work without issue, (3) our internet connectivity is stable [...] The integration status dashboard in our backend shows a red alert flag but provides no specific error code. We require immediate escalation to the integration team to restore Zomato connectivity."
+      category: Online Orders
+      asset_id: PRN-0086-P1
+      system_version: StarMC Print v2 v3.0
+      history:
+        - "L1 Agent: Ticket acknowledged. Confirmed Zomato integration status is offline via backend dashboard. [...]"
+    facts: "flags none; asset PRN-0086-P1 = Receipt Printer (online orders have no device of their own); no known bug"
+    lookups:
+      - search_kb("Zomato integration offline online orders not received") -> runbooks/online-orders-aggregator-disconnect.md first
+      - get_document("runbooks/online-orders-aggregator-disconnect.md") -> Symptoms lists the red error icon and orders not syncing
+    verdict:
+      real_category: Online Orders
+      real_device: null
+      trick_flags: [steps_already_tried]
+      runbook_id: runbooks/online-orders-aggregator-disconnect.md
+      runbook_evidence:
+        section_id: runbooks/online-orders-aggregator-disconnect.md#symptoms
+        quote: Red error icon next to Zomato/Swiggy channel in Portal dashboard
+      sop_triggers:
+        - trigger: third_party_integration_failure
+          evidence: The Zomato integration for ServeWell - Velachery has been completely non-functional
+        - trigger: customer_asks
+          evidence: We require immediate escalation to the integration team to restore Zomato connectivity.
+      doc_conflicts: []
+      route: l2_now
+      reason: The Zomato integration is fully down while the store's printer and internet work, which is a delivery-aggregator integration failure, and the store explicitly asks for escalation.
+      confidence: 0.9
+    why: A delivery-aggregator outage is an escalate-now SOP trigger; the linked printer is not the device at fault, so real_device is null.
+
+  - id: INC-00158
+    case: device not at the store (E2/E3)
+    ticket:
+      subject: RTR-0068-01 Soft Serve Mix Low Alert - Machine Unable to Dispense
+      description: "The soft serve machine (NetLink NL-3000 v2.2, Asset ID: RTR-0068-01) at ServeWell - Lokhandwala has been triggering persistent 'Mix Low' alerts since approximately 10:45 AM this morning. The machine displays error code MIX-LOW-002 on the operator panel and has stopped dispensing product entirely. We have confirmed that the mix hopper was filled to capacity at 09:30 AM today [...] We have attempted a manual reset of the machine twice using the power cycle method, but the alert persists immediately upon restart. [...] Immediate escalation to technical team is required to restore service."
+      category: Soft Serve
+      asset_id: RTR-0068-01
+      system_version: NetLink NL-3000 v2.2
+      history:
+        - "L1 Agent: Ticket received and acknowledged. [...]"
+    facts: "flags none; asset RTR-0068-01 = Network Router; store has Network Router, POS Terminal, Receipt Printer (no Soft Serve Machine)"
+    lookups:
+      - search_kb("soft serve machine mix low alert MIX-LOW-002 not dispensing", soft_serve) -> soft-serve FAQ, motor-alarm, error-codes, not-cooling; none is written for a mix-low alert and no document lists MIX-LOW-002
+    verdict:
+      real_category: Soft Serve
+      real_device: Soft Serve Machine
+      trick_flags: [wrong_device, steps_already_tried]
+      runbook_id: null
+      runbook_evidence: null
+      sop_triggers:
+        - trigger: error_not_in_kb
+          evidence: The machine displays error code MIX-LOW-002 on the operator panel
+        - trigger: customer_asks
+          evidence: Immediate escalation to technical team is required to restore service.
+      doc_conflicts: []
+      route: l2_now
+      reason: The ticket is about a soft-serve machine but is linked to a router and the store has no soft-serve machine in the CMDB, so the device cannot be verified; MIX-LOW-002 is in no KB document and the store asks for escalation.
+      confidence: 0.85
+    why: The linked asset is a router and the device is not at the store, so no runbook can be trusted; the real device is still the soft-serve machine.
+
+  - id: INC-00180
+    case: fake asset (E4)
+    ticket:
+      subject: Receipt printer not printing at Terminal 3 - POS-9177-T1
+      description: The receipt printer connected to Terminal 3 at the counter has stopped working since approximately 6:45 PM today. Orders are being processed in the FoodTech POS system v4.2.1 without errors, but no receipts are being printed. The printer appears to be powered on and connected, but the POS system is not sending output to it. This is impacting customer service as we cannot provide printed receipts. We have restarted the terminal once but the issue persists.
+      category: POS
+      asset_id: POS-9177-T1
+      system_version: FoodTech POS v4.2.1
+      history: []
+    facts: "flags asset_not_found; asset none; store has Network Router, POS Terminal, Receipt Printer; FoodTech POS v4.2.1 known bug 'Screen flicker on idle > 30min' (not this symptom)"
+    lookups:
+      - search_kb("receipt printer not printing POS not sending output") -> runbooks/printer-wrong-output.md, runbooks/pos-printer-integration.md
+      - get_document("runbooks/pos-printer-integration.md") -> Symptoms lists a powered printer the POS cannot detect
+    verdict:
+      real_category: Printers
+      real_device: Receipt Printer
+      trick_flags: [fake_device, wrong_category]
+      runbook_id: runbooks/pos-printer-integration.md
+      runbook_evidence:
+        section_id: runbooks/pos-printer-integration.md#symptoms
+        quote: Printer power LED is on, but POS cannot detect device
+      sop_triggers: []
+      doc_conflicts: []
+      route: l1_guided
+      reason: The linked asset POS-9177-T1 does not exist, but the store does have a receipt printer and the symptom (powered printer, POS sends no output) matches pos-printer-integration; one terminal restart does not exhaust its L1 steps.
+      confidence: 0.7
+    why: A fake asset id lowers confidence but does not hide the real device, which the store has; the known bug is for another symptom, so it is not used.
+
+  - id: INC-00014
+    case: unknown system (E5)
+    ticket:
+      subject: KitchenBridge v2.3 soft-serve dispenser not syncing with POS — inconsistent portion sizes
+      description: The soft-serve dispensing machine (RTR-0037-01) is not syncing properly with our KitchenBridge v2.3 system. Orders coming through the POS are not being reflected in the dispenser queue, causing staff to manually input portion sizes and leading to inconsistent servings. The machine was working normally yesterday morning, but started showing sync errors around 9:00 AM today. We have restarted the dispenser twice with no improvement. This is impacting customer service and order fulfillment significantly.
+      category: Soft Serve
+      asset_id: RTR-0037-01
+      system_version: KitchenBridge v2.3
+      history:
+        - "L1 Agent: Ticket received and triaged as P1. [...]"
+    facts: "flags unknown_system, version_mismatch; asset RTR-0037-01 = Network Router, NetLink NL-3000 v2.2; known bug for KitchenBridge v2.3: unknown_system; store has Network Router, POS Terminal, Receipt Printer"
+    lookups: []
+    verdict:
+      real_category: Soft Serve
+      real_device: Soft Serve Machine
+      trick_flags: [unknown_system, wrong_device, steps_already_tried]
+      runbook_id: null
+      runbook_evidence: null
+      sop_triggers: []
+      doc_conflicts: []
+      route: human
+      reason: KitchenBridge v2.3 is not in the version matrix and the linked asset is a router at a store with no soft-serve machine, so no runbook can be trusted and a person must check the system.
+      confidence: 0.9
+    why: An unknown system goes to a human without guessing a runbook, even though the linked asset exists.
+
+  - id: INC-00054
+    case: wrong category (E8)
+    ticket:
+      subject: POS Terminal T1 Not Responding - Connection Lost
+      description: POS terminal T1 stopped responding at approximately 15:00 IST during peak lunch service. The terminal displays 'Unable to connect to server' error and all transaction processing has halted. We have restarted the terminal twice but the issue persists. Upon investigation, we noticed that the router light indicator is off and there is no connectivity to other networked devices in the store either. The WiFi network is not broadcasting and all staff devices are also unable to connect to the internet.
+      category: POS
+      asset_id: POS-0053-T1
+      system_version: FoodTech POS v4.2.2
+      history:
+        - "L1 Agent: Ticket received and reviewed. [...]"
+    facts: "flags none; asset POS-0053-T1 = POS Terminal, FoodTech POS v4.2.2; store has Network Router, POS Terminal, Receipt Printer"
+    lookups:
+      - search_kb("router light off no connectivity all devices WiFi not broadcasting", network) -> runbooks/network-router-offline.md first
+      - get_document("runbooks/network-router-offline.md") -> Symptoms lists no connectivity across all devices and router LEDs off
+    verdict:
+      real_category: Wi-Fi / Network
+      real_device: Network Router
+      trick_flags: [wrong_category, wrong_device, steps_already_tried]
+      runbook_id: runbooks/network-router-offline.md
+      runbook_evidence:
+        section_id: runbooks/network-router-offline.md#symptoms
+        quote: No internet connectivity across all wired and wireless devices
+      sop_triggers:
+        - trigger: network_failure
+          evidence: the router light indicator is off and there is no connectivity to other networked devices in the store either
+      doc_conflicts: []
+      route: l2_now
+      reason: Filed as a POS fault, but the router is dark and every device in the store has lost connectivity, so the real issue is the router (network failure); the POS is only a victim.
+      confidence: 0.88
+    why: The ticket field says POS, but the text shows a store-wide router outage, so category and device come from the content.
+
+  - id: INC-00005
+    case: not IT (redirect to HR)
+    ticket:
+      subject: Payment reader not accepting my card this month
+      description: The payment reader at my register keeps rejecting my personal card when I try to clock in or access the shift schedule app. I think something is wrong with the hardware but honestly my salary didn't reflect last month either. Can you check if there's a system issue blocking my access?
+      category: Kiosks
+      asset_id: RTR-0017-01
+      system_version: NetLink NL-3000 v2.2
+      history: []
+    facts: "flags none; asset RTR-0017-01 = Network Router; store has Network Router, POS Terminal, Receipt Printer (no kiosk)"
+    lookups: []
+    verdict:
+      real_category: Other
+      real_device: null
+      trick_flags: [not_it, wrong_category, wrong_device]
+      runbook_id: null
+      runbook_evidence: null
+      sop_triggers: []
+      doc_conflicts: []
+      route: non_it
+      reason: A personal card used for clock-in and a missing salary are HR and payroll matters, not a store IT fault; the store has no kiosk and the linked asset is a router.
+      confidence: 0.9
+    why: No runbook search is needed when the problem is not IT; the store is pointed to HR.
+
+  - id: INC-00149
+    case: too vague (clarify)
+    ticket:
+      subject: POS terminal not connecting
+      description: The POS machine is not working. Network seems to be down or something. Can't process orders. Please fix ASAP.
+      category: POS
+      asset_id: POS-0120-T1
+      system_version: OrbitPOS v2.1
+      history: []
+    facts: "flags none; asset POS-0120-T1 = POS Terminal, OrbitPOS v2.1; store has Network Router, POS Terminal, Receipt Printer, Self-Order Kiosk, Soft Serve Machine"
+    lookups: []
+    verdict:
+      real_category: POS
+      real_device: POS Terminal
+      trick_flags: [too_vague]
+      runbook_id: null
+      runbook_evidence: null
+      sop_triggers: []
+      doc_conflicts: []
+      route: clarify
+      reason: No error, screen message or scope is given, so it is unclear whether one terminal or the whole network is down; one question (what the screen shows and whether other devices are online) makes it actionable.
+      confidence: 0.75
+    why: '"ASAP" is not a trigger, and guessing between a POS runbook and a router runbook would be a coin toss; one question settles it.'
+
+  - id: INC-00237
+    case: documents disagree (error code)
+    ticket:
+      subject: FrostyPro 800 displaying persistent Error Code E-407 on soft serve machine SSM-0023-01
+      description: "The soft serve machine (FrostyPro 800 v2.0, asset ID SSM-0023-01) at ServeWell - Saket began displaying Error Code E-407 on its LED control panel at approximately 2:45 PM IST today (09-May-2026). The error message reads: 'E-407: Compressor Temperature Sensor Malfunction - Manual Reset Required.' The machine ceased dispensing product immediately upon error display [...] We have attempted the standard L1 troubleshooting steps: (1) power cycle by switching off the main breaker for 30 seconds and restarting; (2) checked all visible cable connections [...] Immediate escalation and on-site technical support is required to restore this asset to service."
+      category: Soft Serve
+      asset_id: SSM-0023-01
+      system_version: FrostyPro 800 v2.0
+      history:
+        - "L1 Agent: Ticket received and reviewed. [...]"
+    facts: "flags none; asset SSM-0023-01 = Soft Serve Machine, FrostyPro 800 v2.0, in warranty; no known bug"
+    lookups:
+      - search_kb("FrostyPro 800 error code E-407 compressor temperature sensor", soft_serve) -> runbooks/soft-serve-error-codes.md (FrostyPro table), system-specs/frostypro-soft-serve.md (F01-F08 table)
+      - get_document("runbooks/soft-serve-error-codes.md") -> FrostyPro codes F01-F08 only; F02 = Evaporator Temperature Sensor Malfunction
+      - get_document("system-specs/frostypro-soft-serve.md") -> F01-F08 only; F03 = Temperature sensor fault
+    verdict:
+      real_category: Soft Serve
+      real_device: Soft Serve Machine
+      trick_flags: [steps_already_tried]
+      runbook_id: runbooks/soft-serve-error-codes.md
+      runbook_evidence:
+        section_id: runbooks/soft-serve-error-codes.md#symptoms
+        quote: Machine displays alphanumeric error code on digital display panel
+      sop_triggers:
+        - trigger: error_not_in_kb
+          evidence: began displaying Error Code E-407 on its LED control panel
+        - trigger: customer_asks
+          evidence: Immediate escalation and on-site technical support is required to restore this asset to service.
+      doc_conflicts:
+        - runbooks/soft-serve-error-codes.md and system-specs/frostypro-soft-serve.md disagree on which FrostyPro code is the temperature-sensor fault (runbook F02, spec F03); neither lists E-407.
+      route: l2_now
+      reason: E-407 is in no FrostyPro code table, the two tables disagree on the temperature-sensor code this fault depends on, the power cycle was already done, and the store asks for on-site support.
+      confidence: 0.88
+    why: Both documents were read and they disagree on the fact the diagnosis needs, so the conflict is named without picking a side, and the unlisted code is error_not_in_kb.

@@ -27,6 +27,9 @@ ALLOWED = {
     "tests/unit/test_seed.py",  # CP3.x seed
 }
 EVAL_LISTS = ("eval/model_check.json", "eval/abstention.json")
+# Few-shot examples live in the prompts, so a held-out id there leaks labels (S9, D39).
+PROMPT_DIRS = ("src/support_agent/agent/examples", "src/support_agent/agent/skills",
+               "src/support_agent/agent/prompts")  # fmt: skip
 
 
 def _heldout() -> set[str]:
@@ -34,10 +37,11 @@ def _heldout() -> set[str]:
     return set(split["heldout"]["labelled"]) | set(split["heldout"]["tricky"])
 
 
-def test_no_heldout_ids_in_tests_or_eval_lists() -> None:
+def test_no_heldout_ids_in_tests_eval_lists_or_prompts() -> None:
     held = _heldout()
     files = [p for p in (ROOT / "tests").rglob("*") if p.suffix in (".py", ".yaml", ".json")]
     files += [ROOT / p for p in EVAL_LISTS]
+    files += [p for d in PROMPT_DIRS for p in (ROOT / d).rglob("*") if p.is_file()]
     leaks = {}
     for path in files:
         rel = path.relative_to(ROOT).as_posix()

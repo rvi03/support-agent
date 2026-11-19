@@ -12,7 +12,7 @@ export COMPOSE_PROFILES :=
 endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
-	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check
+	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check walk-dry-run
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -95,6 +95,9 @@ abstention: ## CP8.2: 20 Group A tune tickets with every runbook of their family
 
 model-check: ## CP8.4: K1, K5, output validity on 40 tune tickets; ALIAS=agent|agent-terra
 	$(UV) run python -m support_agent.eval.agent_run model-check $(or $(ALIAS),agent)
+
+walk-dry-run: ## CP9.3: walk-runbook skill on 5 tune Group A tickets with a scripted store; writes eval/reports/walk_dry_run.md
+	$(UV) run python -m support_agent.eval.walk_dry_run
 
 realm: ## Re-import the Keycloak realm after a realm.py change (deletes and re-imports it)
 	@$(PLATFORM) realm-reload

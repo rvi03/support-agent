@@ -1,6 +1,7 @@
 """Triage node (S8 build step 3; agent-architecture.md, 3 Triage): bounded ReAct.
 
-- The model (alias `agent`) gets the versioned prompt plus the escalation SOP,
+- The model (alias `agent`) gets the versioned prompt, the handle-ticket skill and
+  the worked examples (S9, `agent.prompting`) plus the escalation SOP,
   and the ticket and facts inside `<data>` tags.
 - Tools: search_kb, get_document, get_ticket, get_recent_tickets, get_known_bug;
   at most `max_tool_calls` lookups, counted in code. After the last one only
@@ -20,7 +21,6 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from importlib import resources
 from typing import Any, Protocol
 
 from pydantic import ValidationError
@@ -34,6 +34,7 @@ from support_agent.agent.llm import (
     strict_schema,
 )
 from support_agent.agent.nodes.enrich import ItData
+from support_agent.agent.prompting import system_prompt
 from support_agent.agent.state import Facts, HandoffReason, TriageOutput, TriageResult
 from support_agent.agent.tools import ToolCallError
 from support_agent.intake.safety_net import PIIBlocked
@@ -51,10 +52,12 @@ FAMILIES = ["pos", "printer", "network", "online_orders", "soft_serve", "kiosk",
 
 
 def load_prompt() -> str:
-    return resources.files("support_agent.agent.prompts").joinpath("triage.md").read_text()
+    """Base prompt + handle-ticket skill + worked examples (S9); the SOP is added per kb_rev."""
+    return system_prompt("triage").text
 
 
-PROMPT_VERSION = load_prompt().splitlines()[0]
+PROMPT_VERSION = system_prompt("triage").version
+SOP_HEADER = "\n# Escalation SOP (always applies)\n"
 
 
 class Knowledge(Protocol):
@@ -371,7 +374,7 @@ async def triage(ticket: MaskedTicket, facts: Facts, deps: TriageDeps) -> Triage
     try:
         sop, sop_rev = await deps.sop.get(deps.kb)
         run.kb_rev = sop_rev
-        fixed = load_prompt() + "\n" + sop
+        fixed = load_prompt() + SOP_HEADER + sop
         data = _data(ticket_payload(ticket, facts))
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": fixed},
