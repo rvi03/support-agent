@@ -1,0 +1,222 @@
+# Approved walk steps (S11 build step 3; D108). Plain data, versioned in the repo.
+#
+# For the POS/Printer POC the Resolver may dispatch only the runbook spans listed
+# here. The model picks a step by its id; code sends or runs exactly this span
+# (warnings first), so no LLM text reaches the store. A step the model wants that
+# is not listed has no approved binding and the ticket is handed off.
+#
+# Each step:
+#   id        stable id (the model picks it)
+#   section   the runbook section the span is copied from
+#   title     a short label for the walk summary (our words, not the runbook's)
+#   span      the runbook words, as in the section (whitespace and markup are folded
+#             when code checks the span is still in the ticket's kb_rev)
+#   audience  store (hands and eyes) | it (a registry action) | l2 (an L2 task)
+#   action_id registry action (audience it)
+#   l2_reason why L2 does it (audience l2): l2_only, secret, destructive_store_step,
+#             unmapped, guard
+#   scope     any | usb | network (the connection the step is written for)
+#   generic   true: allowed when the runbook does not cover the device version
+#   warnings  runbook lines sent before the span (a Store step) or put in the L2
+#             task (a guarded IT step becomes an L2 task, D51)
+#   requires  step ids that must be completed in this walk first (a step the store
+#             only reported as tried does not count, D54)
+#   approval  true when the runbook itself asks for approval of this step (D109)
+#   conflict  true when KB documents disagree on this step: hand off
+version: 1
+runbooks:
+  runbooks/printer-offline.md:
+    - id: po-physical-check
+      section: runbooks/printer-offline.md#immediate-steps-first-2-minutes
+      title: Physical check of power and cable
+      audience: store
+      scope: any
+      generic: true
+      span: |-
+        1. **Physical Check**
+           - Verify the printer is powered on (check LED indicator)
+           - For USB printers: confirm cable is firmly connected to both printer and POS terminal
+           - For network printers: confirm ethernet cable is firmly connected and switch/router is powered on
+    - id: po-self-test
+      section: runbooks/printer-offline.md#immediate-steps-first-2-minutes
+      title: Printer self-test
+      audience: store
+      scope: any
+      generic: true
+      span: |-
+        2. **Printer Self-Test**
+           - Press and hold the **FEED button** on the printer for 3–5 seconds to initiate self-test
+           - Verify paper loads and prints test pattern (confirms hardware is functional)
+           - If self-test prints successfully, issue is driver or connectivity related
+    - id: po-restart-pos-app
+      section: runbooks/printer-offline.md#immediate-steps-first-2-minutes
+      title: Restart of the POS application
+      audience: store
+      scope: any
+      generic: true
+      span: |-
+        3. **Restart POS Application**
+           - Close ServeWell POS completely
+           - Wait 10 seconds
+           - Reopen ServeWell POS and check if printer status updates to "Online"
+    - id: po-usb-recognition
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-usb-printers-step-1-verify-device-rec
+      title: Check that Windows lists the printer
+      audience: it
+      action_id: check_printer_recognition
+      scope: usb
+      span: |-
+        1. On the POS terminal, open **Settings** → **Devices** → **Printers & Scanners**
+        2. Locate the printer model (Epson TM-T88VI or Star MC Print v2)
+    - id: po-usb-reconnect
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-usb-printers-step-1-verify-device-rec
+      title: Reconnect of the USB cable
+      audience: store
+      scope: usb
+      span: |-
+        - Disconnect USB cable from printer
+           - Wait 5 seconds
+           - Reconnect USB cable
+           - Wait 10 seconds for Windows to detect device
+    - id: po-usb-device-manager
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-usb-printers-step-2-check-printer-sta
+      title: Device Manager check
+      audience: it
+      action_id: check_device_manager_status
+      scope: usb
+      span: |-
+        1. Press **Windows Key + R**, type `devmgmt.msc`, and press Enter
+        2. Expand **Printers** category
+        3. Locate your printer model
+    - id: po-usb-driver-version
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-usb-printers-step-3-check-driver-vers
+      title: Driver version check
+      audience: it
+      action_id: check_printer_driver_version
+      scope: usb
+      span: |-
+        5. Note the **Driver Version** displayed
+           - **Epson TM-T88VI:** Should be v3.2.0 or later
+           - **Star MC Print v2:** Should be v2.8.0 or later
+    - id: po-usb-spooler-check
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-usb-printers-step-4-verify-windows-pr
+      title: Print Spooler check and restart
+      audience: it
+      action_id: restart_print_spooler
+      scope: usb
+      span: |-
+        5. **If status shows "Running":**
+           - Restart the spooler: right-click → **Restart**
+    - id: po-usb-spooler-restart
+      section: runbooks/printer-offline.md#l1-resolution-for-usb-printers-resolution-step-1-restart-win
+      title: Print Spooler restart
+      audience: it
+      action_id: restart_print_spooler
+      scope: usb
+      span: |-
+        3. Right-click **Print Spooler** → **Restart**
+        4. Wait for status to show "Running"
+    - id: po-usb-driver-reinstall
+      section: runbooks/printer-offline.md#l1-resolution-for-usb-printers-resolution-step-2-update-or-r
+      title: Driver update or reinstall (L2)
+      audience: l2
+      l2_reason: unmapped
+      scope: usb
+      span: |-
+        4. **If update fails, perform clean reinstall:**
+           - In Device Manager, right-click the printer → **Uninstall device**
+    - id: po-usb-clear-queue
+      section: runbooks/printer-offline.md#l1-resolution-for-usb-printers-resolution-step-3-clear-print
+      title: Print queue cleared
+      audience: it
+      action_id: clear_print_queue
+      scope: usb
+      span: |-
+        5. Delete all files in this folder (it will appear empty if queue is clear)
+    - id: po-net-config-page
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-network-printers-step-1-verify-ip-add
+      title: Network configuration page printed
+      audience: store
+      scope: network
+      span: |-
+        1. On the printer itself, press and hold the **FEED button** and **POWER button** simultaneously for 5 seconds to print network configuration page
+        2. Locate the **IP Address** line on the printout
+    - id: po-net-ping
+      section: runbooks/printer-offline.md#l1-diagnosis-steps-for-network-printers-step-2-test-network-
+      title: Ping of the network printer
+      audience: it
+      action_id: ping_network_printer
+      scope: network
+      span: |-
+        2. Type the command: `ping [IP_ADDRESS]` (replace [IP_ADDRESS] with the printer's IP from Step 1)
+    - id: po-net-power-cycle
+      section: runbooks/printer-offline.md#l1-resolution-for-network-printers-resolution-step-1-verify-
+      title: Printer power cycle for a new IP address
+      audience: store
+      scope: network
+      span: |-
+        - Power off the printer (hold POWER button 3 seconds)
+           - Wait 10 seconds
+           - Power on the printer
+           - Wait 30 seconds for DHCP assignment
+
+  runbooks/pos-screen-frozen.md:
+    - id: psf-wait
+      section: runbooks/pos-screen-frozen.md#immediate-steps-first-2-minutes
+      title: Wait 30 seconds without tapping
+      audience: store
+      scope: any
+      generic: true
+      span: |-
+        1. **Wait 30 seconds.** Occasional brief freezes may resolve autonomously. Do not repeatedly tap the screen.
+    - id: psf-notifications
+      section: runbooks/pos-screen-frozen.md#immediate-steps-first-2-minutes
+      title: Check for system notifications
+      audience: store
+      scope: any
+      generic: true
+      span: |-
+        2. **Check for system notifications.** Look for any dialog boxes or notification banners that may require dismissal (e.g., Windows Update prompts, license warnings). If found, try to dismiss with a mouse/keyboard if available.
+    - id: psf-graceful-restart
+      section: runbooks/pos-screen-frozen.md#immediate-steps-first-2-minutes
+      title: Graceful restart
+      audience: store
+      scope: any
+      generic: true
+      warnings:
+        - "**Do NOT hold power for >10 seconds**—that forces a hard power-off and risks transaction data loss."
+      span: |-
+        3. **Attempt a graceful restart.** If staff have access to a keyboard, try `Alt+F4` to close the current application, or ask them to hold the power button for 5 seconds (soft shutdown).
+    - id: psf-mouse-test
+      section: runbooks/pos-screen-frozen.md#l1-diagnosis-steps-step-2-distinguish-os-hang-from-touch-dri
+      title: Mouse or keyboard test
+      audience: store
+      scope: any
+      span: |-
+        - Ask staff to connect a USB mouse or keyboard if one is available in the store.
+           - Instruct them to move the mouse or press a key (e.g., spacebar).
+    - id: psf-process-health
+      section: runbooks/pos-screen-frozen.md#l1-diagnosis-steps-step-5-isolate-application-level-issue
+      title: POS process and error log check
+      audience: it
+      action_id: check_pos_process_health
+      scope: any
+      span: |-
+        - Observe the **CPU** and **Memory** columns. High CPU (>80%) or runaway memory (>90% of available) indicates an application hang.
+    - id: psf-force-quit
+      section: runbooks/pos-screen-frozen.md#l1-resolution-resolution-attempt-2-force-quit-and-restart-lo
+      title: Force-quit and restart of the POS application (L2)
+      audience: l2
+      l2_reason: destructive_store_step
+      scope: any
+      span: |-
+        - Right-click and select **End Task**.
+           - Wait 5 seconds for the process to terminate. If it does not, repeat the action.
+    - id: psf-touch-driver
+      section: runbooks/pos-screen-frozen.md#l1-resolution-resolution-attempt-4-touch-driver-restart-if-t
+      title: Touch driver restart (L2)
+      audience: l2
+      l2_reason: unmapped
+      scope: any
+      span: |-
+        - Right-click the touch device and select **Disable device**.

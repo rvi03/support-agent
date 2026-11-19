@@ -14,6 +14,9 @@ Run: `python -m support_agent.mcp.itsm` (container `itsm-actions`, port 8103, ro
   `denied` event with the reasons. It records its own outcome and autonomy
   (`autonomy.record_result`), and consumes the approval in the same transaction.
 - `message_store` asks OPA P9; `decide_approval` demotes on a reject (P5).
+- `create_pending` / `clear_pending` (S10, D53): one open pause per ticket run; a
+  clear is one atomic compare-and-clear, and a stale, repeated or wrong-kind clear
+  is `conflict` (`wrong_state`) with nothing written.
 """
 
 from __future__ import annotations
@@ -42,13 +45,17 @@ from support_agent.mcp.itsm.autonomy import Decider
 from support_agent.mcp.itsm.models import (
     AddCommentIn,
     ApprovalResult,
+    ClearPendingIn,
+    CompleteL2TaskIn,
     CreateApprovalIn,
     CreateL2TaskIn,
+    CreatePendingIn,
     CreateTicketIn,
     DecideApprovalIn,
     EscalateIn,
     L2TaskResult,
     MessageStoreIn,
+    PendingResult,
     RowResult,
     RunFixIn,
     RunFixResult,
@@ -265,7 +272,8 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
         runbook_id and kb_rev (set once; a change is `conflict`)."""
         ctx = bound()
         fields = args.model_dump(exclude={"idem_key"}, exclude_none=True)
-        if not fields:
+        offset = fields.pop("clock_offset_s", None)
+        if not fields and offset is None:
             raise ToolFailure(ErrorCode.INVALID, "nothing_to_update")
 
         async def work() -> TicketResult:
@@ -273,13 +281,19 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             for once in ("runbook_id", "kb_rev"):
                 if once in fields and row[once] not in (None, fields[once]):
                     raise ToolFailure(ErrorCode.CONFLICT, f"{once}_already_set")
-            sets = sql.SQL(", ").join(sql.SQL("{} = %s").format(sql.Identifier(k)) for k in fields)
+            parts: list[sql.Composable] = [
+                sql.SQL("{} = %s").format(sql.Identifier(k)) for k in fields
+            ]
+            values: list[Any] = list(fields.values())
+            if offset is not None:
+                parts.append(sql.SQL("clock_offset = make_interval(secs => %s)"))
+                values.append(offset)
             await conn.execute(
                 sql.SQL(
                     "UPDATE itsm.tickets SET {}, updated_at = now() "
                     "WHERE run_id = %s AND ticket_id = %s"
-                ).format(sets),
-                (*fields.values(), ctx.run_id, ctx.ticket_id),
+                ).format(sql.SQL(", ").join(parts)),
+                (*values, ctx.run_id, ctx.ticket_id),
             )
             await _event(
                 conn,
@@ -287,7 +301,10 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "update_ticket",
                 "updated",
                 kb_rev=fields.get("kb_rev") or row["kb_rev"],
-                payload={"idem_key": args.idem_key, "fields": sorted(fields)},
+                payload={
+                    "idem_key": args.idem_key,
+                    "fields": sorted([*fields, *(["clock_offset"] if offset is not None else [])]),
+                },  # fmt: skip
             )
             new = await _ticket(conn, ctx)
             return TicketResult(status="updated", ticket=Ticket(**new))
@@ -542,6 +559,106 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
 
         return L2TaskResult.model_validate(
             await idempotent(conn, ctx, "create_l2_task", args, work)
+        )
+
+    @service.tool(scope=SCOPE_WRITE)
+    async def complete_l2_task(args: CompleteL2TaskIn, conn: Conn) -> L2TaskResult:
+        """Record the L2 engineer's result (done or failed) for one open task of the bound
+        ticket (S11). A task gets one result; a second is `conflict`."""
+        ctx = bound()
+
+        async def work() -> L2TaskResult:
+            await _ticket(conn, ctx)
+            row = await _one(
+                conn,
+                "UPDATE itsm.l2_tasks SET result = %s, result_note = %s, done_by = %s, "
+                "done_at = clock_timestamp() WHERE id = %s AND run_id = %s AND ticket_id = %s "
+                "AND result IS NULL RETURNING id, section_id",
+                (args.result, args.result_note, args.done_by, args.task_id, ctx.run_id,
+                 ctx.ticket_id),
+            )  # fmt: skip
+            if row is None:
+                raise ToolFailure(ErrorCode.CONFLICT, "task_not_open")
+            await _event(
+                conn, ctx, "complete_l2_task", args.result, step_id=row["section_id"],
+                payload={"idem_key": args.idem_key, "task_id": str(row["id"]),
+                         "done_by": args.done_by},
+            )  # fmt: skip
+            return L2TaskResult(status=args.result, task_id=row["id"])
+
+        return L2TaskResult.model_validate(
+            await idempotent(conn, ctx, "complete_l2_task", args, work)
+        )
+
+    @service.tool(scope=SCOPE_WRITE)
+    async def create_pending(args: CreatePendingIn, conn: Conn) -> PendingResult:
+        """Write the one pending item of a pause before the agent interrupts (D53)."""
+        ctx = bound()
+
+        async def work() -> PendingResult:
+            await _ticket(conn, ctx, lock=True)
+            open_row = await _one(
+                conn,
+                "SELECT pending_id FROM itsm.pending WHERE run_id = %s AND ticket_id = %s "
+                "AND cleared_at IS NULL",
+                (ctx.run_id, ctx.ticket_id),
+            )
+            if open_row is not None:
+                raise ToolFailure(ErrorCode.CONFLICT, "pending_already_open")
+            row = _must(
+                await _one(
+                    conn,
+                    "INSERT INTO itsm.pending (run_id, ticket_id, kind, step_id, approval_id, "
+                    "idem_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING pending_id",
+                    (
+                        ctx.run_id,
+                        ctx.ticket_id,
+                        args.kind,
+                        args.step_id,
+                        args.approval_id,
+                        args.idem_key,
+                    ),
+                )  # fmt: skip
+            )
+            await _event(
+                conn, ctx, "create_pending", "pending", step_id=args.step_id,
+                approval_id=str(args.approval_id) if args.approval_id else None,
+                payload={"idem_key": args.idem_key, "kind": args.kind,
+                         "pending_id": str(row["pending_id"])},
+            )  # fmt: skip
+            return PendingResult(status="pending", pending_id=row["pending_id"], kind=args.kind)
+
+        return PendingResult.model_validate(
+            await idempotent(conn, ctx, "create_pending", args, work)
+        )
+
+    @service.tool(scope=SCOPE_WRITE)
+    async def clear_pending(args: ClearPendingIn, conn: Conn) -> PendingResult:
+        """Atomic compare-and-clear of the named pending item (D53). No row back means the
+        call is stale, repeated, the wrong kind or lost a race: `conflict` (`wrong_state`)."""
+        ctx = bound()
+
+        async def work() -> PendingResult:
+            await _ticket(conn, ctx)
+            row = await _one(
+                conn,
+                "UPDATE itsm.pending SET cleared_at = clock_timestamp(), cleared_by = %s "
+                "WHERE pending_id = %s AND run_id = %s AND ticket_id = %s "
+                "AND cleared_at IS NULL AND (kind = %s OR %s = 'timeout') "
+                "RETURNING pending_id, kind",
+                (args.kind, args.pending_id, ctx.run_id, ctx.ticket_id, args.kind, args.kind),
+            )
+            if row is None:
+                raise ToolFailure(ErrorCode.CONFLICT, "wrong_state")
+            await _event(
+                conn, ctx, "clear_pending", "cleared",
+                payload={"idem_key": args.idem_key, "kind": row["kind"], "cleared_by": args.kind,
+                         "pending_id": str(row["pending_id"])},
+            )  # fmt: skip
+            return PendingResult(status="cleared", pending_id=row["pending_id"], kind=row["kind"])
+
+        return PendingResult.model_validate(
+            await idempotent(conn, ctx, "clear_pending", args, work)
         )
 
     @service.tool(scope=SCOPE_FIX)

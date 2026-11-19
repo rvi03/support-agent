@@ -34,3 +34,45 @@ actions:
     simulated_result:
       outcome: fixed
       text: "Print queue cleared; 0 jobs pending."
+
+  # ---- Group A entries (S11): the IT steps of the approved demo paths
+  # (agent/bindings.yaml binds each one to its exact runbook span).
+  - action_id: check_printer_recognition
+    description: Read whether Windows lists the printer in Printers & Scanners, and its icon (green check, yellow warning or missing).
+    device_families: [printer]
+    tier: read_only
+    simulated_result:
+      outcome: no_change
+      text: "Printer listed in Printers & Scanners with a green checkmark."
+
+  - action_id: check_device_manager_status
+    description: Read the printer's entry and any error code in Windows Device Manager.
+    device_families: [printer]
+    tier: read_only
+    simulated_result:
+      outcome: no_change
+      text: "Device Manager lists the printer with no error code."
+
+  - action_id: check_printer_driver_version
+    description: Read the installed printer driver version on the POS terminal.
+    device_families: [printer]
+    tier: read_only
+    simulated_result:
+      outcome: no_change
+      text: "Driver version is current (at or above the runbook's minimum)."
+
+  - action_id: ping_network_printer
+    description: Ping the network printer's IP address from the POS terminal.
+    device_families: [printer]
+    tier: read_only
+    simulated_result:
+      outcome: no_change
+      text: "Printer replies to ping; it is reachable on the network."
+
+  - action_id: check_pos_process_health
+    description: Read the POS application's CPU and memory use and recent application errors on the terminal.
+    device_families: [pos]
+    tier: read_only
+    simulated_result:
+      outcome: no_change
+      text: "POS process CPU 12%, memory 41%; no recent critical application errors."

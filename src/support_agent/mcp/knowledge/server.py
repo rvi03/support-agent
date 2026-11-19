@@ -81,6 +81,19 @@ class Knowledge:
             return False, used
         return True, await self.store.incr_budget(key, tokens)
 
+    async def charge_document(self, doc_id: str, tokens: int) -> tuple[bool, int]:
+        """Like `charge`, but a document this run and ticket already got is free (S11)."""
+        ctx = current_call()
+        key = budget_key(ctx.run_id, ctx.ticket_id)
+        if key is None:
+            return True, tokens
+        if await self.store.was_read(key, doc_id):
+            return True, await self.store.get_budget(key)
+        allowed, used = await self.charge(tokens)
+        if allowed:
+            await self.store.mark_read(key, doc_id)
+        return allowed, used
+
 
 def register(service: McpService, kn: Knowledge) -> None:
     @service.tool(scope=SCOPE_READ)
@@ -165,7 +178,7 @@ def register(service: McpService, kn: Knowledge) -> None:
                 (args.with_section_text, rev, args.doc_id),
             )
             sections = await cur.fetchall()
-        allowed, used = await kn.charge(kb_tokens(doc["masked_text"]))
+        allowed, used = await kn.charge_document(args.doc_id, kb_tokens(doc["masked_text"]))
         if not allowed:
             return GetDocumentResult(
                 status="budget_exceeded", kb_rev=rev, budget_used=used, budget_limit=kn.budget

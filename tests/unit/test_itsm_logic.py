@@ -24,9 +24,9 @@ pytestmark = pytest.mark.unit
 # ---- registry --------------------------------------------------------------------------
 
 
-def test_registry_ships_one_entry_per_tier() -> None:
+def test_registry_ships_every_tier() -> None:
     reg = load_registry()
-    assert sorted(a.tier for a in reg.actions) == ["destructive", "read_only", "reversible"]
+    assert {a.tier for a in reg.actions} == {"destructive", "read_only", "reversible"}
     assert reg.version == registry_version(REGISTRY_PATH.read_bytes())
     assert reg.version.startswith("reg-") and len(reg.version) == 20
 

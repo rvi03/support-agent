@@ -6,8 +6,11 @@ The model detects SOP triggers in Triage; code enforces them here (D7):
   not verify: a missed escalation costs more, K2). Any one hands off; it beats
   never-escalate. No keyword rules read the ticket (S8a).
 - Never-escalate triggers count only with evidence quoted from the ticket.
-  Billing -> Billing@servewell.in; ISP or card processor -> the store contacts
-  them; not IT -> HR. The others keep an IT ticket at L1.
+  Redirects go to the approved destination key Triage chose (D108: hr, billing,
+  isp, card_processor); a billing trigger defaults to billing and not-IT to hr,
+  but an ISP-or-card-processor redirect with no key is ambiguous and goes to a
+  human (`invalid_output`). The other never-escalate triggers keep an IT ticket
+  at L1.
 - Hand off: conflict, no verified runbook for an L1 IT route (`no_kb_match`
   only when a search ran), low confidence, real device not found.
 - Unknown system -> a human.
@@ -28,6 +31,7 @@ from support_agent.agent.state import (
     HandoffReason,
     PolicyResult,
     Priority,
+    RedirectKey,
     TriageResult,
 )
 from support_agent.intake.schema import MaskedTicket
@@ -36,9 +40,8 @@ STORE_TZ = ZoneInfo("Asia/Kolkata")
 PEAK_HOURS = ((11, 14), (18, 21))
 REPEAT_WINDOW = timedelta(days=30)
 REPEAT_MORE_THAN = 2
-BILLING = "Billing@servewell.in"
-THIRD_PARTY = "third_party_provider"
-HR = "HR"
+BILLING: RedirectKey = "billing"
+HR: RedirectKey = "hr"
 STAY_L1 = frozenset(
     {"how_to", "user_error", "feature_request", "scheduled_maintenance", "connectivity_resolved"}
 )
@@ -94,17 +97,26 @@ def policy(
         fired.append("escalate_now_beats_never_escalate")
         never = set()
 
-    # Redirects (never-escalate, or not IT).
-    redirect_to: str | None = None
+    # Redirects (never-escalate, or not IT) to an approved destination key (D108).
+    redirect_to: RedirectKey | None = None
+    ambiguous_redirect = False
     if not escalate_now and out:
-        if "billing" in never:
-            redirect_to = BILLING
-        elif "third_party_service" in never:
-            redirect_to = THIRD_PARTY
-        elif out.route == "non_it" or out.real_category == "Other" or "not_it" in out.trick_flags:
-            redirect_to = HR
-        elif out.route == "redirect":
-            redirect_to = THIRD_PARTY
+        # Triage's disposition decides (D108, D116); category Other and the not_it flag
+        # are evidence, not a route.
+        not_it = out.route == "non_it"
+        wants = (
+            not_it or out.route == "redirect" or bool(never & {"billing", "third_party_service"})
+        )
+        if wants:
+            if out.redirect_to:
+                redirect_to = out.redirect_to
+            elif "billing" in never:
+                redirect_to = BILLING
+            elif not_it:
+                redirect_to = HR
+            else:
+                ambiguous_redirect = True
+                fired.append("redirect_without_destination")
     if redirect_to:
         fired.append(f"redirect:{redirect_to}")
     force_l1 = bool(not escalate_now and never & STAY_L1)
@@ -124,6 +136,8 @@ def policy(
         reason = "sop_trigger"
     elif out.doc_conflicts:
         reason = "conflict"
+    elif ambiguous_redirect:
+        reason = "invalid_output"
     elif not redirect_to and not unknown_system:
         it_l1 = (out.route in L1_ROUTES or force_l1) and out.group in ("A", "B")
         if it_l1 and out.runbook_id is None:

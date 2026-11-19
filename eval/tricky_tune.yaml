@@ -1,0 +1,58 @@
+# CP10.2 (S10): the tune-half tricky tickets of the five types the checkpoint names,
+# with the route the K9 rules expect (references/agent-check.md, "Handle odd tickets
+# properly"). These tickets are unlabelled, so each expectation is a hand judgement
+# with its reason; `routes` lists every route that handles the trick correctly.
+# `real_category` is checked where the trick is the category. Tune half only (D39).
+# Few-shot examples (D107) among them are marked `example: true` and reported apart.
+version: tricky-tune v2
+tickets:
+  - id: INC-00149
+    type: vague
+    example: true
+    routes: [clarify]
+    why: No error, screen message or scope; one question settles POS vs network.
+  - id: INC-00189
+    type: vague
+    routes: [clarify]
+    why: The store cannot read the error code; asking for it (or the screen text) comes first.
+  - id: INC-00307
+    type: vague
+    routes: [resolver, handoff]
+    why: 'Marked vague, but it names the device (PIN pad), the symptom (blank, no card payments) and when it started, so no question is needed; the PIN-pad runbook first (tune label INC-00004), or L2 at once under the SOP payment-terminal trigger.'
+  - id: INC-00005
+    type: misdirection
+    example: true
+    routes: [redirect]
+    redirect_to: hr
+    why: A personal card for clock-in and a missing salary are HR matters, not store IT.
+  - id: INC-00127
+    type: misdirection
+    routes: [resolver]
+    why: The paper jam is a real printer fault for its runbook; the salary question is not IT and must not drive the route.
+  - id: INC-00279
+    type: misdirection
+    routes: [handoff, resolver]
+    why: The store already power-cycled, checked cables and reinstalled drivers; L2 now, or the runbook first and then L2.
+  - id: INC-00014
+    type: unknown_system
+    routes: [human]
+    why: KitchenBridge v2.3 is not in the version matrix; a person must check the system.
+  - id: INC-00035
+    type: contradictory
+    routes: [resolver, handoff]
+    why: The cited INC-00015 is an unrelated printer ticket; the EOD settlement failure is handled on its own merits.
+  - id: INC-00059
+    type: contradictory
+    routes: [resolver]
+    why: The cited "fixed" ticket does not change that the printer is offline now; the printer runbook applies.
+  - id: INC-00054
+    type: miscategorized
+    example: true
+    routes: [handoff]
+    real_category: Wi-Fi / Network
+    why: Filed as POS, but the router is dark and every device is offline (network failure, escalate now).
+  - id: INC-00242
+    type: miscategorized
+    routes: [handoff, l1_pack]
+    real_category: Wi-Fi / Network
+    why: Filed as POS, but the router Wi-Fi light is off; the network runbook (human L1) or L2.

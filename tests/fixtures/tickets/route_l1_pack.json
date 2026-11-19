@@ -1,0 +1,14 @@
+{
+ "store_id": "SW-0003",
+ "store_name": "ServeWell - Vijayanagar",
+ "date_opened": "2026-03-10T04:00:00+00:00",
+ "submitted_by": "Testa Mockwell",
+ "contact_phone": "+91-90000-00001",
+ "priority": "P3",
+ "ticket_id": "LOCAL-ROUTE-L1PACK",
+ "category": "Kiosks",
+ "asset_id": "KSK-0003-01",
+ "system_version": "ServeWell Kiosk v2.1",
+ "subject": "Self-order kiosk touchscreen not responding",
+ "description": "The self-order kiosk screen shows the menu but does not respond to touch in the lower half. Customers cannot finish orders on it, they are using the counter instead. Started today after opening."
+}

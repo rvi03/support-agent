@@ -125,6 +125,8 @@ class FakeNet:
             raise PIIBlocked(ticket_id, Channel(channel), [Hit("pattern", "PHONE", 0, 1)])
         return []
 
+    scan_token = scan
+
 
 def test_guard_masks_every_text_value_then_scans() -> None:
     net = FakeNet()
@@ -132,8 +134,21 @@ def test_guard_masks_every_text_value_then_scans() -> None:
     data = {"store": {"name": "Testa Mockwell"}, "list": ["Testa Mockwell", 3], "n": 1}
     out = guard(data, "INC-T1")
     assert out == {"store": {"name": "[PERSON_1]"}, "list": ["[PERSON_1]", 3], "n": 1}
-    (text, ticket, channel) = net.seen[0]
-    assert "Testa" not in text and ticket == "INC-T1" and channel is Channel.PROMPT
+    # Each text value is scanned on its own, after masking (D67).
+    assert [t for t, _, _ in net.seen] == ["[PERSON_1]", "[PERSON_1]"]
+    assert all(ticket == "INC-T1" and channel is Channel.PROMPT for _, ticket, channel in net.seen)
+
+
+def test_guard_scans_machine_tokens_without_the_name_model() -> None:
+    """A phone is one word with digits: it is never masked as a token, but its scan
+    still runs (regexes and vault), so it is blocked."""
+    from support_agent.intake.reference import build_reference
+    from support_agent.intake.safety_net import SafetyNet
+
+    net = SafetyNet(build_reference((), ()), lambda e: 0, actor="test")
+    with pytest.raises(PIIBlocked):
+        ResultGuard(NameEverything(), net)({"phone": "+91-90000-00001"}, None)
+    assert ResultGuard(NameEverything(), net)({"s": "not_found"}, None) == {"s": "not_found"}
 
 
 class NameEverything:

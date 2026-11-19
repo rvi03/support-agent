@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
+from pydantic import BaseModel, ValidationError
 
 RETRIES = 2
 BACKOFF_S = 1.0
@@ -31,6 +32,10 @@ class BudgetExceeded(RuntimeError):  # noqa: N818 - the design's name
     pass
 
 
+class InvalidOutput(RuntimeError):  # noqa: N818 - the design's name
+    pass
+
+
 @dataclass
 class TicketBudget:
     max_calls: int
@@ -38,6 +43,7 @@ class TicketBudget:
     calls: int = 0
     tokens: int = 0
     latency_s: float = 0.0
+    cost_usd: float = 0.0  # LiteLLM's x-litellm-response-cost per call (K14)
 
     def check(self) -> None:
         if self.calls >= self.max_calls:
@@ -50,6 +56,8 @@ class TicketBudget:
 class Reply:
     message: dict[str, Any]
     usage: dict[str, Any] = field(default_factory=dict)
+    cost_usd: float = 0.0
+    model: str | None = None
 
 
 def strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
@@ -103,6 +111,7 @@ class ChatClient:
         tool_choice: str | dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
         reasoning_effort: str = "minimal",
+        response_format: dict[str, Any] | None = None,
     ) -> Reply:
         budget.check()
         body: dict[str, Any] = {
@@ -115,6 +124,8 @@ class ChatClient:
             body["tool_choice"] = tool_choice or "required"
         if metadata:
             body["metadata"] = metadata
+        if response_format:
+            body["response_format"] = response_format
         last: Exception | None = None
         for attempt in range(self.retries + 1):
             started = time.monotonic()
@@ -138,10 +149,44 @@ class ChatClient:
             finally:
                 budget.latency_s += time.monotonic() - started
             usage = data.get("usage") or {}
+            try:
+                cost = float(response.headers.get("x-litellm-response-cost") or 0.0)
+            except ValueError:
+                cost = 0.0
             budget.calls += 1
             budget.tokens += int(usage.get("total_tokens") or 0)
-            return Reply(message=message, usage=usage)
+            budget.cost_usd += cost
+            return Reply(message=message, usage=usage, cost_usd=cost, model=data.get("model"))
         raise LlmUnavailable(f"{type(last).__name__}: {last}") from last
+
+    async def structured[M: BaseModel](
+        self,
+        system: str,
+        data: str,
+        model: type[M],
+        budget: TicketBudget,
+        *,
+        name: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> tuple[M, Reply]:
+        """One call with a strict JSON schema; an invalid reply raises `InvalidOutput`."""
+        reply = await self.complete(
+            [{"role": "system", "content": system}, {"role": "user", "content": data}],
+            budget,
+            metadata=metadata,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": name,
+                    "schema": strict_schema(model.model_json_schema()),
+                    "strict": True,
+                },
+            },
+        )
+        try:
+            return model.model_validate_json(reply.message.get("content") or ""), reply
+        except ValidationError as exc:
+            raise InvalidOutput(str(exc.errors(include_url=False))[:500]) from exc
 
     async def aclose(self) -> None:
         await self._http.aclose()

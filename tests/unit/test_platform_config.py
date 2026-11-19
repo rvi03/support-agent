@@ -229,6 +229,7 @@ def test_config_maps_every_alias_to_its_openai_model() -> None:
         "judge": "openai/gpt-6-luna",
         "simulator": "openai/gpt-6-luna",
         "agent-terra": "openai/gpt-6.1-terra",  # CP8.4 comparison alias only
+        "agent-dead": "openai/gpt-6-luna",  # CP10.5 outage test only (dead upstream port)
     }
     assert models.ollama_models(aliases) == []
     models.check_external(aliases, allow_external=True, openai_key="sk-test")

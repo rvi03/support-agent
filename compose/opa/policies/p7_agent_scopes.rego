@@ -29,7 +29,10 @@ tools := {
 	"itsm.escalate_to_l2": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.create_approval": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.create_l2_task": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
+	"itsm.complete_l2_task": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.decide_approval": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
+	"itsm.create_pending": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
+	"itsm.clear_pending": {"scope": "itsm:write", "aud": "itsm-actions", "client": "agent-actor"},
 	"itsm.run_fix": {"scope": "itsm:run_fix", "aud": "itsm-actions", "client": "agent-actor"},
 }
 

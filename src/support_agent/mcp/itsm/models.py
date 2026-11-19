@@ -42,8 +42,11 @@ MessageKind = Literal[
 L2Reason = Literal["l2_only", "secret", "destructive_store_step", "unmapped", "guard"]
 HandoffReason = Literal[
     "no_kb_match", "tool_error", "budget_exceeded", "invalid_output", "llm_unavailable",
-    "sop_trigger", "conflict", "gate_block", "sla_breach", "moderation",
+    "sop_trigger", "conflict", "gate_block", "sla_breach", "moderation", "low_confidence",
+    "device_not_found", "unknown_system", "l2_needed", "still_vague", "steps_exhausted",
+    "approval_rejected", "version_not_covered", "kb_rev_changed", "no_approved_steps",
 ]  # fmt: skip
+PendingKind = Literal["answer", "store_reply", "approval", "l2_task"]
 ApproverRole = Literal["l2_engineer", "vendor_approver"]
 
 
@@ -100,6 +103,8 @@ class UpdateTicketIn(_In):
     first_response_by: AwareDatetime | None = None
     escalate_by: AwareDatetime | None = None
     resolve_by: AwareDatetime | None = None
+    # Replay clock (D48, S11): the ticket's new offset after a simulated store-reply delay.
+    clock_offset_s: float | None = None
 
 
 class EscalateIn(_In):
@@ -160,8 +165,17 @@ class CreateL2TaskIn(_In):
 
 
 class L2TaskResult(_Out):
-    status: Literal["created"]
+    status: Literal["created", "done", "failed"]
     task_id: uuid.UUID
+
+
+class CompleteL2TaskIn(_In):
+    """The L2 engineer's result for one task (S11; the API checked the role first)."""
+
+    task_id: uuid.UUID
+    result: Literal["done", "failed"]
+    result_note: Reason
+    done_by: Short
 
 
 # ---- run_fix ------------------------------------------------------------------------
@@ -184,3 +198,24 @@ class RunFixResult(_Out):
     autonomy_state_at_run: str
     autonomy_state_after: str
     approval_id: uuid.UUID | None
+
+
+# ---- pending items (S10, D53) -------------------------------------------------------
+
+
+class CreatePendingIn(_In):
+    kind: PendingKind
+    step_id: Annotated[str, StringConstraints(max_length=200)] | None = None
+    approval_id: uuid.UUID | None = None
+
+
+class PendingResult(_Out):
+    status: Literal["pending", "cleared"]
+    pending_id: uuid.UUID
+    kind: str
+
+
+class ClearPendingIn(_In):
+    pending_id: uuid.UUID
+    # The kind the resume brings; "timeout" (SLA timer, S11) clears any kind.
+    kind: Literal["answer", "store_reply", "approval", "l2_task", "timeout"]

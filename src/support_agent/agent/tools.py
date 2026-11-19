@@ -111,6 +111,7 @@ class _Masker(Protocol):
 
 class _SafetyNet(Protocol):
     def scan(self, text: str, ticket_id: str | None, channel: Channel | str) -> Any: ...
+    def scan_token(self, text: str, ticket_id: str | None, channel: Channel | str) -> Any: ...
 
 
 _MACHINE_TOKEN = re.compile(r"^(?=\S*[\d_])\S+$")
@@ -133,6 +134,16 @@ def _map_strings(value: Any, fn: Callable[[str], str]) -> Any:
     return value
 
 
+def _strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [s for v in value for s in _strings(v)]
+    if isinstance(value, dict):
+        return [s for v in value.values() for s in _strings(v)]
+    return []
+
+
 @dataclass(frozen=True)
 class ResultGuard:
     """Mask every text value (not machine tokens), then scan the whole result,
@@ -144,7 +155,13 @@ class ResultGuard:
 
     def __call__(self, data: dict[str, Any], ticket_id: str | None) -> dict[str, Any]:
         masked: dict[str, Any] = _map_strings(data, self.masker.mask_tool_result)
-        self.safety_net.scan(json.dumps(masked, ensure_ascii=False), ticket_id, Channel.PROMPT)
+        # Each text value on its own (D67): spaCy run over a JSON dump reads keys and
+        # punctuation as names ("escalate_by" next to a date was a PERSON, S10).
+        for text in _strings(masked):
+            if is_machine_token(text):
+                self.safety_net.scan_token(text, ticket_id, Channel.PROMPT)
+            else:
+                self.safety_net.scan(text, ticket_id, Channel.PROMPT)
         return masked
 
 

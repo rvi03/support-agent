@@ -46,6 +46,8 @@ class Channel(StrEnum):
     COMMENT = "comment"
     L2_NOTE = "l2_note"
     STORE_MESSAGE = "store_message"
+    # A store message before the contact is filled (S10 gate check 5): not exempt.
+    STORE_DRAFT = "store_draft"
 
 
 VAULT_EXEMPT = frozenset({Channel.STORE_MESSAGE})
@@ -143,10 +145,49 @@ class SafetyNet:
             hits += self.vault.detect(text, registered_values(ticket_id))
         return hits
 
-    def scan(self, text: str, ticket_id: str | None, channel: Channel | str) -> list[Hit]:
-        """Return [] if clean; otherwise audit each hit and raise PIIBlocked."""
+    def scan(
+        self,
+        text: str,
+        ticket_id: str | None,
+        channel: Channel | str,
+        *,
+        known_words: str | None = None,
+        business_domains: tuple[str, ...] = (),
+    ) -> list[Hit]:
+        """Return [] if clean; otherwise audit each hit and raise PIIBlocked.
+
+        `known_words` (S10 gate check 5): the input a model wrote this text from. A
+        pattern PERSON hit whose every word occurs in that input is not new PII (the
+        input was checked where it came in); a name the model invents still blocks,
+        and the vault exact match always applies. `business_domains`: email addresses
+        on these domains are business contacts (D10), not personal data."""
         channel = Channel(channel)
-        return self._block(self.find(text, ticket_id, channel), ticket_id, channel)
+        hits = self.find(text, ticket_id, channel)
+        if business_domains:
+            hits = [
+                h
+                for h in hits
+                if not (
+                    h.entity == "EMAIL"
+                    and text[h.start : h.end]
+                    .lower()
+                    .endswith(tuple("@" + d for d in business_domains))
+                )
+            ]
+        if known_words is not None:
+            known = {w.casefold() for w in re.findall(r"[\w'-]+", known_words)}
+            hits = [
+                h
+                for h in hits
+                if not (
+                    h.detector == "pattern"
+                    and h.entity == "PERSON"
+                    and all(
+                        w.casefold() in known for w in re.findall(r"[\w'-]+", text[h.start : h.end])
+                    )
+                )
+            ]
+        return self._block(hits, ticket_id, channel)
 
     def scan_vault(self, text: str, ticket_id: str | None, channel: Channel | str) -> list[Hit]:
         """Vault exact match only (D43), for sanitized KB text: the pattern detector reads
@@ -157,6 +198,20 @@ class SafetyNet:
         return self._block(
             self.vault.detect(text, registered_values(ticket_id)), ticket_id, channel
         )
+
+    def scan_token(self, text: str, ticket_id: str | None, channel: Channel | str) -> list[Hit]:
+        """A machine token (one word with a digit or `_`: ids, dates, enum values) gets the
+        phone and email regexes and the vault exact match, not the name model: Presidio
+        reads `not_found` as a person (D73)."""
+        channel = Channel(channel)
+        hits = [
+            Hit("pattern", entity, m.start(), m.end())
+            for regex, entity in ((_PHONE_RE, "PHONE"), (_EMAIL_RE, "EMAIL"))
+            for m in regex.finditer(text)
+        ]
+        if ticket_id is not None and channel not in VAULT_EXEMPT:
+            hits += self.vault.detect(text, registered_values(ticket_id))
+        return self._block(hits, ticket_id, channel)
 
     def scan_prompt(self, fixed: str, data: str, ticket_id: str | None) -> list[Hit]:
         """A model prompt = fixed instructions from the code + variable data (ticket text,

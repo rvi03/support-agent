@@ -17,6 +17,15 @@ model_list:
       model: openai/gpt-6.1-terra
       api_key: os.environ/OPENAI_API_KEY
       temperature: 0
+  # CP10.5 outage test only: a chat alias whose upstream port is dead, so a call fails
+  # after LiteLLM's own retries (num_retries) and the ticket must hand off with
+  # `llm_unavailable` (X16). No service names it; tests/integration/test_llm_outage.py does.
+  - model_name: agent-dead
+    litellm_params:
+      model: openai/gpt-6-luna
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: http://127.0.0.1:9/v1
+      timeout: 5
   - model_name: embed
     litellm_params:
       model: openai/text-embedding-3-small

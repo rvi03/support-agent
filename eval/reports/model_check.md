@@ -359,3 +359,54 @@
 | INC-00034 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/network-slow.md | verified | 2 | 42815 | 8.7 | - | - |
 | INC-00051 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/network-vpn.md | verified | 2 | 43223 | 11.8 | - | - |
 
+## `agent` (2026-11-19 06:04 UTC)
+
+- K1 routing L1/L2: **97.5% (39/40)** (target >= 85%)
+- K5 right runbook (L1-routed labelled tickets with a runbook): **100.0% (18/18)** (target >= 90%)
+- Structured output valid: **100.0% (40/40)**; valid on the first try: 100.0% (40/40)
+- Latency p50 10.2 s, max 15.2 s; tokens per ticket mean 43955, max 64429; LLM calls mean 3.0
+- Rule X1: pass (K1 >= 85% and invalid output <= 5%)
+
+| Ticket | Label | Agent | Handoff reason | Runbook | Quote check | Tools | Tokens | s | Model triggers | Conflicts |
+|---|---|---|---|---|---|---|---|---|---|---|
+| INC-00004 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-pin-pad.md | verified | 2 | 42945 | 10.3 | - | - |
+| INC-00008 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-scanner.md | verified | 2 | 43030 | 10.1 | - | - |
+| INC-00016 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/printer-offline.md | verified | 2 | 44445 | 11.3 | - | - |
+| INC-00031 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-offline.md | verified | 2 | 42693 | 11.2 | - | - |
+| INC-00041 | L2 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-driver-reinstall.md | verified | 2 | 44883 | 9.7 | - | - |
+| INC-00060 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-screen-frozen.md | verified | 2 | 43206 | 14.1 | - | - |
+| INC-00064 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-offline.md | verified | 2 | 44034 | 9.6 | - | - |
+| INC-00068 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-offline.md | verified | 2 | 43089 | 9.9 | - | - |
+| INC-00090 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/printer-offline.md | verified | 2 | 43640 | 10.1 | - | - |
+| INC-00095 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/pos-end-of-day.md | verified | 2 | 43795 | 13.1 | - | - |
+| INC-00098 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/pos-screen-frozen.md | verified | 2 | 44251 | 9.7 | - | - |
+| INC-00102 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-paper-jam.md | verified | 2 | 41439 | 9.3 | - | - |
+| INC-00129 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-screen-frozen.md | verified | 2 | 43003 | 9.7 | - | - |
+| INC-00145 | L2 | L2 (handoff, line 1, l1_then_l2) | sop_trigger | runbooks/printer-wrong-output.md | verified | 2 | 43558 | 9.2 | customer_asks: Advised escalation to L2 hardware support for potential prin | - |
+| INC-00181 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-end-of-day.md | verified | 2 | 42814 | 10.3 | - | - |
+| INC-00183 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/printer-offline.md | verified | 2 | 44888 | 9.8 | - | - |
+| INC-00197 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/printer-wrong-output.md | verified | 2 | 43305 | 9.8 | - | - |
+| INC-00206 | L2 | L2 (resolver, line 6, l1_then_l2) | - | runbooks/printer-wrong-output.md | verified | 2 | 44002 | 11.5 | - | - |
+| INC-00210 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/printer-wrong-output.md | verified | 2 | 42718 | 9.8 | - | - |
+| INC-00216 | L1 | L1 (resolver, line 6, l1_guided) | - | runbooks/pos-slow-performance.md | verified | 2 | 41689 | 9.3 | - | - |
+| INC-00100 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/kiosk-frozen.md | verified | 2 | 40713 | 10.2 | - | - |
+| INC-00141 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/kiosk-frozen.md | verified | 2 | 41210 | 10.7 | - | - |
+| INC-00257 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/kiosk-touchscreen.md | verified | 2 | 41222 | 9.3 | - | - |
+| INC-00259 | L2 | L2 (handoff, line 1, l2_now) | sop_trigger | runbooks/kiosk-payment-reader.md | verified | 2 | 40523 | 10.6 | error_not_in_kb: displaying an error code E-402 whenever customers attempt to | - |
+| INC-00262 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/kiosk-software-crash.md | verified | 2 | 41542 | 10.3 | - | - |
+| INC-00020 | L2 | L2 (handoff, line 1, l1_then_l2) | sop_trigger | runbooks/online-orders-not-on-kds.md | verified | 2 | 43507 | 11.3 | third_party_integration_failure: The issue persists across all three online delivery partner  | - |
+| INC-00023 | L2 | L2 (handoff, line 1, l1_guided) | no_kb_match | - | wrong_device_family | 2 | 43164 | 9.8 | - | - |
+| INC-00028 | L2 | L2 (handoff, line 1, l2_now) | sop_trigger | runbooks/online-orders-aggregator-disconnect.md | verified | 2 | 43174 | 10.6 | third_party_integration_failure: The Zomato integration on our NetLink router has been offlin | - |
+| INC-00043 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/online-orders-sync-failure.md | verified | 2 | 43160 | 10.3 | - | - |
+| INC-00069 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/online-orders-sync-failure.md | verified | 2 | 42157 | 10.1 | - | - |
+| INC-00017 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/soft-serve-overcooling.md | verified | 2 | 41917 | 10.0 | - | - |
+| INC-00021 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/soft-serve-overcooling.md | verified | 2 | 58205 | 14.1 | - | - |
+| INC-00053 | L2 | L2 (handoff, line 8, l2_now) | - | - | - | 2 | 43160 | 12.3 | - | - |
+| INC-00074 | L1 | L1 (l1_pack, line 7, l1_guided) | - | runbooks/soft-serve-error-codes.md | verified | 2 | 43845 | 10.5 | - | - |
+| INC-00078 | L2 | L2 (handoff, line 1, l2_now) | sop_trigger | runbooks/soft-serve-error-codes.md | verified | 2 | 44298 | 9.2 | error_not_in_kb: started showing the error around 3:45 PM during the afternoo | - |
+| INC-00006 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/network-guest-wifi.md | verified | 2 | 43042 | 9.8 | - | - |
+| INC-00012 | L2 | L2 (handoff, line 1, l2_now) | sop_trigger | runbooks/network-router-offline.md | verified | 2 | 43845 | 10.2 | network_failure: all POS terminals lose network access, preventing order proc; customer_asks: We need this escalated for immediate investigation of potent | - |
+| INC-00013 | L2 | L2 (l1_pack, line 7, l1_then_l2) | - | runbooks/network-slow.md | verified | 3 | 64429 | 15.2 | - | - |
+| INC-00034 | L2 | L2 (handoff, line 1, l1_then_l2) | sop_trigger | runbooks/network-slow.md | verified | 2 | 43800 | 9.8 | network_failure: intermittent Wi-Fi connectivity drops on the NetLink NL-3000 | - |
+| INC-00051 | L2 | L2 (handoff, line 1, l1_then_l2) | sop_trigger | runbooks/network-vpn.md | verified | 2 | 43857 | 11.5 | network_failure: The Cisco SG350-28GP managed switch (RTR-0074-01, firmware v; third_party_integration_failure: during disconnections, orders cannot be synced to the centra | - |
+

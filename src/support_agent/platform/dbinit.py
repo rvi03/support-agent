@@ -3,6 +3,10 @@
 Passwords are taken from each service's DATABASE_URL_* (one source of truth)
 and passed to psql as `\\set` lines on stdin, never on a command line.
 `000_*` runs on database `postgres`; the rest run on `servewell`.
+
+`checkpoint_script()` (S10) creates the LangGraph checkpointer tables in schema
+`agent` as the superuser from the installed package's own migrations (all
+idempotent), so `agent_actor` owns nothing and only reads and writes them.
 """
 
 from __future__ import annotations
@@ -57,3 +61,31 @@ def sql_files(sql_dir: Path) -> list[tuple[str, Path]]:
     if not files:
         raise FileNotFoundError(f"No SQL files in {sql_dir}")
     return [("postgres" if f.name.startswith("000_") else "servewell", f) for f in files]
+
+
+CHECKPOINT_SCHEMA = "agent"
+
+
+def checkpoint_script() -> str:
+    """The LangGraph Postgres checkpointer tables in schema `agent` (S10 build step 1)."""
+    from langgraph.checkpoint.postgres.base import BasePostgresSaver
+
+    lines = [
+        "\\set ON_ERROR_STOP on",
+        f"CREATE SCHEMA IF NOT EXISTS {CHECKPOINT_SCHEMA};",
+        f"SET search_path TO {CHECKPOINT_SCHEMA};",
+    ]
+    for version, migration in enumerate(BasePostgresSaver.MIGRATIONS):
+        lines.append(migration.strip().rstrip(";") + ";")
+        if version > 0:  # migration 0 creates the table that records the versions
+            lines.append(
+                f"INSERT INTO checkpoint_migrations (v) VALUES ({version}) "  # noqa: S608 - int
+                "ON CONFLICT DO NOTHING;"
+            )
+    lines += [
+        "INSERT INTO checkpoint_migrations (v) VALUES (0) ON CONFLICT DO NOTHING;",
+        f"GRANT USAGE ON SCHEMA {CHECKPOINT_SCHEMA} TO agent_actor;",
+        f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA {CHECKPOINT_SCHEMA} "
+        "TO agent_actor;",
+    ]
+    return "\n".join(lines) + "\n"

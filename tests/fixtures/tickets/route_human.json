@@ -1,0 +1,14 @@
+{
+ "store_id": "SW-0003",
+ "store_name": "ServeWell - Vijayanagar",
+ "date_opened": "2026-03-10T04:00:00+00:00",
+ "submitted_by": "Testa Mockwell",
+ "contact_phone": "+91-90000-00001",
+ "priority": "P3",
+ "ticket_id": "LOCAL-ROUTE-HUMAN",
+ "category": "Kiosks",
+ "asset_id": "KSK-0003-01",
+ "system_version": "KitchenBridge v2.3",
+ "subject": "KitchenBridge display not syncing orders",
+ "description": "The KitchenBridge screen in the kitchen stopped showing new orders this morning. Orders appear at the counter but never reach the kitchen display."
+}

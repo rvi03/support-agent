@@ -57,9 +57,9 @@ def test_each_skill_has_a_version_and_loads_into_its_node(name: str) -> None:
 
 def test_triage_prompt_holds_base_skill_and_every_example() -> None:
     prompt = system_prompt("triage")
-    assert prompt.version == "triage v9; handle-ticket v3; triage-examples v1"
+    assert prompt.version == "triage v11; handle-ticket v3; triage-examples v2"
     assert triage_node.PROMPT_VERSION == prompt.version
-    assert prompt.text.startswith("<!-- triage prompt v9")
+    assert prompt.text.startswith("<!-- triage prompt v11")
     assert prompt.text.index("# Skill: handle a ticket") < prompt.text.index("# Worked examples")
     for n, ex in enumerate(_examples(), start=1):
         assert f"## Example {n}: {ex['case']}" in prompt.text

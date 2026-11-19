@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from support_agent.agent.nodes.policy import BILLING, HR, THIRD_PARTY, policy
+from support_agent.agent.nodes.policy import BILLING, HR, policy
 from support_agent.agent.nodes.router import route
 from support_agent.agent.state import ESCALATE_NOW, NEVER_ESCALATE, Flag, PolicyResult
 from support_agent.mcp.it_data.models import KnownBugResult
@@ -45,13 +45,28 @@ def test_escalate_now_counts_even_without_verified_evidence() -> None:
 
 
 @pytest.mark.parametrize(
-    ("trigger", "redirect"), [("billing", BILLING), ("third_party_service", THIRD_PARTY)]
-)
-def test_billing_and_third_party_redirect(trigger: str, redirect: str) -> None:
+    ("trigger", "key", "redirect"),
+    [("billing", None, BILLING), ("third_party_service", "isp", "isp"),
+     ("third_party_service", "card_processor", "card_processor")],
+)  # fmt: skip
+def test_billing_and_third_party_redirect(trigger: str, key: str | None, redirect: str) -> None:
     p = run(output(sop_triggers=[hit(trigger)], route="redirect", runbook_id=None,
-                   runbook_evidence=None))  # fmt: skip
+                   runbook_evidence=None, redirect_to=key))  # fmt: skip
     assert p.redirect_to == redirect and p.handoff_reason is None
     assert route(result(output()), p, clarify_count=0, now=OPENED).route == "redirect"
+
+
+def test_third_party_redirect_without_destination_goes_to_a_human() -> None:
+    """D108: an ambiguous ISP-or-card-processor redirect is never guessed."""
+    p = run(output(sop_triggers=[hit("third_party_service")], route="redirect", runbook_id=None,
+                   runbook_evidence=None))  # fmt: skip
+    assert p.redirect_to is None and p.handoff_reason == "invalid_output"
+    assert "redirect_without_destination" in p.rules_fired
+
+
+def test_escalate_now_beats_a_chosen_redirect() -> None:
+    p = run(output(sop_triggers=[hit("payment_failure")], route="redirect", redirect_to="isp"))
+    assert p.redirect_to is None and p.handoff_reason == "sop_trigger"
 
 
 @pytest.mark.parametrize(
@@ -79,6 +94,12 @@ def test_escalate_now_beats_never_escalate() -> None:
 def test_not_it_redirects_to_hr() -> None:
     out = output(real_category="Other", route="non_it", runbook_id=None, runbook_evidence=None)
     assert run(out).redirect_to == HR
+
+
+def test_not_it_flag_alone_does_not_redirect() -> None:
+    # INC-00127 shape: a real printer fault plus a salary aside (D116).
+    out = output(trick_flags=["not_it"])
+    assert run(out).redirect_to is None
 
 
 # ---- no keyword backstop (S8a) --------------------------------------------------
@@ -207,8 +228,22 @@ def _p(**over: Any) -> PolicyResult:
         (output(), {"handoff_reason": "sop_trigger"}, 0, "handoff", 1),
         (output(), {"unknown_system": True}, 0, "human", 2),
         (output(), {"redirect_to": BILLING}, 0, "redirect", 3),
-        (output(route="clarify", trick_flags=["too_vague"]), {}, 0, "clarify", 4),
-        (output(route="clarify", trick_flags=["too_vague"]), {}, 1, "handoff", 5),
+        (
+            output(route="clarify", trick_flags=["too_vague"], missing_fact="device"),
+            {},
+            0,
+            "clarify",
+            4,
+        ),
+        (
+            output(route="clarify", trick_flags=["too_vague"], missing_fact="device"),
+            {},
+            1,
+            "handoff",
+            5,
+        ),
+        (output(route="clarify", trick_flags=["too_vague"]), {}, 0, "handoff", 5),
+        (output(trick_flags=["too_vague"]), {}, 0, "resolver", 6),  # a flag is evidence (D108)
         (output(route="l1_then_l2"), {}, 0, "resolver", 6),
         (output(real_category="Soft Serve", real_device="Soft Serve Machine"), {}, 0, "l1_pack", 7),
         (output(route="l2_now"), {}, 0, "handoff", 8),

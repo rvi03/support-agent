@@ -62,3 +62,17 @@ test_reader_cannot_register_or_see_exclusions if {
 test_eval_runner_cannot_search_kb if {
 	not p7_agent_scopes.allow with input as {"action": "knowledge.search_kb", "subject": evaluator}
 }
+
+test_actor_writes_pending_items if {
+	p7_agent_scopes.allow with input as {"action": "itsm.create_pending", "subject": actor}
+	p7_agent_scopes.allow with input as {"action": "itsm.clear_pending", "subject": actor}
+}
+
+test_reader_cannot_clear_pending if {
+	not p7_agent_scopes.allow with input as {"action": "itsm.clear_pending", "subject": reader}
+}
+
+test_actor_records_l2_task_results if {
+	p7_agent_scopes.allow with input as {"action": "itsm.complete_l2_task", "subject": actor}
+	not p7_agent_scopes.allow with input as {"action": "itsm.complete_l2_task", "subject": reader}
+}

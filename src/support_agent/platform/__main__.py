@@ -128,8 +128,12 @@ def cmd_render() -> None:
 
 def cmd_db_init() -> None:
     passwords = dbinit.role_passwords(_env())
-    for database, sql_file in dbinit.sql_files(ROOT / "db" / "sql"):
-        script = dbinit.psql_script(sql_file, passwords)
+    jobs = [
+        (database, sql_file.name, dbinit.psql_script(sql_file, passwords))
+        for database, sql_file in dbinit.sql_files(ROOT / "db" / "sql")
+    ]
+    jobs.append(("servewell", "langgraph checkpointer", dbinit.checkpoint_script()))
+    for database, name, script in jobs:
         result = subprocess.run(
             [
                 *COMPOSE,
@@ -152,8 +156,8 @@ def cmd_db_init() -> None:
             check=False,
         )
         if result.returncode != 0:
-            raise PlatformError(f"{sql_file.name} failed:\n{result.stderr.strip()}")
-        print(f"Applied {sql_file.name} on {database}")
+            raise PlatformError(f"{name} failed:\n{result.stderr.strip()}")
+        print(f"Applied {name} on {database}")
 
 
 def _weed_shell(commands: str) -> str:

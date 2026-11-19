@@ -12,7 +12,8 @@ export COMPOSE_PROFILES :=
 endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
-	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check walk-dry-run
+	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check walk-dry-run \
+	ticket-local tricky notes-check walk-live
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -98,6 +99,18 @@ model-check: ## CP8.4: K1, K5, output validity on 40 tune tickets; ALIAS=agent|a
 
 walk-dry-run: ## CP9.3: walk-runbook skill on 5 tune Group A tickets with a scripted store; writes eval/reports/walk_dry_run.md
 	$(UV) run python -m support_agent.eval.walk_dry_run
+
+ticket-local: ## S10: run one ticket file through intake and the graph in-process (FILE=..., ANSWERS=... for pauses)
+	$(UV) run python -m support_agent.cli.ticket_local $(FILE)
+
+tricky: ## CP10.2: tune-half tricky tickets (vague, misdirection, unknown system, contradictory, miscategorized) through the graph; writes eval/reports/tricky_tune.md
+	$(UV) run python -m support_agent.eval.tricky $(ALIAS)
+
+notes-check: ## CP10.6 + CP10.5: the 40 model-check tune tickets through the graph; K15a on every L2 note and fallback note, K14 time and cost; writes eval/reports/k15a_tune.md and k14_first_look.md
+	$(UV) run python -m support_agent.eval.notes_check
+
+walk-live: ## S11: three live Resolver walks (printer to fixed, steps already tried, version not covered); writes eval/reports/walk_live.md
+	$(UV) run python -m support_agent.eval.walk_live
 
 realm: ## Re-import the Keycloak realm after a realm.py change (deletes and re-imports it)
 	@$(PLATFORM) realm-reload

@@ -3,7 +3,7 @@
 # (D39). Ticket text is the masked source row; long descriptions are cut with
 # "[...]" but every evidence quote is in the text shown. Facts are what Enrich
 # returned for the ticket; lookups are real results on kb-d502addba1b876a6.
-version: triage-examples v1
+version: triage-examples v2
 examples:
   - id: INC-00221
     case: plain L1 fix
@@ -229,6 +229,7 @@ examples:
       sop_triggers: []
       doc_conflicts: []
       route: non_it
+      redirect_to: hr
       reason: A personal card used for clock-in and a missing salary are HR and payroll matters, not a store IT fault; the store has no kiosk and the linked asset is a router.
       confidence: 0.9
     why: No runbook search is needed when the problem is not IT; the store is pointed to HR.
@@ -253,6 +254,7 @@ examples:
       sop_triggers: []
       doc_conflicts: []
       route: clarify
+      missing_fact: scope
       reason: No error, screen message or scope is given, so it is unclear whether one terminal or the whole network is down; one question (what the screen shows and whether other devices are online) makes it actionable.
       confidence: 0.75
     why: '"ASAP" is not a trigger, and guessing between a POS runbook and a router runbook would be a coin toss; one question settles it.'

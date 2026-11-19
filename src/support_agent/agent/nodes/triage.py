@@ -365,6 +365,7 @@ def _result(
         tool_calls=calls,
         first_try_valid=first_try_valid,
         kb_rev=run.kb_rev,
+        documents_read=sorted(run.documents),
     )
 
 

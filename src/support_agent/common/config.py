@@ -124,11 +124,23 @@ class AgentSettings(BaseServiceSettings):
     approval_ttl_min: int = Field(default=15, ge=1)
     # Safety setting: required, no default (D46, A35).
     action_autonomy_runs: int = Field(ge=1)
+    # Replay clock (D48, S11): minutes of ticket time one simulated store reply takes.
+    replay_reply_delay_min: float = Field(default=2.0, ge=0)
+    # SLA timer (S11 build step 7): seconds between ticks.
+    sla_timer_interval_s: int = Field(default=60, ge=1)
     # Keycloak client-credentials secrets of the two agent identities (D25).
     keycloak_secret_agent_reader: SecretStr
     keycloak_secret_agent_actor: SecretStr
     it_data_url: str = "http://localhost:8101/mcp"
     knowledge_url: str = "http://localhost:8102/mcp"
+    itsm_url: str = "http://localhost:8103/mcp"
+    # Moderation of store replies inside the graph (Clarify answers, S10); own cap (m1).
+    model_moderation: str = "moderation"
+    moderation_max_calls: int = Field(default=10, ge=1)
+    # Langfuse tracing (D9); off when the keys are missing.
+    langfuse_public_key: SecretStr | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
     # Shared router key (D66): Triage, Resolver and handler calls.
     litellm_master_key: SecretStr
     # Below this Triage confidence the ticket goes to L2 (tuned on the tune half, CP8.4).

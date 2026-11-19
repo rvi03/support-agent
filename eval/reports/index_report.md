@@ -1,4 +1,4 @@
-# KB index report: kb-d502addba1b876a6
+# KB index report: kb-376ed63bddb652dd
 
 - Pipeline: kb-pipeline-v1
 - Documents: {'faq': 6, 'runbook': 32, 'sop': 3, 'spec': 7}
