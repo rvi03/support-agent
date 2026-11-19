@@ -1,0 +1,17 @@
+ticket_id: INC-00060
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: OrbitPOS has become unresponsive, likely due to a hung POS application process.
+observations:
+- The terminal remains on the last order-entry screen.
+- Neither keyboard nor touch input is accepted.
+- Holding the power button for a soft reboot did not change the screen.
+- The terminal was working earlier and froze during breakfast service.
+fixed_by_actions: []
+fixed_by_store_steps:
+- psf-force-quit
+requires:
+- psf-process-health

@@ -1,0 +1,14 @@
+# K8 (D41, kpis.md): does the walk match the correct answer? GEval, `judge` alias.
+# Fixed and versioned: any edit changes the freeze manifest (D56).
+name: K8 fix matches the correct answer
+threshold: 0.6
+criteria: >-
+  Judge whether the support agent's handling of the ticket matches the expected
+  resolution. The agent may only send approved runbook steps, run approved IT actions,
+  hand over to L2 or close the ticket.
+evaluation_steps:
+  - Read the expected resolution and the expected behaviour for tricky tickets.
+  - Check whether the steps and IT actions the agent used address the fault the expected resolution names.
+  - Check whether the ticket ended correctly - fixed and closed when the expected resolution is an L1 fix, handed to L2 when the expected resolution needs a technician, vendor or escalation.
+  - Penalise steps that could not help with this fault, and a ticket closed as fixed when the store still reported the problem.
+  - Do not penalise wording, the order of harmless checks, or a handoff that carries the right reason.

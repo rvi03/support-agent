@@ -7,7 +7,10 @@
 #     holds the quoted words (S8a); the asset's device family is one of the action's
 #   4 read_only, or reversible + autonomous, runs alone; destructive or supervised needs
 #     a decided, approved, unexpired (wall clock), unused approval bound to the same
-#     run, ticket, asset, section, quote, action and kb_rev, from the right approver role
+#     run, ticket, asset, section, quote, action and kb_rev, from the right approver role;
+#     a runbook approval line on the binding always needs one
+#   S12a: (section, quote, action) is an approved IT binding without a conflict; the
+#     ticket is open and its escalate-by (ticket time) has not passed
 # Input: see itsm/server.py `_run_fix_facts`. A missing or null fact is refused
 # (fail closed): every presence check reads the fact with object.get and a null
 # default, so a missing key counts as missing (a bare `input.x == null` is
@@ -91,9 +94,46 @@ deny contains "device_family" if {
 	not input.asset.family in action.device_families
 }
 
+# ---- 4 approved binding and ticket state (S12a) ---------------------------------
+# itsm-actions looks the (section, quote, action) up in bindings.yaml itself, so a
+# real quote paired with another action is refused; the ticket must still be open
+# and its escalate-by (ticket time, D48) not passed.
+
+open_statuses := {"new", "in_progress", "waiting_store", "waiting_approval", "waiting_l2"}
+
+binding := object.get(input, "binding", null)
+
+deny contains "no_binding" if not is_object(binding)
+
+deny contains "binding_conflict" if {
+	is_object(binding)
+	object.get(binding, "conflict", true) != false
+}
+
+deny contains "ticket_not_open" if {
+	ticket != null
+	not object.get(ticket, "status", null) in open_statuses
+}
+
+deny contains "ticket_clock_missing" if not is_number(object.get(input, "ticket_now_ns", null))
+
+deny contains "sla_passed" if {
+	ticket != null
+	esc := object.get(ticket, "escalate_by_ns", null)
+	is_number(esc)
+	is_number(object.get(input, "ticket_now_ns", null))
+	input.ticket_now_ns >= esc
+}
+
 # ---- 5 tier, autonomy and approval -----------------------------------------------
 
 needs_approval if action.tier == "destructive"
+
+# a runbook approval line forces approval, whatever the tier or autonomy (D109)
+needs_approval if {
+	is_object(binding)
+	object.get(binding, "approval", true) != false
+}
 
 needs_approval if {
 	action.tier == "reversible"

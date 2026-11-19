@@ -357,8 +357,7 @@ def _person_user(spec: PersonSpec, key: str) -> Json:
         "enabled": True,
         "realmRoles": list(spec.roles),
         "credentials": [
-            {"type": "password", "value": person_password(key, spec.username),
-             "temporary": False}
+            {"type": "password", "value": person_password(key, spec.username), "temporary": False}
         ],  # fmt: skip
     }
     if spec.store_id:

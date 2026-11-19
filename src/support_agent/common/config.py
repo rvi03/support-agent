@@ -117,6 +117,8 @@ class ItsmSettings(BaseServiceSettings):
     approval_ttl_min: int = Field(default=15, ge=1)
     itsm_host: str = "127.0.0.1"
     itsm_port: int = Field(default=8103, ge=1, le=65535)
+    # Eval mode only (S12a, D40): the folder of fault cards, `eval/fault_cards`.
+    fault_cards_dir: str | None = None
 
 
 class AgentSettings(BaseServiceSettings):
@@ -190,6 +192,11 @@ class EvalSettings(BaseServiceSettings):
     litellm_master_key: SecretStr
     model_embed: str = "embed"
     embed_dim: int = Field(default=768, ge=1)
+    # Langfuse datasets, runs and scores (S14); the commands that need them refuse
+    # to start without them.
+    langfuse_public_key: SecretStr | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
 
 
 class CheckerSettings(BaseServiceSettings):

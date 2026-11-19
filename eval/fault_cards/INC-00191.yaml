@@ -1,0 +1,13 @@
+ticket_id: INC-00191
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: POS Terminal T1 is stuck during startup and does not progress past the splash screen.
+observations:
+- The splash screen remains visible for more than 10 minutes.
+- Power cycling the terminal twice has not changed the behavior.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

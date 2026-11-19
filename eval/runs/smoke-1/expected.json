@@ -1,0 +1,12 @@
+{
+ "run_id": "cd717335-6b2d-40cd-9ddc-c00a9c848953",
+ "run_name": "smoke-1",
+ "split": "tune",
+ "dataset": "servewell-256",
+ "started_at": "2026-11-19T09:40:51.267889+00:00",
+ "freeze_hash": null,
+ "items": [
+  "INC-00004",
+  "INC-00031"
+ ]
+}

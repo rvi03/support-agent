@@ -11,8 +11,10 @@ base := {
 	"context": {"run_id": run, "ticket_id": "INC-90001", "store_id": "SW-0001"},
 	"request": {"asset_id": "AST-1", "section_id": "runbooks/printer-offline.md#res-1", "quote": "Restart the Windows Print Spooler service", "action_id": "restart_print_spooler", "approval_id": null},
 	"now_ns": 1000,
+	"ticket_now_ns": 5000,
+	"binding": {"id": "po-restart-spooler", "approval": false, "conflict": false},
 	"registry": {"version": "reg-1", "action": {"tier": "reversible", "device_families": ["printer", "pos"], "approver": null}},
-	"ticket": {"store_id": "SW-0001", "asset_id": "AST-1", "runbook_id": "runbooks/printer-offline.md", "kb_rev": "kb-1", "registry_version": "reg-1"},
+	"ticket": {"store_id": "SW-0001", "asset_id": "AST-1", "runbook_id": "runbooks/printer-offline.md", "kb_rev": "kb-1", "registry_version": "reg-1", "status": "in_progress", "escalate_by_ns": 9000},
 	"asset": {"store_id": "SW-0001", "family": "printer"},
 	"section": {"doc_id": "runbooks/printer-offline.md", "kb_rev": "kb-1", "quote_ok": true},
 	"autonomy": {"state": "autonomous"},
@@ -158,4 +160,46 @@ test_missing_asset_is_refused if {
 
 test_missing_approval_is_refused if {
 	denied(object.remove(supervised, ["approval"]), "approval_missing")
+}
+
+# ---- S12a: approved binding and ticket state --------------------------------------
+
+test_quote_paired_with_other_action_refused if {
+	denied(object.union(base, {"binding": null}), "no_binding")
+}
+
+test_missing_binding_fact_refused if {
+	denied(object.remove(base, ["binding"]), "no_binding")
+}
+
+test_binding_conflict_refused if {
+	denied(object.union(base, {"binding": {"id": "x", "approval": false, "conflict": true}}), "binding_conflict")
+}
+
+test_runbook_approval_line_needs_approval_even_autonomous if {
+	inp := object.union(base, {"binding": {"id": "x", "approval": true, "conflict": false}})
+	denied(inp, "approval_missing")
+	p8_run_fix.allow with input as with_approval(inp, good_approval)
+}
+
+test_closed_ticket_refused if {
+	some s in ["resolved", "escalated", "redirected", "closed"]
+	denied(object.union(base, {"ticket": object.union(base.ticket, {"status": s})}), "ticket_not_open")
+}
+
+test_missing_status_refused if {
+	denied(object.union(object.remove(base, ["ticket"]), {"ticket": object.remove(base.ticket, ["status"])}), "ticket_not_open")
+}
+
+test_deadline_crossed_after_approval_refused if {
+	inp := object.union(supervised, {"ticket_now_ns": 9000})
+	denied(with_approval(inp, good_approval), "sla_passed")
+}
+
+test_no_deadline_set_runs if {
+	p8_run_fix.allow with input as object.union(base, {"ticket": object.union(base.ticket, {"escalate_by_ns": null})})
+}
+
+test_missing_ticket_clock_refused if {
+	denied(object.remove(base, ["ticket_now_ns"]), "ticket_clock_missing")
 }

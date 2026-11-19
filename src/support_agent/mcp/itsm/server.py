@@ -24,6 +24,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from psycopg import AsyncConnection, sql
@@ -32,10 +33,11 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import AsyncConnectionPool
 from pydantic import BaseModel
 
+from support_agent.agent.bindings import Bindings, default_bindings
 from support_agent.common.audit import AuditEvent, awrite_event
 from support_agent.common.config import ItsmSettings
 from support_agent.common.db import dsn
-from support_agent.common.text import quote_in
+from support_agent.common.text import normalize, quote_in
 from support_agent.mcp.base.auth import JwtVerifier
 from support_agent.mcp.base.errors import ErrorCode, ToolFailure
 from support_agent.mcp.base.opa import OpaClient
@@ -63,7 +65,7 @@ from support_agent.mcp.itsm.models import (
     TicketResult,
     UpdateTicketIn,
 )
-from support_agent.mcp.itsm.outcome import OutcomeProvider, provider_for
+from support_agent.mcp.itsm.outcome import OutcomeProvider, load_fault_cards, provider_for
 from support_agent.mcp.itsm.registry import Registry, default_registry, family_of
 
 NAME = "itsm-actions"
@@ -98,6 +100,22 @@ class Itsm:
     ttl_min: int
     eval_mode: bool
     clock: Callable[[], datetime] = field(default=lambda: datetime.now(UTC))  # wall clock
+    bindings: Bindings = field(default_factory=default_bindings)
+
+    def binding(
+        self, runbook_id: str | None, section_id: str, quote: str, action_id: str
+    ) -> dict[str, Any] | None:
+        """The approved IT step (bindings.yaml) whose section, span and action are exactly
+        these (S12a): the server checks the pairing itself, never trusting the caller."""
+        wanted = normalize(quote)
+        for b in self.bindings.for_runbook(runbook_id or ""):
+            if (b.audience == "it" and b.section == section_id and b.action_id == action_id
+                    and normalize(b.span) == wanted):  # fmt: skip
+                return {"id": b.id, "approval": b.approval, "conflict": b.conflict}
+        return None
+
+
+OPEN_STATUSES = ("new", "in_progress", "waiting_store", "waiting_approval", "waiting_l2")
 
 
 # ---- helpers -------------------------------------------------------------------------
@@ -426,6 +444,13 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 raise ToolFailure(ErrorCode.DENIED, "section_not_in_runbook")
             if not section["quote_ok"]:
                 raise ToolFailure(ErrorCode.DENIED, "quote_not_in_section")
+            binding = it.binding(t["runbook_id"], args.section_id, args.quote, args.action_id)
+            if binding is None:
+                raise ToolFailure(ErrorCode.DENIED, "no_binding")
+            if binding["conflict"]:
+                raise ToolFailure(ErrorCode.DENIED, "binding_conflict")
+            if t["status"] not in OPEN_STATUSES:
+                raise ToolFailure(ErrorCode.DENIED, "ticket_not_open")
             expires = it.clock() + timedelta(minutes=it.ttl_min)
             row = await _one(
                 conn,
@@ -452,7 +477,19 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 approval_id=str(row["id"]),
                 payload={"idem_key": args.idem_key, "approver_role": args.approver_role},
             )
-            return ApprovalResult(status="requested", approval_id=row["id"], expires_at=expires)
+            asset = await _one(
+                conn, "SELECT model FROM data.assets WHERE asset_id = %s", (args.asset_id,)
+            )
+            auto = (
+                await autonomy.current(conn, action.action_id, asset["model"])
+                if asset is not None and action.tier != "read_only"
+                else autonomy.Autonomy()
+            )
+            return ApprovalResult(
+                status="requested", approval_id=row["id"], expires_at=expires,
+                autonomy_state=auto.state, runs_in_a_row=auto.runs,
+                runs_needed=None if action.tier == "destructive" else it.threshold,
+            )  # fmt: skip
 
         return ApprovalResult.model_validate(
             await idempotent(conn, ctx, "create_approval", args, work)
@@ -699,7 +736,10 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             raise ToolFailure(ErrorCode.ERROR, "facts_changed")
         ticket = facts["ticket"]
         state_at_run = facts["autonomy"]["state"]
-        out = await it.outcome.outcome(action, ticket_id=str(ctx.ticket_id), asset_id=args.asset_id)
+        out = await it.outcome.outcome(
+            action, ticket_id=str(ctx.ticket_id), asset_id=args.asset_id,
+            source_ticket_id=ticket.get("source_ticket_id"),
+        )  # fmt: skip
         if args.approval_id is not None:
             await conn.execute(
                 "UPDATE itsm.approvals SET used_at = clock_timestamp() WHERE id = %s",
@@ -748,13 +788,20 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
         action = it.registry.get(args.action_id)
         t = await _one(
             conn,
-            "SELECT store_id, asset_id, runbook_id, kb_rev FROM itsm.tickets "
-            "WHERE run_id = %s AND ticket_id = %s FOR UPDATE",
+            "SELECT store_id, asset_id, runbook_id, kb_rev, status, escalate_by, clock_offset, "
+            "source_ticket_id FROM itsm.tickets WHERE run_id = %s AND ticket_id = %s FOR UPDATE",
             (ctx.run_id, ctx.ticket_id),
         )
         ticket = None
         section = None
+        binding = None
+        ticket_now_ns = None
         if t is not None:
+            binding = it.binding(t["runbook_id"], args.section_id, args.quote, args.action_id)
+            # ticket time (D48): replay offset added; the approval TTL stays on wall time
+            ticket_now_ns = int((it.clock() + t.pop("clock_offset")).timestamp() * 1e9)
+            esc = t.pop("escalate_by")
+            t["escalate_by_ns"] = int(esc.timestamp() * 1e9) if esc is not None else None
             rev = (
                 await _one(
                     conn,
@@ -804,6 +851,8 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "approval_id": str(args.approval_id) if args.approval_id else None,
             },
             "now_ns": int(it.clock().timestamp() * 1e9),
+            "ticket_now_ns": ticket_now_ns,
+            "binding": binding,
             "registry": {
                 "version": it.registry.version,
                 "action": None if action is None else {
@@ -835,6 +884,7 @@ def build_service(
     registry: Registry | None = None,
     outcome: OutcomeProvider | None = None,
     clock: Callable[[], datetime] | None = None,
+    bindings: Bindings | None = None,
 ) -> McpService:
     opa = OpaClient(settings.opa_url)
     service = McpService(
@@ -854,13 +904,22 @@ def build_service(
         ),
         public_url=f"http://localhost:{settings.itsm_port}",
     )
+    registry = registry or default_registry()
+    if outcome is None:
+        cards = None
+        if settings.eval_mode and settings.fault_cards_dir:
+            cards = load_fault_cards(
+                Path(settings.fault_cards_dir), [a.action_id for a in registry.actions]
+            )
+        outcome = provider_for(settings.eval_mode, cards)
     it = Itsm(
-        registry=registry or default_registry(),
+        registry=registry,
         policy=decider or opa,
-        outcome=outcome or provider_for(settings.eval_mode),
+        outcome=outcome,
         threshold=settings.action_autonomy_runs,
         ttl_min=settings.approval_ttl_min,
         eval_mode=settings.eval_mode,
+        bindings=bindings or default_bindings(),
     )
     if clock is not None:
         it.clock = clock

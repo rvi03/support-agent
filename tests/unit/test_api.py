@@ -394,6 +394,9 @@ class FakeAgent:
     def reload_contact(self, ticket_id: str) -> bool:
         return True
 
+    def mask_text(self, ticket_id: str, text: str) -> str:
+        return text.replace("Testa Mockwell", "[PERSON_1]").replace("+91-90000-00001", "[PHONE_1]")
+
 
 async def test_approve_maps_decisions_to_resume_payloads(monkeypatch: pytest.MonkeyPatch) -> None:
     got: list[tuple[str, dict[str, Any]]] = []
@@ -454,6 +457,56 @@ async def test_lost_claim_is_409_and_releases_the_lock(monkeypatch: pytest.Monke
     assert agent.locker.entered == agent.locker.exited == 1
 
 
+async def test_free_text_is_masked_before_claim_and_resume(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """S12a: the resume value is persisted by the checkpointer, so a reply, a reject
+    reason and an L2 result note reach claim and the graph already masked."""
+    got: list[dict[str, Any]] = []
+    order: list[str] = []
+
+    async def claim(*a: Any, **k: Any) -> None:
+        order.append("claim")
+
+    async def cont(app: Any, run_id: str, tid: str, kind: str, payload: dict[str, Any]) -> Any:
+        got.append(payload)
+
+        class Out:
+            paused = None
+
+        return Out()
+
+    monkeypatch.setattr(service_mod, "claim", claim)
+    monkeypatch.setattr(service_mod, "continue_run", cont)
+
+    class Store:
+        async def set_state(self, *a: Any, **k: Any) -> None:
+            return None
+
+    agent = FakeAgent()
+    real_mask = agent.mask_text
+
+    def mask(tid: str, text: str) -> str:
+        order.append("mask")
+        return real_mask(tid, text)
+
+    agent.mask_text = mask  # type: ignore[method-assign,assignment]
+    svc = TicketService(store=Store(), raw=None, agent=agent, intake=None)  # type: ignore[arg-type]
+    pid = uuid.uuid4()
+    await svc.reply(row(pending_id=pid, pending_kind="store_reply"), str(pid),
+                    "Testa Mockwell here, call +91-90000-00001, still offline")  # fmt: skip
+    l2 = subject(user="u-l2", roles=("l2_engineer",))
+    await svc.approve(l2, row(pending_id=pid, pending_kind="approval"), str(pid), "reject",
+                      "ask Testa Mockwell first", None)  # fmt: skip
+    await svc.approve(l2, row(pending_id=pid, pending_kind="l2_task"), str(pid), "done",
+                      None, "rang +91-90000-00001, fixed")  # fmt: skip
+    await svc.drain()
+    blob = repr(got)
+    assert "Testa" not in blob and "90000" not in blob, blob
+    assert got[0]["text"] == "[PERSON_1] here, call [PHONE_1], still offline"
+    assert order.index("mask") < order.index("claim")
+
+
 # ---- CLI -------------------------------------------------------------------------------
 
 
@@ -471,3 +524,29 @@ def test_cli_check_against_the_fixture() -> None:
     expected = {"route": "resolver", "first_step_in": ["po-physical-check"], "status": "resolved"}
     assert check(view, expected) == []
     assert check(view | {"status": "escalated"}, expected) == ["status escalated != resolved"]
+
+
+# ---- S12a: typed responses for the UI client ------------------------------------------
+
+
+def test_list_item_fits_the_typed_response() -> None:
+    from support_agent.api.routes import list_item
+    from support_agent.api.views import TicketItem
+
+    now = datetime(2026, 11, 19, 10, 0, tzinfo=UTC)
+    r = row(pending_id=uuid.uuid4(), pending_kind="approval") | {
+        "subject": "Printer offline", "status": "waiting_approval", "api_status": "running",
+        "escalate_by": now, "clock_offset": timedelta(0), "created_at": now,
+    }  # fmt: skip
+    item = TicketItem.model_validate(list_item(r, now))
+    assert item.pending is not None and item.pending.kind == "approval"
+
+
+def test_openapi_types_the_ticket_views() -> None:
+    schema = create_app().openapi()
+    comps = schema["components"]["schemas"]
+    for name in ("TicketList", "TicketView", "Message", "Pending", "ApprovalCard", "WalkView"):
+        assert name in comps, name
+    get = schema["paths"]["/tickets/{ticket_id}"]["get"]["responses"]["200"]
+    assert get["content"]["application/json"]["schema"]["$ref"].endswith("/TicketView")
+    assert "approval" in comps["Pending"]["properties"]

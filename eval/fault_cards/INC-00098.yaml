@@ -1,0 +1,17 @@
+ticket_id: INC-00098
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: POS-0007-T2 has an unresolved hardware fault and needs physical diagnostic; software recovery has
+  not restored operation.
+observations:
+- The screen remains frozen on the last transaction summary.
+- The terminal does not respond to touch input or the physical power button.
+- No error message is displayed.
+- A 30-second force restart did not restore the terminal.
+- Cables are firmly connected and the network indicator is active.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

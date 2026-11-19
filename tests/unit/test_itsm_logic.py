@@ -10,7 +10,12 @@ import pytest
 from pydantic import ValidationError
 
 from support_agent.mcp.itsm.autonomy import Autonomy, next_state
-from support_agent.mcp.itsm.outcome import FaultCardOutcome, SimulatedOutcome, provider_for
+from support_agent.mcp.itsm.outcome import (
+    FaultCardOutcome,
+    SimulatedOutcome,
+    load_fault_cards,
+    provider_for,
+)
 from support_agent.mcp.itsm.registry import (
     ASSET_FAMILIES,
     REGISTRY_PATH,
@@ -131,5 +136,41 @@ def test_fault_card_fixes_only_listed_ids() -> None:
 
 
 def test_eval_mode_picks_fault_cards() -> None:
-    assert isinstance(provider_for(True), FaultCardOutcome)
+    assert isinstance(provider_for(True, {}), FaultCardOutcome)
     assert isinstance(provider_for(False), SimulatedOutcome)
+    with pytest.raises(ValueError, match="FAULT_CARDS_DIR"):
+        provider_for(True)  # eval mode never runs without cards (S12a)
+
+
+def test_replayed_ticket_is_looked_up_by_source_id() -> None:
+    """S12a: cards are keyed by the dataset ticket; the API gives a replay a new
+    operational id, so the lookup must use source_ticket_id."""
+    spooler = load_registry().get("restart_print_spooler")
+    assert spooler is not None
+    cards = FaultCardOutcome({"INC-99042": frozenset({"restart_print_spooler"})})
+    replay = asyncio.run(cards.outcome(spooler, ticket_id="SWT-0123456789ab", asset_id="A",
+                                       source_ticket_id="INC-99042"))  # fmt: skip
+    by_operational_id = asyncio.run(
+        cards.outcome(spooler, ticket_id="SWT-0123456789ab", asset_id="A")
+    )
+    assert (replay.outcome, by_operational_id.outcome) == ("fixed", "no_change")
+
+
+def test_fault_cards_load_and_reject_bad_cards(tmp_path: Path) -> None:
+    ids = [a.action_id for a in load_registry().actions]
+    (tmp_path / "INC-99042.yaml").write_text(
+        "ticket_id: INC-99042\nfixed_by_actions: [restart_print_spooler]\n"
+    )
+    (tmp_path / "INC-99043.yaml").write_text("ticket_id: INC-99043\nfixed_by_actions: []\n")
+    assert load_fault_cards(tmp_path, ids) == {
+        "INC-99042": frozenset({"restart_print_spooler"}), "INC-99043": frozenset(),
+    }  # fmt: skip
+    (tmp_path / "INC-99044.yaml").write_text("fixed_by_actions: [format_disk]\n")
+    with pytest.raises(ValueError, match="unknown action"):
+        load_fault_cards(tmp_path, ids)
+    with pytest.raises(ValueError, match="does not exist"):
+        load_fault_cards(tmp_path / "missing", ids)
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(ValueError, match="no cards"):
+        load_fault_cards(empty, ids)

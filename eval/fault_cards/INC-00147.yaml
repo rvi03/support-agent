@@ -1,0 +1,17 @@
+ticket_id: INC-00147
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Epson TM-T88VI is not detected because its printer driver is missing or corrupted.
+observations:
+- The printer powers on and its status light is lit.
+- The USB cable is connected to the printer and POS.
+- A test print attempt reports that the device cannot be found.
+- The printer does not appear in the POS available-devices list.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires:
+- po-usb-driver-version

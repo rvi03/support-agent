@@ -26,6 +26,7 @@ from support_agent.api.auth import ApiVerifier, AuthError, Subject
 from support_agent.api.limits import Kind, RateLimits
 from support_agent.api.service import ApiError, TicketService
 from support_agent.api.store import ApiStore, DuplicateReplay, Row
+from support_agent.api.views import TicketList, TicketView
 from support_agent.common.audit import AuditEvent
 from support_agent.intake.schema import (
     DESCRIPTION_MAX,
@@ -300,7 +301,7 @@ async def create_ticket(body: NewTicket, subject: Auth, d: Deps) -> dict[str, st
     return {"ticket_id": ticket_id, "run_id": str(run_id)}
 
 
-@router.get("/tickets")
+@router.get("/tickets", response_model=TicketList, response_model_exclude_unset=True)
 async def list_tickets(subject: Auth, d: Deps) -> dict[str, Any]:
     _limit(d, subject, "read")
     await authorize(d, subject, "api.list_tickets", {})
@@ -318,7 +319,7 @@ async def list_tickets(subject: Auth, d: Deps) -> dict[str, Any]:
     return {"tickets": [list_item(r, now) for r in rows]}
 
 
-@router.get("/tickets/{ticket_id}")
+@router.get("/tickets/{ticket_id}", response_model=TicketView, response_model_exclude_unset=True)
 async def get_ticket(ticket_id: str, subject: Auth, d: Deps) -> dict[str, Any]:
     _limit(d, subject, "read")
     resource = await visible(d, subject, ticket_id)

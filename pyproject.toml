@@ -46,6 +46,11 @@ dev = [
     "pytest-cov>=7.1.0",
     "ruff>=0.17.5",
     "types-pyyaml>=6.0.12.20261113",
+    # S14: `make check` imports the eval metrics; the app image (--no-dev) stays without it.
+    { include-group = "eval" },
+]
+eval = [
+    "deepeval==4.3.3",
 ]
 
 [tool.ruff]

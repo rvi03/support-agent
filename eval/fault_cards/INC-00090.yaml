@@ -1,0 +1,17 @@
+ticket_id: INC-00090
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: A stalled print queue is preventing receipt jobs from reaching the printer.
+observations:
+- The printer is powered on and shows no error lights.
+- Orders process normally in POS, but no paper receipts come out.
+- The issue began around 12:30 PM today.
+- Restarting Terminal 1 did not restore printing.
+fixed_by_actions:
+- restart_print_spooler
+- clear_print_queue
+fixed_by_store_steps: []
+requires: []

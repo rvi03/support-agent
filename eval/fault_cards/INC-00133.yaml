@@ -1,0 +1,20 @@
+ticket_id: INC-00133
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The USB-connected kitchen printer is not being enumerated correctly by the POS, and its driver
+  installation is blocked by an Access Denied error. L2 hardware diagnostics are needed to determine whether
+  the printer or its connection has failed.
+observations:
+- The printer’s power LED is lit.
+- The printer does not appear in the StarMC Print available-devices list.
+- Windows Device Manager shows the printer as “Unknown Device” with a yellow exclamation mark.
+- Driver installation failed with error code 0x80070005 (Access Denied).
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires:
+- po-physical-check
+- po-usb-device-manager

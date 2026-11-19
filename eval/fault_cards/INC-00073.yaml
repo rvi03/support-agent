@@ -1,0 +1,19 @@
+ticket_id: INC-00073
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Epson TM-M30 printer driver on POS-0114-T1 is corrupted, preventing Windows from communicating
+  with the printer.
+observations:
+- The printer is powered on and shows no error lights.
+- Transactions display “Printer Offline - Unable to establish connection on LPT1”.
+- No prints are produced from the POS terminal.
+- Device Manager reports “Device Error” for the printer.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires:
+- po-usb-device-manager
+- po-usb-driver-version

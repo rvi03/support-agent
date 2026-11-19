@@ -1,0 +1,17 @@
+ticket_id: INC-00278
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The POS terminal no longer detects the Epson TM-T88VI, likely due to a driver issue; L2 driver
+  reinstallation may restore printing.
+observations:
+- The printer is powered on and its indicator lights appear normal.
+- USB cables are connected securely.
+- The POS reports “Printer Not Found” when a test receipt is attempted.
+- 'The printer is not listed as an available device in Device Manager. '
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires: []

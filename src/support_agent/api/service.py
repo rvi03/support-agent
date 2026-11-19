@@ -61,6 +61,8 @@ class AgentHost(Protocol):
 
     def reload_contact(self, ticket_id: str) -> bool: ...
 
+    def mask_text(self, ticket_id: str, text: str) -> str: ...
+
 
 IntakeFn = Callable[[dict[str, Any]], Awaitable[IntakeResult]]
 
@@ -163,6 +165,9 @@ class TicketService:
             raise ApiError(409, "ticket_busy") from exc
         try:
             await asyncio.to_thread(self.agent.reload_contact, ticket_id)
+            # Free text is masked before the claim, so the resume value the
+            # checkpointer persists never holds a raw name or phone (S12a).
+            payload = await asyncio.to_thread(self._masked, ticket_id, payload)
             await claim(self.agent.app, self.agent.deps, run_id, ticket_id, pending_id, kind)
         except WrongState as exc:
             await hold.__aexit__(None, None, None)
@@ -179,6 +184,14 @@ class TicketService:
             await self._settle(ticket_id, outcome)
 
         self._spawn(go(), ticket_id)
+
+    def _masked(self, ticket_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        return {
+            k: self.agent.mask_text(ticket_id, v)
+            if k in FREE_TEXT and isinstance(v, str) and v
+            else v
+            for k, v in payload.items()
+        }
 
     # ---- background --------------------------------------------------------------------
 
@@ -219,6 +232,10 @@ class TicketService:
             for intr in getattr(task, "interrupts", ()) or ():
                 value = dict(intr.value)
         return state, value
+
+
+# fields typed by people: the store's reply, a reject reason, an L2 task result note
+FREE_TEXT = frozenset({"text", "reason", "note"})
 
 
 def _open_kind(resource: Row, pending_id: str, kinds: tuple[str, ...]) -> str:

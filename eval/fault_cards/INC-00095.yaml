@@ -1,0 +1,17 @@
+ticket_id: INC-00095
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: The end-of-day settlement on POS Terminal 1 is stuck during transaction reconciliation, likely
+  due to an incomplete or corrupted settlement record. The issue persists after a restart and requires
+  deeper technical investigation.
+observations:
+- Settlement remains at 87% with “Processing transaction reconciliation” displayed.
+- The settlement dialog has been unresponsive for about 17 minutes, with no error message.
+- Billing, item lookup, and customer search still work on the terminal.
+- The shift manager reports the morning settlement completed successfully.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

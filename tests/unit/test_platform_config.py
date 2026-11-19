@@ -99,7 +99,9 @@ def test_service_clients_get_only_their_scopes(built: dict[str, Any]) -> None:
 
 
 def test_mock_users_carry_roles_and_store(built: dict[str, Any]) -> None:
-    users = {u["serviceAccountClientId"]: u for u in built["users"] if "serviceAccountClientId" in u}
+    users = {
+        u["serviceAccountClientId"]: u for u in built["users"] if "serviceAccountClientId" in u
+    }
     store = users["mock-store-sw-0002"]
     assert store["realmRoles"] == ["store_user"]
     assert store["attributes"] == {

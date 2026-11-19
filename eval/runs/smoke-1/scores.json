@@ -1,0 +1,104 @@
+{
+ "INC-00004": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-pin-pad.md; label ['runbooks/pos-pin-pad.md', 'runbooks/pos-payment-error.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00031": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/printer-offline.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The agent attempted relevant L1 troubleshooting: it checked power and cabling, ran a printer self-test, and restarted the POS app; the store then confirmed the printer came online and printed orders, so resolving without L2 escalation was appropriate. However, the expected behavior calls for retrieving both printer-offline.md and pos-printer-integration.md and checking paper status and StarMC Print v3.0 error logs; those documentation references and checks are absent.",
+   "missing": false,
+   "excluded": null
+  }
+ }
+}

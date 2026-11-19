@@ -13,6 +13,7 @@ import psycopg
 import pytest
 
 from support_agent.agent.app import Agent
+from support_agent.agent.graph import thread
 from support_agent.agent.runtime import WrongState
 from support_agent.agent.sla_timer import SlaTimer, due_tickets
 from support_agent.common.config import AgentSettings, get_settings
@@ -125,7 +126,11 @@ async def _race_once(agent: Agent, delay_s: float) -> str:
     if timer_won:
         assert actions == 0 and escalated == 1
         return "timer"
-    assert actions == 1 and escalated == 0 and approved.state.status == "resolved"
+    # The approval won the pending item, but the clock is past escalate-by, so the
+    # server runs nothing and the ticket hands off (S12a, D136); the API's P3 would
+    # already have refused that approval.
+    assert actions == 0 and escalated == 1, (actions, escalated)
+    assert approved.state.handoff_reason == "sla_breach"
     assert all(r.action != "handoff" for r in ticked)
     return "approve"
 
@@ -144,3 +149,35 @@ def test_cp11_3_approval_and_timer_race_has_one_winner() -> None:
     assert len(winners) == 20
     assert set(winners) == {"timer", "approve"}  # both sides won some runs
     print("winners:", {w: winners.count(w) for w in set(winners)})
+
+
+async def _orphan() -> None:
+    """S12a: the API claimed the pending item (before its 202) and the process stopped
+    before the background resume; the timer must still hand the ticket off."""
+    from support_agent.agent.graph import claim
+
+    reset_autonomy("restart_print_spooler", MODEL)
+    tid = _tid()
+    llm = ScriptedLLM(PRINTER, [turn("next", "po-usb-spooler-restart"), turn("fixed")])
+    agent, run_id, out = await start(ticket(tid), llm)
+    try:
+        assert out.paused and out.paused["kind"] == "approval", out.state.handoff_reason
+        await claim(agent.app, agent.deps, run_id, tid, str(out.paused["pending_id"]), "approval")
+        # crash here: no continue_run; the pending item is cleared, the graph still paused
+        _push_clock(run_id, tid, 200)
+        ticked = await _timer(agent, run_id).tick()
+        assert [(r.ticket_id, r.action, r.detail) for r in ticked] == [
+            (tid, "handoff", "sla_breach")
+        ]
+        assert not (await agent.app.aget_state(thread(run_id, tid))).next
+        assert rows("SELECT count(*) FROM itsm.actions WHERE run_id = %s AND ticket_id = %s",
+                    run_id, tid) == [(0,)]  # fmt: skip
+        assert rows("SELECT status FROM itsm.tickets WHERE run_id = %s AND ticket_id = %s",
+                    run_id, tid) == [("escalated",)]  # fmt: skip
+    finally:
+        await agent.aclose()
+        reset_autonomy("restart_print_spooler", MODEL)
+
+
+def test_s12a_orphaned_claim_is_handed_off_by_the_timer() -> None:
+    asyncio.run(_orphan())

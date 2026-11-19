@@ -1,0 +1,17 @@
+ticket_id: INC-00087
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: Recurring POS application freeze on POS-0019-T1, likely related to a memory leak or thermal throttling
+  in FoodTech POS v5.1.1.
+observations:
+- 'The screen is static on Order #4782 at the order confirmation page and does not respond to taps.'
+- The terminal remains powered on, with no error message visible.
+- After restarting, the terminal reaches the login screen but freezes again within 2–3 minutes of normal
+  use.
+- The terminal is running FoodTech POS v5.1.1.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

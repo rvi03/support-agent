@@ -1,0 +1,16 @@
+ticket_id: INC-00016
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The StarMC Print v2 has a hardware fault and remains offline; it requires L2/hardware support for
+  repair or replacement.
+observations:
+- The printer is powered on and its LED is solid amber.
+- The print queue reports “Printer Offline” and jobs fail with ERR-P502.
+- 'The local web interface shows “Device Status: Offline” with no error logs.'
+- 'Windows does not detect the printer when staff try to add it. '
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

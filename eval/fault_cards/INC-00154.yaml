@@ -1,0 +1,16 @@
+ticket_id: INC-00154
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: A hardware fault in the printer’s USB interface or the POS workstation’s USB controller is preventing
+  the printer from being recognized; the fault requires L2 hardware diagnosis.
+observations:
+- The printer powers on and its green LEDs are active.
+- The POS application does not list the printer in Devices.
+- Device Manager shows the installed printer driver with a yellow exclamation mark.
+- The USB cable appears firmly connected, and reconnecting it did not restore recognition.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

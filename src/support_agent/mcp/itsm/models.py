@@ -151,6 +151,10 @@ class ApprovalResult(_Out):
     approval_id: uuid.UUID
     expires_at: datetime
     autonomy_state: str | None = None
+    # create_approval only: the action's autonomy for this device model when asked
+    # (S12a, the approval card's "supervised, 0 of 1")
+    runs_in_a_row: int | None = None
+    runs_needed: int | None = None
 
 
 class DecideApprovalIn(_In):

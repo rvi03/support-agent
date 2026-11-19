@@ -1,0 +1,17 @@
+ticket_id: INC-00029
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Epson printer’s driver is missing or corrupted, so Windows does not recognize it as a usable
+  printer.
+observations:
+- The printer’s power light is on.
+- The POS reports that no printer is available.
+- Windows does not list the Epson as a printer.
+- Device Manager shows an unknown USB device when the printer is connected.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires: []

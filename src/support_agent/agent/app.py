@@ -73,6 +73,10 @@ class Agent:
     # Load a ticket's vault values into the safety net's exact match (D43): an eval
     # replay copies the contact inside the database, so no process saw it (D52).
     reload_contact: Any = None
+    # Mask free text from people (store reply, L2 reason or result) with the ticket's
+    # own tokens before it reaches the graph's resume value, which the checkpointer
+    # persists (S12a); the wait nodes still scan and moderate it.
+    mask_text: Any = None
 
     async def aclose(self) -> None:
         self.deps.tracer.flush()
@@ -178,5 +182,12 @@ async def build_agent(s: AgentSettings, *, model_alias: str | None = None) -> Ag
     def contact(ticket_id: str) -> bool:
         return reload_contact(sync, ticket_id)
 
+    def mask_text(ticket_id: str, text: str) -> str:
+        row = sync.execute(
+            "SELECT mask_map FROM pii.vault WHERE ticket_id = %s", (ticket_id,)
+        ).fetchone()
+        session = masker.session(None, mask_map=dict(row[0]) if row and row[0] else {})
+        return session.mask_text(text)
+
     return Agent(build_graph(deps, saver), deps, AdvisoryLocker(conninfo), saver_cm, [sync, aconn],
-                 reload_contact=contact)  # fmt: skip
+                 reload_contact=contact, mask_text=mask_text)  # fmt: skip

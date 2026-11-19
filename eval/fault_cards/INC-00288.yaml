@@ -1,0 +1,16 @@
+ticket_id: INC-00288
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Epson TM-T88VI has an intermittent or failed hardware connection that prevents the POS terminal
+  from detecting it.
+observations:
+- The printer’s power indicator is illuminated.
+- A test receipt attempt returns “Printer Device Not Found - Check Connection.”
+- The USB cable appears secure at both ends, and the printer panel shows no error lights.
+- The printer stopped being detected at approximately 2:15 PM IST after functioning normally.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

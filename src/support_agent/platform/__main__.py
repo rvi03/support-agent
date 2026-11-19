@@ -12,6 +12,7 @@ Commands (run from the repo root):
   mock-stores   regenerate compose/keycloak/mock-stores.txt (needs DATASET_DIR)
   realm-reload  re-render the realm, delete it in Keycloak and restart Keycloak so it
                 imports the new one (Keycloak skips an import when the realm exists)
+  ui-users      print the Demo UI logins (S13): username, roles, store and password
 """
 
 from __future__ import annotations
@@ -306,6 +307,19 @@ def cmd_realm_reload() -> None:
     print("Realm servewell re-imported")
 
 
+def cmd_ui_users() -> None:
+    """The Demo UI people (S13); passwords derive from MOCK_CLIENT_SECRET_KEY (D63)."""
+    (mock_key,) = envfile.require(_env(), "MOCK_CLIENT_SECRET_KEY")
+    people = realm.ui_people(realm.read_mock_stores(MOCK_STORES))
+    print(f"{'username':<18} {'roles':<16} {'store':<8} password")
+    for p in people:
+        print(
+            f"{p.username:<18} {','.join(p.roles):<16} {p.store_id or '-':<8} "
+            f"{realm.person_password(mock_key, p.username)}"
+        )
+    print(f"Log in at {realm.UI_ORIGIN} ({len(people)} users)")
+
+
 COMMANDS: dict[str, Callable[[], None]] = {
     "env": cmd_env,
     "colima-check": cmd_colima_check,
@@ -317,6 +331,7 @@ COMMANDS: dict[str, Callable[[], None]] = {
     "status": cmd_status,
     "mock-stores": cmd_mock_stores,
     "realm-reload": cmd_realm_reload,
+    "ui-users": cmd_ui_users,
 }
 
 

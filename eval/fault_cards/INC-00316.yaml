@@ -1,0 +1,17 @@
+ticket_id: INC-00316
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The printer has lost network connectivity and needs a full power cycle to re-establish its network
+  connection.
+observations:
+- The POS reports the printer as offline.
+- Print jobs do not come out of the printer.
+- No error lights are showing on the printer panel.
+- The power cable appears connected, and a restart has not restored printing.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-net-power-cycle
+requires: []

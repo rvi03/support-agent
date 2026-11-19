@@ -412,8 +412,12 @@ async def _ask_approval(state: TicketState, ctx: NodeCtx, walk: WalkState, b: Bi
     if walk.last_event == "approval_void":
         steps[-1] = steps[-1].model_copy(update={"outcome": "void"})
     return {
-        "walk": walk.model_copy(update={"steps": [*steps, step], "waiting": "approval",
-                                        "approval_expires_at": str(got["expires_at"])}),
+        "walk": walk.model_copy(update={
+            "steps": [*steps, step], "waiting": "approval",
+            "approval_expires_at": str(got["expires_at"]),
+            "approval_autonomy": {k: got.get(k) for k in
+                                  ("autonomy_state", "runs_in_a_row", "runs_needed")},
+        }),
         "drafts": drafts, "sent": len(drafts), "status": "waiting_approval",
         "_result": "approval", "_audit": {"step_id": b.id, "proposal_id": pid,
                                          "approval_id": str(got["approval_id"])},
@@ -503,8 +507,16 @@ def _card(state: TicketState, ctx: NodeCtx, walk: WalkState) -> dict[str, Any]:
     cur = _need(walk.current, "current step")
     b = ctx.deps.bindings.get(walk.runbook_id, cur.step_id)
     action = ctx.deps.registry.get(cur.action_id or "")
+    asset = state.facts.asset if state.facts else None
+    auto = walk.approval_autonomy or {}
     return {
         "approval_id": cur.approval_id, "action_id": cur.action_id,
+        "warranty_expiry": asset.warranty_expiry.isoformat() if asset else None,
+        "in_warranty": asset.in_warranty if asset else None,
+        "warranty_as_of": asset.as_of.isoformat() if asset else None,
+        "autonomy_state": auto.get("autonomy_state"),
+        "runs_in_a_row": auto.get("runs_in_a_row"),
+        "runs_needed": auto.get("runs_needed"),
         "action": action.description if action else None, "tier": action.tier if action else None,
         "asset_id": _asset_id(state), "section_id": cur.section_id,
         "step": b.title if b else None, "quote": b.span if b else None,
@@ -608,10 +620,17 @@ async def _on_approval(state: TicketState, ctx: NodeCtx, walk: WalkState,
     b = ctx.deps.bindings.get(walk.runbook_id, cur.step_id)
     if b is None:
         raise RuntimeError(f"unknown binding {cur.step_id}")
-    fixed = await ctx.itsm.call(
-        "run_fix", "wait_walk", f"walk-{n}-fix-{attempt}", asset_id=_asset_id(state),
-        section_id=b.section, quote=b.span, action_id=b.action_id, approval_id=cur.approval_id,
-    )  # fmt: skip
+    try:
+        fixed = await ctx.itsm.call(
+            "run_fix", "wait_walk", f"walk-{n}-fix-{attempt}", asset_id=_asset_id(state),
+            section_id=b.section, quote=b.span, action_id=b.action_id,
+            approval_id=cur.approval_id,
+        )  # fmt: skip
+    except ToolCallError as exc:
+        # the approval came after escalate-by: the server runs nothing (S12a, D136)
+        if exc.code == ErrorCode.DENIED and "sla_passed" in exc.reason:
+            return _handoff("sla_breach", walk, "approved after escalate-by")
+        raise
     return {
         "walk": _action_step(walk, b, cur.proposal_id, fixed, cur.approval_id),
         "_result": f"approved_action_{fixed['outcome']}",

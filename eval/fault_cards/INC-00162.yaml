@@ -1,0 +1,15 @@
+ticket_id: INC-00162
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The receipt printer on POS terminal 1 is offline because its printer driver is outdated.
+observations:
+- The printer has power, but orders sent from terminal 1 do not print.
+- The POS shows the printer as unavailable or offline.
+- Power cycling the printer did not restore printing.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires: []

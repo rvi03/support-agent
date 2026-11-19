@@ -1,0 +1,18 @@
+ticket_id: INC-00227
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The workstation's Epson printer driver is corrupted or outdated, preventing the POS system from
+  initializing the printer despite the printer being powered on.
+observations:
+- The printer's power indicator is lit.
+- The printer worked the previous day but failed to initialize at opening.
+- The POS system does not detect the printer.
+- A power cycle did not restore communication.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-driver-reinstall
+requires:
+- po-net-ping

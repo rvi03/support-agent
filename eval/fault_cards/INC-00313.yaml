@@ -1,0 +1,18 @@
+ticket_id: INC-00313
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The printer is reachable over the network, but StarMC Print cannot detect it. This points to a
+  device-specific firmware or communication-protocol issue requiring L2 hardware investigation; the exact
+  cause is not confirmed.
+observations:
+- The printer powers on and shows no error lights.
+- The store server can ping the printer successfully.
+- 'StarMC Print reports: “Printer PRN-0004-P1 not found on network.”'
+- The issue persists after printer reboots, an application restart, driver reinstallation, and clearing
+  the print queue.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

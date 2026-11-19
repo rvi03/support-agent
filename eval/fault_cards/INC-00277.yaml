@@ -1,0 +1,16 @@
+ticket_id: INC-00277
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: FoodTech POS v4.2.2 installation on Terminal 1 is stalled at 67%, leaving the terminal unresponsive
+  and unable to process transactions.
+observations:
+- The screen shows “Installing FoodTech POS v4.2.2... 67% Complete” and has not changed for over 20 minutes.
+- Keyboard and touchscreen inputs receive no response.
+- No error code is visible on the screen.
+- The network connection appears stable.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

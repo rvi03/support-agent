@@ -1,0 +1,12 @@
+# K15b (D41): the L2 handoff note vs the label's escalation reason and resolution.
+name: K15b L2 note quality
+threshold: 0.6
+criteria: >-
+  Judge whether the L2 handoff note gives an engineer what they need for this ticket:
+  the right problem, the right reason to escalate, what was already tried, and what to
+  do next, consistent with the expected escalation reason and resolution.
+evaluation_steps:
+  - Compare the note's stated problem and escalation reason with the expected escalation reason.
+  - Check that the note's suggested next step is consistent with the expected resolution.
+  - Check that the note states what was already tried and the business impact.
+  - Penalise wrong facts, a wrong device or a misleading next step; do not penalise missing personal contact details (they are kept in a vault on purpose).

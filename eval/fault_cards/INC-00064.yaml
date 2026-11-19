@@ -1,0 +1,15 @@
+ticket_id: INC-00064
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: Receipt jobs are stuck in the POS terminal’s print queue, so the printer receives no new jobs.
+observations:
+- The printer is powered on and shows no error light.
+- A printer self-test prints successfully.
+- POS test receipts do not print, and pending receipt jobs remain visible in the queue.
+fixed_by_actions:
+- clear_print_queue
+fixed_by_store_steps: []
+requires: []

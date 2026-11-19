@@ -1,0 +1,17 @@
+ticket_id: INC-00129
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: The POS application on terminal T1 is hung on the order-entry screen, preventing input.
+observations:
+- The order-entry screen remains frozen.
+- The terminal does not respond to keyboard or touchscreen input.
+- The problem persists after a basic power cycle.
+- The terminal is running FoodTech POS v4.2.3.
+fixed_by_actions: []
+fixed_by_store_steps:
+- psf-force-quit
+requires:
+- psf-process-health

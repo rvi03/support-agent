@@ -9,7 +9,7 @@ Pick rule (D83): the simplest setting that reaches 90% hit@3 AND puts a section 
 the code on top for every code in the KB error tables (query `error <code>` with the
 code's device family). K4 tickets rarely hold codes, so hit@3 alone can't see code misses.
 
-Only the tune half runs here (D39); the held-out number is reported in S14.
+The tune half runs freely; the held-out half (S14) only on the frozen settings (D39, D56).
 INC-00246 lists no runbook, so it is left out (kpis.md).
 Writes eval/reports/ablation_tune.md with the run's kb_rev.
 """
@@ -83,8 +83,12 @@ def device_query(subject: str, description: str, system_version: str | None) -> 
 
 
 def load_cases(conn: psycopg.Connection[Any], half: str) -> list[Case]:
-    if half != "tune":
-        raise SystemExit("S6 runs the tune half only (D39); held-out is reported in S14")
+    if half not in ("tune", "heldout"):
+        raise SystemExit("half must be tune or heldout")
+    if half == "heldout":  # S14: only on the frozen settings (D56)
+        from support_agent.eval import freeze
+
+        freeze.check()
     rows = conn.execute(
         "SELECT t.ticket_id, t.subject, t.description, t.system_version, t.category, "
         "       l.relevant_kb_docs "
@@ -196,7 +200,7 @@ async def run_setting(
 
 def report(rev: str, scores: list[Score], winner: Score | None) -> str:
     lines = [
-        "# K4 replay and retrieval ablation (tune half)",
+        f"# K4 replay and retrieval ablation ({REPORT.stem.split('_')[-1]} half)",
         "",
         f"- kb_rev: `{rev}`",
         f"- Tickets: {scores[0].n} tune labelled tickets with a labelled runbook "
@@ -275,8 +279,11 @@ async def amain(settings: EvalSettings, half: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    global REPORT
     args = sys.argv[1:] if argv is None else argv
     half = args[0] if args else "tune"
+    if half == "heldout":
+        REPORT = Path("eval/reports/ablation_heldout.md")
     return asyncio.run(amain(get_settings(EvalSettings), half))
 
 

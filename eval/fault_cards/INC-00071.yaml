@@ -1,0 +1,17 @@
+ticket_id: INC-00071
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The printer has lost network connectivity, with the cause unresolved between network configuration
+  or DHCP failure and a failed network interface. It requires L2 network-level diagnosis; hardware replacement
+  may be needed if connectivity cannot be restored.
+observations:
+- Printer powers on normally and its display shows no error codes.
+- The printer does not appear in the POS available-printers list.
+- Its configured IP address, 192.168.1.87, shows as offline.
+- Other devices on the same network are functioning normally.
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

@@ -1,0 +1,16 @@
+ticket_id: INC-00015
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: A stuck print job is blocking the receipt printer’s queue.
+observations:
+- Orders complete in the POS, but no receipt comes out.
+- The printer’s power and ready indicators are on.
+- A printer self-test prints successfully.
+- No paper or other error indicator is visible.
+fixed_by_actions:
+- clear_print_queue
+fixed_by_store_steps: []
+requires: []

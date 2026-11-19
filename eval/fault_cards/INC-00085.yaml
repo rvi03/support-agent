@@ -1,0 +1,17 @@
+ticket_id: INC-00085
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: The POS application has frozen, leaving the terminal stuck on the last transaction screen.
+observations:
+- The order entry screen is still showing the last transaction from 17:14 IST.
+- Touch input and keyboard commands receive no response.
+- No error message is displayed.
+- Router connectivity lights are green.
+fixed_by_actions: []
+fixed_by_store_steps:
+- psf-force-quit
+requires:
+- psf-process-health

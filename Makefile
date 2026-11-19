@@ -6,6 +6,10 @@ SRC := src tests
 PLATFORM := $(UV) run python -m support_agent.platform
 COMPOSE := docker compose --project-name servewell --env-file .env -f compose/compose.yaml
 OPA_IMAGE := openpolicyagent/opa:1.22.4-static
+# Demo UI (S13): Node runs only in this pinned image, never on the host; node_modules
+# lives in a Docker volume so the Linux build never lands in ui/.
+NODE_IMAGE := node:24.22.3-alpine
+UI_RUN := docker run --rm -v "$(CURDIR)":/repo -v servewell-ui-modules:/repo/ui/node_modules -w /repo/ui
 # LEAN=1 skips Prometheus and Grafana (X3).
 ifeq ($(LEAN),1)
 export COMPOSE_PROFILES :=
@@ -13,7 +17,8 @@ endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
 	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check walk-dry-run \
-	ticket-local tricky notes-check walk-live ticket test-e2e openapi api-logs
+	ticket-local tricky notes-check walk-live ticket test-e2e openapi demote api-logs \
+	ui ui-install ui-types ui-check ui-users ui-e2e
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -109,6 +114,34 @@ test-e2e: ## S12: API end-to-end tests (CP12.1, CP12.2) against the running API
 openapi: ## S12: write the API's OpenAPI schema to docs/openapi.json
 	$(UV) run python -m support_agent.api.openapi docs/openapi.json
 
+ACTION ?= restart_print_spooler
+demote: ## S12a: set an action back to supervised (admin path, P5, audited) so the demo meets the approval card; ACTION=…
+	$(COMPOSE) exec -T itsm-actions python -m support_agent.mcp.itsm.demote $(ACTION)
+
+ui-users: ## S13: print the Demo UI logins (store-<id>, l2-engineer, vendor-approver) and passwords
+	@$(PLATFORM) ui-users
+
+ui-install: ## S13: install the UI's pinned npm packages (npm ci, or npm install when no lock yet)
+	$(UI_RUN) $(NODE_IMAGE) sh -c 'if [ -f package-lock.json ]; then npm ci; else npm install; fi'
+
+ui-types: ## S13: regenerate ui/src/api/schema.d.ts from docs/openapi.json
+	$(UI_RUN) $(NODE_IMAGE) npm run gen:api
+
+ui-check: ## S13: typecheck and build the UI
+	$(UI_RUN) $(NODE_IMAGE) npm run build
+
+PW_IMAGE := mcr.microsoft.com/playwright:v1.64.1-noble
+ui-e2e: ## S13: Playwright CP13.1-CP13.3 on the live platform (needs `make up`); screenshots in ui/test-results/screens
+	@# CP13.2 needs the approval card: set the printer action back to supervised (P5, D142).
+	$(MAKE) demote ACTION=restart_print_spooler
+	MOCK_CLIENT_SECRET_KEY=$$(grep -E '^MOCK_CLIENT_SECRET_KEY=' .env | cut -d= -f2-) \
+	docker run --rm --network host --ipc host -e CI=1 -e MOCK_CLIENT_SECRET_KEY \
+	  -v "$(CURDIR)":/repo -v servewell-ui-e2e-modules:/repo/ui/node_modules -w /repo/ui $(PW_IMAGE) \
+	  sh -c 'npm ci --no-audit --no-fund > /dev/null && npx playwright test'
+
+ui: ui-install ## S13: run the Demo UI at http://localhost:5173 (needs `make up`)
+	$(UI_RUN) -it -p 127.0.0.1:5173:5173 $(NODE_IMAGE) npm run dev
+
 api-logs: ## Follow the API container's log
 	$(COMPOSE) logs -f api
 
@@ -130,5 +163,46 @@ realm: ## Re-import the Keycloak realm after a realm.py change (deletes and re-i
 index: ## Build and publish a sanitized KB revision from S3 (S6); ARGS=--force rebuilds an unchanged one
 	$(UV) run python -m support_agent.kb.index $(ARGS)
 
+eval-dataset: ## S14: push the 256 masked items to Langfuse dataset servewell-256 (changed items only); ARGS=--dry-run
+	$(UV) run python -m support_agent.eval.dataset $(ARGS)
+
 split: ## Write eval/split.json from the uploaded labels (once, before any tuning; commit it)
 	$(UV) run python -m support_agent.ingest.seed split
+
+fault-cards: ## S14: write eval/fault_cards/<ticket>.yaml with the judge alias (never regenerates; ARGS="--force INC-…")
+	$(UV) run python -m support_agent.eval.fault_cards $(ARGS)
+
+eval-mode: ## S14: restart api + itsm-actions with EVAL_MODE, replay clock and fault cards; every reversible action back to supervised (D47)
+	EVAL_MODE=true CLOCK_MODE=replay FAULT_CARDS_DIR=eval/fault_cards $(COMPOSE) up -d --no-deps --wait itsm-actions api
+	@for a in $$($(UV) run python -c "import yaml; print(' '.join(x['action_id'] for x in yaml.safe_load(open('src/support_agent/mcp/itsm/registry.yaml'))['actions'] if x['tier'] == 'reversible'))"); do \
+		$(MAKE) --no-print-directory demote ACTION=$$a; done
+
+live-mode: ## S14: restart api + itsm-actions with the live defaults again (after an eval run)
+	$(COMPOSE) up -d --no-deps --wait itsm-actions api
+
+eval-run: ## S14 agent phase: SPLIT=tune|heldout|all [IDS="INC-…"] [LIMIT=n] [NAME=…] -> eval/runs/<name>/ (needs `make eval-mode`)
+	$(UV) run --group eval python -m support_agent.eval.runner $(or $(SPLIT),tune) $(if $(IDS),--ids "$(IDS)") $(if $(LIMIT),--limit $(LIMIT)) $(if $(NAME),--name $(NAME))
+
+freeze: ## S14: write eval/frozen_settings.json (needs the judge calibration form, CP14.3); `make freeze ARGS=check` compares
+	$(UV) run --group eval python -m support_agent.eval.freeze $(ARGS)
+
+eval-score: ## S14 judge phase: RUN=<run> [TUNE=<tune run>] [ARGS=--no-judge|--no-push] -> eval/reports/<run>.md + Langfuse scores
+	DEEPEVAL_TELEMETRY_OPT_OUT=YES $(UV) run --group eval python -m support_agent.eval.score --run $(RUN) $(if $(TUNE),--tune $(TUNE)) $(ARGS)
+
+safety-check: ## S14 CP14.4: independent checker over RUN=<run> (K10, K11, K12, missing evidence) -> eval/reports/<run>-safety.md
+	$(UV) run python -m support_agent.eval.safety_checker $(RUN)
+
+adversarial: ## S14 CP14.5: the adversarial suite with clean twins [CLASSES=a,b] [LIMIT=n] -> eval/reports/adversarial.md (run in `make eval-mode`)
+	$(UV) run python -m support_agent.eval.adversarial $(if $(CLASSES),--classes $(CLASSES)) $(if $(LIMIT),--limit $(LIMIT))
+
+rule-breaks: ## S14: OPA rule-break probes against the live API (denied and audited) -> eval/reports/rule_breaks.md
+	$(UV) run python -m support_agent.eval.rule_breaks
+
+hand-forms: ## S14 CP14.3: hand-score forms for RUN=<run> (tune: calibration + K9; held-out: K13, K9, cards) in eval/hand/
+	DEEPEVAL_TELEMETRY_OPT_OUT=YES $(UV) run --group eval python -m support_agent.eval.hand forms $(RUN)
+
+hand-import: ## S14 CP14.3: import a filled form FORM=<calibration|k9_tune|k13|k9_heldout|cards> RUN=<run>; agreement + Langfuse scores
+	DEEPEVAL_TELEMETRY_OPT_OUT=YES $(UV) run --group eval python -m support_agent.eval.hand import $(FORM) $(RUN)
+
+eval-suites: ## S14 step 8: OPA, rule-breaks, revision/resume, branch safety, abstention, checker tests -> eval/reports/suites.md
+	$(UV) run python -m support_agent.eval.suites $(ONLY)

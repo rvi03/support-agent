@@ -1,0 +1,43 @@
+/* Design tokens from design.md (Demo UI) and the approved mock; light theme only (D31). */
+:root {
+  --paper: #f6f4ef;
+  --card: #fdfcf9;
+  --line: #e2ddd2;
+  --ink: #14213d;
+  --muted: #4a5568;
+  --blue: #2f6f9f;
+  --orange: #e8a04b; /* only where someone must act */
+  --font-head: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --radius: 8px;
+  --gap: 16px;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-head);
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}

@@ -1,0 +1,11 @@
+form,ticket,kpi,item_file,judge,human,notes
+calibration,INC-00060,K8,eval/hand/items/calibration-INC-00060-K8.md,fail,,
+calibration,INC-00064,K8,eval/hand/items/calibration-INC-00064-K8.md,fail,,
+calibration,INC-00068,K8,eval/hand/items/calibration-INC-00068-K8.md,pass,,
+calibration,INC-00129,K8,eval/hand/items/calibration-INC-00129-K8.md,fail,,
+calibration,INC-00227,K8,eval/hand/items/calibration-INC-00227-K8.md,fail,,
+calibration,INC-00034,K15b,eval/hand/items/calibration-INC-00034-K15b.md,pass,,
+calibration,INC-00096,K15b,eval/hand/items/calibration-INC-00096-K15b.md,pass,,
+calibration,INC-00120,K15b,eval/hand/items/calibration-INC-00120-K15b.md,pass,,
+calibration,INC-00223,K15b,eval/hand/items/calibration-INC-00223-K15b.md,fail,,
+calibration,INC-00314,K15b,eval/hand/items/calibration-INC-00314-K15b.md,pass,,

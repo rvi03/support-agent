@@ -1,0 +1,17 @@
+ticket_id: INC-00031
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The POS application's connection to the kitchen printer has stalled, leaving the printer marked
+  offline even though the printer itself is operational.
+observations:
+- The printer has power and shows no paper or error warning.
+- A printer self-test prints successfully.
+- Orders appear in the POS, but no kitchen receipt prints.
+- The POS reports the kitchen printer as offline.
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-restart-pos-app
+requires: []

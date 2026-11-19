@@ -8,7 +8,7 @@ carries; S8 fills `facts`, `triage`, `policy` and `route`.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -280,6 +280,8 @@ class WalkState(_Model):
     last_outcome: str | None = None  # the latest action outcome
     approval_attempt: int = 0
     approval_expires_at: str | None = None  # ISO, wall clock (D48)
+    # the action's autonomy when approval was asked: state, runs_in_a_row, runs_needed (S12a)
+    approval_autonomy: dict[str, Any] | None = None
     end: Literal["fixed", "stuck"] | None = None
     end_reason: str | None = None
 

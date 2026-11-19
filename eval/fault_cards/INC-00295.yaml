@@ -1,0 +1,17 @@
+ticket_id: INC-00295
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: FoodTech POS v4.2.3 update is hung during installation, leaving terminal POS-0110-T1 unresponsive.
+  Recovery requires L2 manual update recovery; the listed runbook steps do not cover that recovery.
+observations:
+- The installation progress has remained at 67% for over an hour.
+- The screen shows “Installing core modules...”
+- The terminal does not respond to touch or keyboard input.
+- After waiting 15 minutes, the update resumed at the same 67% position.
+- 'The store is using its secondary terminal and reports reduced checkout capacity during lunch service. '
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

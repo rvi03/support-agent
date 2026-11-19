@@ -1,0 +1,17 @@
+ticket_id: INC-00183
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Zebra printer has a device-side communication fault; its firmware may be corrupted or outdated,
+  or the printer/USB connection hardware may have failed. The listed runbook steps do not resolve this
+  fault.
+observations:
+- The printer is powered on, has paper loaded, and shows a solid green light.
+- Printing from POS Terminal 1 produces error E-PRINT-502, “Printer communication timeout.”
+- A direct USB test print from Windows also gets no response.
+- 'The POS terminal otherwise works normally, and the issue affects all order types. '
+fixed_by_actions: []
+fixed_by_store_steps: []
+requires: []

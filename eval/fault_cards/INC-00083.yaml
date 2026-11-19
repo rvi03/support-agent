@@ -1,0 +1,17 @@
+ticket_id: INC-00083
+source: labelled
+version: 1
+runbooks:
+- runbooks/pos-screen-frozen.md
+generated_by: judge
+fault: POS Terminal T2 is stuck during startup on the splash screen, likely because the POS application
+  has stalled while loading.
+observations:
+- The terminal displays the POS splash screen but does not reach the login screen.
+- The screen remains unchanged after waiting.
+- A power cycle did not resolve the issue.
+- No error message is visible on the screen.
+fixed_by_actions: []
+fixed_by_store_steps:
+- psf-force-quit
+requires: []

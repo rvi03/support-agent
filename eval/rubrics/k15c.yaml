@@ -1,0 +1,10 @@
+# K15c (D41): the L1 pack vs the label's resolution.
+name: K15c L1 pack quality
+threshold: 0.6
+criteria: >-
+  Judge whether the L1 pack gives an L1 agent the right guidance for this ticket,
+  consistent with the expected resolution.
+evaluation_steps:
+  - Compare the pack's suggested steps and sources with the expected resolution.
+  - Check that the pack names the right device and problem.
+  - Penalise steps that would not fix the fault or that are unsafe for L1.

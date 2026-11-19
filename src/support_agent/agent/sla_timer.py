@@ -11,7 +11,13 @@ advisory lock so only one runner fires:
   timer wins does the ticket hand off (`sla_breach`); if a reply or an approval
   won, the timer gets `WrongState` and does nothing, and the reverse holds too.
   The advisory lock only stops two timers; the pending row decides the race;
-- a finished graph with a human L1 (L1 pack): a new HANDOFF run on the same thread.
+- a finished graph with a human L1 (L1 pack): a new HANDOFF run on the same thread;
+- an orphaned pause (S12a): the graph is interrupted but no pending item is open,
+  because the API claimed it and the process stopped before the background resume
+  ran. Under the ticket lock (a live resume holds it, so that is `busy`) the graph is
+  resumed with the timeout value and hands off (`sla_breach`); the lost reply or
+  decision is a stated limit (no durable worker, S12). Such a ticket is due even
+  while its status still says `waiting_l2`.
 
 The timer reads only ids, status and deadlines (db/sql/011_sla_timer.sql); every
 write goes through itsm-actions.
@@ -26,7 +32,7 @@ from typing import Any
 
 import psycopg
 
-from support_agent.agent.graph import Locker, RunOutcome, resume, thread
+from support_agent.agent.graph import Locker, RunOutcome, continue_run, resume, thread
 from support_agent.agent.runtime import Deps, WrongState
 from support_agent.agent.state import TicketState
 
@@ -40,7 +46,7 @@ LEFT JOIN itsm.pending p
   ON p.run_id = t.run_id AND p.ticket_id = t.ticket_id AND p.cleared_at IS NULL
 WHERE t.escalate_by IS NOT NULL
   AND now() + t.clock_offset > t.escalate_by
-  AND t.status <> ALL(%s)
+  AND (t.status <> ALL(%s) OR (t.status = 'waiting_l2' AND p.pending_id IS NULL))
 ORDER BY t.escalate_by
 """
 
@@ -117,7 +123,23 @@ class SlaTimer:
             except WrongState as exc:  # a reply or an approval won, or it is running now
                 return TickResult(d.run_id, d.ticket_id, "lost_race", str(exc)[:200])
             return TickResult(d.run_id, d.ticket_id, "handoff", _reason(out))
+        snap = await self.app.aget_state(thread(d.run_id, d.ticket_id))
+        if snap.values and snap.next:
+            return await self._orphaned(d)
         return await self._finished(d)
+
+    async def _orphaned(self, d: Due) -> TickResult:
+        """A pause whose pending item was claimed but never resumed (S12a)."""
+        cfg = thread(d.run_id, d.ticket_id)
+        try:
+            async with self.locker.hold(d.run_id, d.ticket_id):
+                snap = await self.app.aget_state(cfg)  # re-read under the lock
+                if not snap.next:
+                    return TickResult(d.run_id, d.ticket_id, "skipped", "resumed meanwhile")
+                out = await continue_run(self.app, d.run_id, d.ticket_id, "timeout", {})
+        except WrongState as exc:  # the API's resume is running now
+            return TickResult(d.run_id, d.ticket_id, "busy", str(exc)[:200])
+        return TickResult(d.run_id, d.ticket_id, "handoff", _reason(out))
 
     async def _finished(self, d: Due) -> TickResult:
         """A finished graph handed to a human L1: start a HANDOFF on the same thread."""

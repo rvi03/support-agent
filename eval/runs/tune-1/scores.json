@@ -1,0 +1,5182 @@
+{
+ "INC-00004": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-pin-pad.md; label ['runbooks/pos-pin-pad.md', 'runbooks/pos-payment-error.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00005": {},
+ "INC-00006": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-guest-wifi.md; label ['runbooks/network-guest-wifi.md', 'runbooks/network-router-offline.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "It correctly identifies the guest-only SSID outage and the Cisco SG350, flags that the NetLink runbook is for different hardware, and recommends L2 escalation. Its checks cover SSID configuration and guest-network settings, but it does not specify the expected router identifier RTR-0038-01 or the deeper L2 steps of checking wireless-service and firmware issues, potentially reloading the guest profile, and confirming visibility and successful connection. The NetLink-specific procedures are approp",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00008": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-scanner.md; label ['runbooks/pos-scanner.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00012": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-router-offline.md; label ['runbooks/network-router-offline.md', 'runbooks/network-slow.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly identifies recurring peak-hour drops on the NetLink NL-3000 affecting POS and KDS operations, states that power cycling, cable checks, and log review failed, and explains the impact on order processing, payments, and revenue. Escalation to L2 and remote diagnostics/firmware checks are consistent with the expected resolution, though it omits the more specific expected actions such as packet capture, checking for an available firmware update, and replacement with configuration b",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00013": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked runbooks/network-slow.md; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The note identifies DHCP lease exhaustion, the Cisco SG350, affected POS terminals and customer/staff connectivity, and P2 impact. It also states that no troubleshooting was recorded. However, its escalation rationale says L1 should verify utilization and release stale leases before escalation, contrary to the expected immediate L2 intervention for a specialized infrastructure issue. It does not specify the expected L2 actions to reset and size the pool or verify stable POS reconnection and IP a",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00014": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00016": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/printer-offline.md', 'runbooks/printer-driver-reinstall.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies the driver mismatch, records multiple unsuccessful troubleshooting steps, and describes significant impact: receipt jobs are rejected with ERR-P502 and the printer has a solid amber LED. However, it labels the escalation only as steps_exhausted and says the driver reinstall was recommended with a follow-up scheduled, not confirmed; the expected next step is to confirm that reinstall before escalating for hardware support. It also omits the expected backup-printer check and on",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00017": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-overcooling.md; label ['runbooks/soft-serve-overcooling.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The response correctly selects the soft-serve overcooling runbook and identifies the FrostyPro 800, including the v1.8 known-bug context. However, it does not guide the technician through the expected temperature calibration: checking thermostat settings, testing the temperature sensor, and recalibrating cooling-cycle parameters. Its general checks and escalation criteria are useful, but the suggested manual check is unspecified and does not resolve the core fault.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00018": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked runbooks/pos-slow-performance.md; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/pos-software-update.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies intermittent peak-hour disconnections on POS-0001-T1, records the basic checks and unaffected terminals, and describes queue backup and checkout delays. However, its escalation reason is only no_approved_steps rather than the expected single-terminal network issue despite troubleshooting, and it gives no actionable L2 plan for packet capture, DHCP, driver, or switch-port analysis.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00020": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-not-on-kds.md; label ['runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.9,
+   "reason": "The escalation reason correctly identifies a backend order-routing/POS integration issue: connectivity passed, the auto-accept toggle is enabled, and orders still do not route to KDS across the three partner integrations. It records the checks already tried and the manual-acceptance business impact, and recommends L2 backend diagnostics and POS integration verification, consistent with the expected resolution. It does not specify the expected deeper checks of database configuration, recent deplo",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00021": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-overcooling.md; label ['runbooks/soft-serve-overcooling.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.2,
+   "reason": "The response recognizes the soft-serve overcooling symptom and cites the relevant runbook, but it treats RTR-0092-01 as an unrelated router and withholds the expected resolution. The expected output calls for guiding staff to verify and adjust the NetLink NL-3000 temperature setpoint, then confirm product consistency; the response instead asks for device verification and routes to L2 without those steps.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00023": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The note correctly identifies OrbitPOS v2.0 auto-accept failure, confirms the setting is enabled, and records the refresh attempt plus pending orders, manual intervention, and fulfillment delays. However, it gives \u201cno_kb_match\u201d as the escalation reason rather than the expected system-level integration issue requiring L2 expertise, even though it says the runbook covers this version. Its next steps are limited to generic network and terminal checks and omit the expected order-sync, aggregator/API",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00028": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note correctly identifies a persistent Zomato-to-POS failure, P1 urgency, an unsuccessful system restart, and business impact on confirming and processing orders. It also escalates to L2 and the Network team. However, it says the linked NetLink NL-3000 router is not the affected device, contradicting the expected router-hardware escalation, and it does not specify the expected checks for API connectivity/authentication, network issues, configuration changes, or order-sync confirmation.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00031": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/printer-offline.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The agent used the relevant printer-offline runbook and guided physical, self-test, and POS-restart checks; the store confirmed the printer came online and orders worked, so resolving rather than escalating was appropriate. However, it did not retrieve the pos-printer-integration runbook or check paper/toner status and StarMC Print v3.0 error logs as expected.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00034": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-slow.md; label ['runbooks/network-router-offline.md', 'runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note accurately describes intermittent drops on the NetLink NL-3000 affecting POS, online ordering, and kitchen-display devices, with significant peak-hour impact and multiple L1 checks already performed without resolution. It requests L2 handling and hardware replacement evaluation, and the syslog/DHCP diagnostics align with the expected next step. However, the escalation field says \u201cgate_block,\u201d which does not match the expected reason, and the note does not explicitly call for packet capt",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00035": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00041": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-driver-reinstall.md; label ['runbooks/printer-driver-reinstall.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note accurately identifies the driver-level issue (0x00000050 and the Device Manager warning), records the troubleshooting already tried, and states the peak-hours impact of being unable to print receipts and order tickets. It also points toward L2 driver download and remote installation, consistent in broad terms with the expected resolution. However, it labels the escalation reason as no_approved_steps rather than the driver issue, and omits key next-step details: matching the package to W",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00043": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies persistent online-portal timeouts and lost online revenue, and records that no KB resources were consulted. It appropriately flags the linked POS terminal as unverified rather than asserting it is the affected device. However, the escalation reason is only no_kb_match, not the expected portal-wide infrastructure or aggregator issue beyond L1 scope, and it gives no actionable next step to check backend services, aggregator status, store connectivity, or API endpoints.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00051": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-vpn.md; label ['runbooks/network-vpn.md', 'runbooks/network-router-offline.md', 'runbooks/online-orders-sync-failure.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "It correctly identifies the Cisco SG350 and intermittent VPN drops, recognizes that the NetLink runbook is out of scope, avoids device-specific procedures, and keeps the unresolved case with L2. However, it does not specify the expected L2 investigation: IPSec Phase 1 authentication timeouts, certificate and pre-shared-key validity, firmware compatibility, or coordination with the ISP/VPN provider. Its guidance remains general despite several basic checks already being completed.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00053": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md', 'runbooks/soft-serve-motor-alarm.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "The note captures intermittent inconsistent portions and the reported impact on customer orders and waste, and it records P4 priority. However, it contradicts the expected escalation details by treating RTR-0031-01 as an unrelated network router and the machine as unverified, rather than identifying the dispensing mechanism for field inspection. It gives no specific next step to inspect pump calibration, nozzle alignment, or motor function, and no troubleshooting steps are recorded; it also omit",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00054": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00057": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/online-orders-sync-failure.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note identifies POS terminal T1 and escalates for L2 backend investigation after L1 checks and a loyalty-module cache reset failed. It also records the customer and repeat-visit impact. However, it frames escalation mainly as a missing runbook/specification entry rather than identifying LSY-4002 as a connection timeout pointing to the backend loyalty service or transaction queue. Its next step is generic and omits checking service health, outages, queue backlog, sync logs, and validating or ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00059": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00060": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-screen-frozen.md; label ['runbooks/pos-screen-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "The agent retrieved the POS screen-frozen runbook and tried a wait, notification check, and soft shutdown, then escalated after the store confirmed the screen remained frozen. However, it skipped the expected 30-second power disconnect, OrbitPOS v2.0 process check/force-quit, and POS application restart, so escalation occurred before the required troubleshooting was completed.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00063": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00064": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-offline.md', 'runbooks/printer-paper-jam.md', 'runbooks/printer-driver-reinstall.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The agent checked printer power and connections, ran a successful printer self-test, and restarted the POS application before escalating after the issue persisted. However, it used the generic printer-offline runbook rather than pos-printer-integration.md and missed key L1 steps: checking or clearing the FoodTech POS v4.2.2 queue, restarting the POS terminal and printer, and verifying or updating drivers. The escalation therefore came before the expected troubleshooting sequence was complete.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00068": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/printer-offline.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The agent retrieved and followed the printer-offline runbook, checking power and connections, running a FEED-button self-test, and restarting the POS before escalating after the store still reported failure. Escalation to L2 is appropriate after these steps, but the expected behaviour also calls for retrieving epson-printer.md and checking device-specific guidance, plus restarting the printer; neither is shown.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00069": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The response correctly recognizes that the Epson receipt printer is unrelated and suggests checking portal status and store internet, which partially addresses backend and connectivity causes. However, it relies on an order-sync runbook that is not a good match for a portal outage, omits DNS and router/VPN/aggregator checks and a network reboot, and does not clearly direct escalation to the infrastructure/backend team with the error details and outage timeline if access remains unavailable.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00074": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage clarify, route handoff, reason still_vague",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage clarify, route handoff, reason still_vague",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00075": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.9,
+   "reason": "The note correctly identifies a third-party Zomato integration failure requiring L2 API-level investigation, and documents exhausted L1 steps including manual sync, restart, and normal network/POS checks. It clearly states the business impact of 12 unprocessed orders and distinguishes the linked router from the unknown integration device. The next step is directionally consistent, though it does not spell out the expected checks for API credentials, firewall/proxy rules, Zomato incidents, and po",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00078": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-error-codes.md; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note records E-447 persisting after a standard power cycle, the afternoon-rush occurrence, and the impact that staff cannot process soft-serve orders and customers are turned away. It recommends L2 review, consistent with the expected escalation. However, it frames escalation mainly around the code being absent from the runbook and an unverified POS-linked asset, rather than the expected specialized diagnostics and already-set escalation flag. Although it says the runbook was consulted, it d",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00081": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-vpn.md; label ['runbooks/network-vpn.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00090": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason version_not_covered",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-offline.md', 'runbooks/printer-paper-jam.md', 'runbooks/printer-driver-reinstall.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "The note records relevant basic troubleshooting\u2014connection verification, communication-log review, and terminal restart\u2014and explains that receipts are not printing while orders continue, affecting counter fulfillment. However, it gives the wrong escalation reason: a runbook coverage gap rather than the need for hardware-level printer diagnostics. It also omits the expected next steps to verify driver installation, port configuration, and print-queue status before considering hardware assessment ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00091": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-guest-wifi.md; label ['runbooks/network-guest-wifi.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "The note identifies the correct router, the powered-on/nonbroadcasting guest SSID, and customer impact during peak hours, and it accurately records that no L1 checks are documented. However, its escalation rationale says the evidence does not establish an escalation request or exhausted troubleshooting, whereas the expected reason calls for L2 network engineering support and says the issue is already flagged for escalation. It also omits the expected L2 diagnostic and remediation steps, includin",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00092": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-router-offline.md; label ['runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly identifies a completely unresponsive router with no lights and failed power cycling, and records the impact on POS, customer Wi-Fi, and back-office operations. It documents L1 ping checks and the runbook, and escalation to L2 for suspected hardware failure is consistent with the expected resolution. However, it does not explicitly recommend network-engineering diagnostics, RMA authorization, or replacement deployment, and the customer_waited_30_min trigger is not supported by ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00095": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-end-of-day.md; label ['runbooks/pos-end-of-day.md', 'runbooks/pos-screen-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note accurately describes POS-0084-T1 hanging at 87% after a power cycle, verified stable connectivity, and failed cancel/close attempts, and it clearly states the impact on register closure and cash reconciliation. It records the troubleshooting already tried and that the runbook had no approved steps. However, its escalation reason is framed only as `no_approved_steps`, rather than emphasizing the persistent settlement failure and need for L2 investigation. It also does not recommend inves",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00096": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-motor-alarm.md', 'runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note captures the no-response failure and lunch-rush urgency, and accurately states that no troubleshooting steps are recorded. It flags that RTR-0110-01 is linked as a network router rather than treating it as a verified soft-serve asset. However, \u201cl2_needed\u201d does not explain the expected immediate hardware-diagnostic escalation, and the note gives no next steps for checking power and the breaker, reviewing maintenance logs, or arranging field technician intervention.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00098": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-screen-frozen.md; label ['runbooks/pos-screen-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note describes POS-0007-T2 frozen and unresponsive after a force restart, cable checks, network diagnostics, and failed remote access, and it records peak-dinner impact with POS-0007-T1 limiting throughput. It says hardware escalation is queued and the ticket is handed to L2, but labels the escalation reason `gate_block` and does not clearly recommend on-site hardware diagnosis or repair/replacement, as expected.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00100": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-frozen.md; label ['runbooks/kiosk-frozen.md', 'runbooks/kiosk-touchscreen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The response correctly identifies the Self-Order Kiosk and routes to kiosk-frozen.md, while appropriately flagging that RTR-0012-01 and its Cisco version do not establish the kiosk\u2019s identity or software version. It gives relevant initial checks and escalation conditions, but does not explicitly mention the expected checks for software crashes or unresponsive processes, touchscreen calibration, or testing touch responsiveness after reboot; its cache-clearing path is less central to the expected ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00102": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-paper-jam.md; label ['runbooks/printer-paper-jam.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00103": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-guest-wifi.md; label ['runbooks/network-guest-wifi.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "It correctly identifies guest DHCP pool exhaustion and recommends L2 scope expansion or client cleanup, while explicitly warning that the NetLink runbook does not cover the Cisco SG350. However, it omits the expected resolution details: reducing the lease duration from 24 to 4 hours, expanding the pool from /25 to /24, saving the configuration, and confirming restored connectivity. The NetLink LED questions are also irrelevant to the identified Cisco device.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00104": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00107": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00109": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-vpn.md; label ['runbooks/network-vpn.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The response correctly identifies the Cisco SG350 RTR-0050-01 VPN disconnect affecting POS sync and references the relevant runbook, while appropriately avoiding unvalidated NetLink-specific L1 procedures. However, it does not provide the expected L2 tunnel diagnostics\u2014VPN configuration, credentials, encryption, and remote gateway connectivity\u2014or recommend restarting VPN services and restoring sync; its escalation triggers are also NetLink-specific rather than tailored to the Cisco device.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00110": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-error-codes.md; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "It correctly identifies the CreamTech SC-500 and recognizes a low-mix warning after a hopper refill, and it appropriately asks for the displayed code before choosing a runbook path. However, the expected cause is a miscalibrated sensor and the resolution is recalibration or a remote calibration reset with post-reset verification; the pack only suggests confirming mix levels and inspecting or cleaning the sensor, so it misses the key fix.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00115": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note records the completed L1 checks, persistent no-power symptoms despite a working outlet, and the 40\u201350% peak-hours capacity impact. It also recognizes that physical hardware diagnosis is needed, which is directionally consistent with the expected escalation. However, it frames escalation mainly as a customer-asks/SOP trigger rather than a likely internal power-supply or component failure, and it does not explicitly request field-technician dispatch, inspection of the internal components,",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00117": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-not-on-kds.md', 'runbooks/pos-printer-integration.md', 'runbooks/pos-software-update.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The response correctly identifies Pending online orders as a sync/integration issue and includes useful checks for portal status, internet/POS connectivity, manual sync, and L2 escalation. However, it omits the expected checks for POS auto-accept configuration, printer integration settings, and EpsonTM-T88VI firmware, and instead treats the printer as unrelated and its version as outside the runbook.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00120": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-payment-error.md; label ['runbooks/pos-payment-error.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note identifies ERR-4521 gateway timeouts and intermittent duplicate charges as the escalation concern, and routes the issue to L2 for payment gateway and processor diagnostics, consistent with the expected reason and resolution. It documents extensive terminal/network troubleshooting and the dinner-rush delays and eight manually voided/reprocessed transactions. It does not specify several expected L2 actions, such as checking API endpoint health, investigating processor incidents, handling ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00121": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-router-offline.md', 'runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00123": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-guest-wifi.md; label ['runbooks/network-guest-wifi.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The response identifies the guest Wi-Fi SSID broadcast fault and correctly names the NetLink NL-3000 v2.1, using the relevant guest Wi-Fi runbook and recommending L2 escalation if unresolved. It covers SSID settings and service checks, but omits the expected router asset RTR-0082-01 and does not guide the submitter through the expected power-cycle verification; instead it says not to repeat restart advice because the router appears powered on. Its extensive DHCP bug and escalation details are le",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00127": {},
+ "INC-00129": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-screen-frozen.md; label ['runbooks/pos-screen-frozen.md', 'runbooks/pos-startup-failure.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "4 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The agent retrieved the relevant pos-screen-frozen runbook and guided the store through waiting, checking notifications, a graceful restart, and a mouse/keyboard test before escalating to L2. However, the expected advanced troubleshooting\u2014such as force-quitting applications, checking system logs, and considering a hard reset\u2014was not completed, and no system-log or hardware diagnostics were included in the handoff.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00131": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-router-offline.md; label ['runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly identifies the router's missing power light and lack of response to power cycling, and escalates to L2 after asking L1 to verify the power cable and outlet. It also states the store-wide loss of Wi-Fi affecting POS terminals and staff devices. It could align more closely with the expected resolution by explicitly calling for an on-site assessment and possible router replacement; it does not mention that the reported history says no troubleshooting had yet been attempted.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00132": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-error-codes.md; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "It correctly identifies the CreamTech SC-500 and intermittent mix-low alert and points to the error-code runbook, but it does not provide the expected immediate guidance on mix-low behavior or consult the soft-serve FAQ. It also misses the requested L2 escalation for sensor diagnostics, instead making escalation conditional on E04 persisting after refill and sensor cleaning, and omits advice to monitor reservoir levels and document alert frequency.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00136": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l1_guided, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l1_guided, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00138": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-router-offline.md; label ['runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly identifies a completely dark router (RTR-0104-01), disconnection of terminals and kitchen display systems, and the network-infrastructure SOP trigger; it also records escalation to L2, the runbook, and the router model/version. It states store operations are affected. However, it does not explicitly call for L2 hardware diagnostics or repair/replacement, and the troubleshooting steps and outcomes are undocumented rather than confirming power/hardware diagnostics.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00141": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-frozen.md; label ['runbooks/kiosk-frozen.md', 'runbooks/kiosk-touchscreen.md', 'runbooks/pos-screen-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The response correctly identifies the frozen kiosk touchscreen and points to the kiosk-frozen runbook, including touch-driver reset and system-log/calibration checks, with L2 escalation if unresolved. However, it does not explicitly direct the agent to perform the expected hard restart or state escalation for hardware diagnosis or touch-panel replacement after calibration reset. It also notes the asset/model mismatch and that the v5.1.0 loyalty-sync bug is unrelated, which appropriately avoids a",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00142": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-aggregator-disconnect.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note appropriately identifies a persistent Zomato integration failure and supports escalation by documenting that walk-in orders work, network connectivity is stable, and POS restart/login attempts did not resolve the issue. It also states meaningful business impact: about 8\u201312 orders per hour are affected and manual checking is unsustainable. However, it does not clearly direct integration support to verify API credentials, tokens, endpoint connectivity, or coordinate with Zomato, and it sa",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00144": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-vpn.md; label ['runbooks/network-vpn.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The response selects the correct network-vpn.md runbook and recognizes the VPN authentication timeout, then directs L1 to check connection properties, service status, logs, and escalate for configuration issues. However, it does not explicitly call out checking credentials, certificate validity, tunnel configuration, or authentication logs as the expected resolution requires, and it omits escalation to L2 network engineering and possible NetLink vendor support given the store impact. Its conditi",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00145": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-wrong-output.md', 'runbooks/printer-driver-reinstall.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note documents the relevant L1 steps (power cycle, cable check, queue clear, and driver verification) and the high impact on 250+ customers, including the unsustainable manual-receipt workaround during peak service. However, it gives the escalation reason as no approved runbook steps rather than hardware-level print corruption requiring L2 diagnostics. It mentions possible printhead diagnostics or firmware rollback, but does not clearly direct L2 to perform the expected firmware and printhea",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00146": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked runbooks/network-slow.md; label ['runbooks/network-guest-wifi.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The response correctly identifies DHCP pool exhaustion on the NL-3000 v2.2 and directs staff to the relevant DHCP checks, with L2 escalation if cleanup does not resolve recurrence. However, it focuses on purging stale leases rather than the expected L2 investigation of rogue DHCP clients, lease-duration settings, and connected-device logs, and it omits permanent fixes such as expanding the pool, reducing timeouts, or quotas, plus verification and monitoring. The staff checks are reasonable for L",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00148": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-aggregator-disconnect.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly identifies a confirmed Zomato integration outage affecting revenue, cites stable local infrastructure and the dashboard\u2019s red alert, and records the L2 Integration_Support escalation with case reference ZOM-INC-00148. It also documents troubleshooting and the 8\u201310 missed orders. The next step is broadly consistent, but it does not specify investigating API connectivity, authentication tokens, or backend logs; the stated 17-minute outage window also conflicts with the persisten",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00149": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00153": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-not-on-kds.md; label ['runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note correctly identifies an online-order-to-KDS integration failure, records the terminal restart and stable network checks without resolution, and escalates for L2 backend sync investigation. It also captures the severe fulfillment delays and customer complaints. However, it adds unsupported claims of successful manual KDS entry and labels collected payment as a payment-failure trigger; the suggested investigation is broadly appropriate but less specific than the expected checks of API/aut",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00155": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00158": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note documents the persistent MIX-LOW-002 alert, hopper refill, normal 2\u00b0C refrigeration, failed power cycles, and severe peak-hour impact with P1 priority. It also mentions the suspected sensor malfunction and technician dispatch with a replacement kit, which broadly matches the expected resolution. However, its stated escalation reason centers on the router/asset mismatch, missing KB coverage, and the store's request rather than the expected reason: persistent alerts despite adequate suppl",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00159": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The response correctly identifies a portal-wide HTTP 503 outage, says the receipt printer is unrelated, and recognizes the aggregator runbook is only a partial match; it also notes the issue was already escalated to L2. However, its proposed next steps focus on aggregator apps and integration status rather than asking L2 to inspect centralized portal backend health and recent deployments or infrastructure changes. It also omits restoring availability, verifying web and mobile access afterward, a",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00165": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note correctly identifies duplicate online orders, at least 8 occurrences in 2 hours, and direct business impact, and it escalates for L2 review without treating the router as the confirmed cause. It records the FAQ consulted and that no prior troubleshooting steps were documented. However, the next step is only a general L2 review; it does not specify investigating order deduplication, frontend-to-KDS synchronization, or transaction logs as expected.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00166": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-motor-alarm.md; label ['runbooks/soft-serve-motor-alarm.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "It identifies the CreamTech SC-500 motor alarm and selects the soft-serve motor alarm runbook, while correctly noting the model is unsupported and avoiding a repeat power cycle. It includes safety checks and escalation criteria, but misses the expected load-current measurement, motor-bearing inspection, and coolant-system verification, and does not request documenting alarm frequency and operating conditions or sending system logs and sensor readings to L2.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00167": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.9,
+   "reason": "The note identifies persistent 503 errors across web and mobile at one location, confirms stable local connectivity and no system-wide outage, and gives the appropriate escalation to L2 backend diagnostics for the localized SW-0108 portal instance. It also records troubleshooting already attempted and the business impact, including lost online revenue during peak hours while POS and walk-in ordering remain available. The next step is consistent with the expected resolution, though it does not sp",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00169": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-overcooling.md; label ['runbooks/soft-serve-overcooling.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The pack correctly identifies the CreamTech SC-500 overcooling issue and avoids the unrelated SC-300 path; its L1 checks and escalation guidance are generally relevant. However, it does not give the expected resolution: L2 on-site diagnosis of the temperature sensor and control circuitry, followed by sensor recalibration or replacement and verification that product temperature returns to the \u22125\u00b0C target. Mentioning the existing L2 assignment is not a substitute for those diagnostic steps.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00174": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-aggregator-disconnect.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note correctly identifies a portal-wide/backend issue, the wrong linked receipt printer, and business impact to customers and store staff, and it routes the issue to L2. However, it does not recommend the expected network and online-orders diagnostics (router, connectivity, and service-health checks) or specify escalation to the infrastructure team with detailed logs and timeframe. It records only consulting a runbook, with no checks performed, and the third-party-integration trigger is less",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00180": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00181": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-end-of-day.md; label ['runbooks/pos-end-of-day.md', 'runbooks/pos-payment-error.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00183": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-offline.md', 'runbooks/printer-driver-reinstall.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note accurately identifies E-PRINT-502, the failed L1 steps, the ping-without-printing result, and the 70% efficiency impact during peak hours. However, it gives gate_block as the escalation reason and P2 (+1 repeat issue), rather than the expected P3 escalation for significant business impact and a communication fault needing L2 diagnostics. It also does not recommend L2 firmware diagnostics, firmware repair, alternate-port testing, or swapping the printer; the suggested firmware check is o",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00188": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-not-on-kds.md; label ['runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "It selects the correct online-orders-not-on-KDS runbook and includes network checks, log review, and L2 escalation. However, it does not guide checks specific to POS terminal T2 and OrbitPOS v2.1, including the OrbitPOS sync service and aggregator connection; instead it centers on ServeWell Portal, a KDS bridge, and middleware whose presence it says is unconfirmed. That leaves key expected diagnostics unaddressed.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00189": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00193": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note correctly identifies repeated 0x4E2/API timeouts affecting both Swiggy and Zomato, says L1 checks and manual import failed, and records the 35% revenue impact plus 12 and 8 pending orders. Escalating to L2 is consistent with the expected resolution, but it does not specify investigation of gateway connectivity and authentication, credential/certificate checks, partner coordination or IP whitelisting, and post-restoration test sync.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00197": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/printer-wrong-output.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note identifies the correct Epson TM-T88VI and documents the template/firmware mismatch, the L1 steps tried (reboot, queue clear, and backup-printer verification), and the business impact. It also requests L2 assessment for firmware rollback or template reconfiguration, which is broadly consistent with the expected resolution. However, its stated escalation reason is \u201cno_approved_steps\u201d rather than the expected configuration mismatch, and it omits the expected sample-receipt test before retu",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00198": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00202": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00206": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/printer-wrong-output.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies the correct Epson receipt printer, records the expected L1 checks and persistent garbled output, and explains the impact on legible receipts and customer satisfaction. However, it gives the escalation reason as lack of approved runbook steps rather than a suspected hardware-level malfunction, and it does not specify component-level diagnostics, repair or replacement, or a loaner printer as the expected L2 resolution.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00207": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-slow-performance.md; label ['runbooks/pos-slow-performance.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00210": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/printer-wrong-output.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00214": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked runbooks/network-slow.md; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The note identifies DHCP pool exhaustion on the correct router, reports 100% lease allocation and multiple affected customer and staff devices, and states the impact that they cannot connect to Wi-Fi. However, its escalation reason says L1 can inspect and release stale leases first, and it notes no L1 steps were attempted; this conflicts with the expected immediate L2 network engineering intervention. It also omits the expected resolution options\u2014reviewing the pool, increasing its size or reduci",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00216": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-slow-performance.md; label ['runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00217": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00218": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-not-on-kds.md; label ['runbooks/online-orders-not-on-kds.md', 'runbooks/pos-printer-integration.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The response selects the correct online-orders-not-on-KDS runbook and gives systematic checks for portal order reception, network connectivity, the KDS bridge, middleware connectivity, and escalation to L2. It also asks whether the order appears in the online-orders queue and whether the KDS is powered and showing its queue. It correctly treats the StarMC printer as an asset mismatch rather than blaming it. However, it does not clearly instruct staff to restart the KDS itself if needed, as the e",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00219": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00221": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/printer-wrong-output.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00223": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-cash-drawer.md; label ['runbooks/pos-cash-drawer.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The note accurately records the persistent timeout, L1 restart/cable/firmware checks, and business impact during peak lunch service, and it documents that solenoid replacement restored operation. However, it gives the escalation reason as an error-not-in-KB trigger and says the later hardware repair is not used for triage, rather than identifying suspected solenoid failure and the need for on-site hardware diagnostics/replacement. It also omits the expected restoration time of 11:50 AM.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00224": {},
+ "INC-00227": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-offline.md', 'runbooks/network-devices-not-connecting.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "4 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The agent used the printer-offline runbook and did not escalate immediately; the physical check and network-configuration-page step are partly relevant, and escalation is an appropriate eventual outcome. However, it escalated without guiding the store through the expected network diagnostics: workstation connection status, DHCP/IP verification, printer settings review, firewall checks, ping/nslookup, or driver verification. The store still reported that the printer was not detected.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00228": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-menu-mismatch.md; label ['runbooks/online-orders-menu-mismatch.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "It selects the correct menu-mismatch runbook, checks menu sync and POS connectivity, asks whether the internet is stable, and gives L2 escalation criteria. However, it treats the linked Cisco router as the wrong asset and does not explicitly recommend verifying router connectivity or performing a manual menu refresh, both of which are central to the expected resolution.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00233": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-not-on-kds.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/pos-software-update.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.3,
+   "reason": "The response correctly identifies the symptom\u2014orders stuck Pending\u2014and flags that the ServeWell runbook and StarMC Print v2 v3.0 device/version do not match. However, it mainly recommends generic portal, POS, and webhook checks rather than the expected L2 investigation of order-acceptance service status and event-trigger logs around 20:45 IST, deployment or hotfix failures, and configuration drift. It also omits restoring known-good configuration and validating auto-accept after a service restar",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00236": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/pos-printer-integration.md', 'runbooks/online-orders-not-on-kds.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note correctly escalates persistent duplicate online orders for L2 integration/system investigation and states that POS restarts, network checks, and webhook-log review did not resolve the issue. It includes the impact\u2014six customers reported double charges and kitchen delays\u2014and distinguishes the receipt printer from the likely integration problem. The next step is directionally consistent, but it does not specify investigating platform v2.4.1, deduplication or timing/race conditions, or val",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00237": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-error-codes.md; label ['runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The note identifies the compressor temperature sensor malfunction, records L1\u2019s hardware-level fault assessment, and escalates to Field Service, consistent with the expected reason and on-site assessment. It documents the peak-hour impact and roughly eight customers turned away, plus the reduced-capacity backup. The vendor route is appropriate, but the next step does not explicitly call for likely sensor replacement and functional testing; it also emphasizes E-407 being absent from reviewed docu",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00239": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00241": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-cash-drawer.md; label ['runbooks/pos-cash-drawer.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note records the key diagnostic facts\u2014software recognizes the drawer, but solenoid commands do not execute\u2014and says hardware support should inspect the solenoid or driver, which is broadly consistent with the expected L2 resolution. It also lists troubleshooting and log review already completed and reports impact to three cash-reconciliation batches. However, the stated escalation reason is the generic `no_approved_steps`, not the expected hardware-level failure beyond L1, and it does not re",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00242": {},
+ "INC-00245": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-slow.md', 'runbooks/pos-slow-performance.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies the intermittent POS network disconnects during peak hours, says orders are affected, and records that other devices appear to have working network access. However, it frames escalation around a runbook mismatch rather than the need for network infrastructure diagnosis, and it omits the expected L1 steps\u2014ping tests, connection logs, MAC address, router/WiFi checks, and interference or signal-strength checks\u2014before conditional L2 escalation. Its P4 known-issue-with-workaround ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00246": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason no_kb_match",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_lists_no_runbook"
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note records that sensor connectivity and firmware are normal, the alert rule is queued for L2 review, and the store risks running out of mix during peak service. However, it gives the escalation reason as `no_kb_match` rather than the expected alert-logic/configuration issue beyond L1 troubleshooting. Its next step is only a general L2 review; it does not specify correcting or recalibrating the 20% trigger and testing notifications on both the POS terminal and manager dashboard.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00252": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note correctly identifies a persistent Zomato third-party integration failure: POS and internet are operational, firewall rules allow port 443, and the recurring gateway timeout points upstream. It lists the troubleshooting already attempted and the business impact, including lost orders, manual entry, and slower kitchen operations. However, it only says L2 escalation is required and does not explicitly direct Network Operations to coordinate with Zomato support, monitor recovery, or confirm",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00257": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-touchscreen.md; label ['runbooks/kiosk-touchscreen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The response identifies the touchscreen misalignment and uses the kiosk touchscreen runbook, including calibration steps and escalation to L2 if recalibration fails, which aligns with the expected resolution. It correctly flags that PRN-0005-P1 is listed as a receipt printer and asks to verify the device association, but it does not explicitly call out potential screen replacement of that asset as the expected L2 hardware outcome.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00259": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-payment-reader.md; label ['runbooks/kiosk-payment-reader.md', 'runbooks/pos-payment-error.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note identifies the correct kiosk payment reader, E-402, persistent payment outage, and need for L2 escalation, which aligns with the expected hardware-failure reason and impact. It also names the relevant runbook, but says E-402 is not listed and that no troubleshooting steps were recorded, rather than recommending the expected power cycle/device restart before L2 hardware diagnostics or replacement. It documents the failure time, though it omits the expected explicit note that the escalati",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00262": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-software-crash.md; label ['runbooks/kiosk-software-crash.md', 'runbooks/kiosk-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The response correctly identifies the StarMC Print v3.0 kiosk crash loop and notes that the linked receipt-printer asset and ServeWell-only runbook create a device/version mismatch. It suggests diagnostics and conditional cache clearing and escalates persistent failures to L2, but it omits checking software updates or corrupted files and does not include a factory reset if needed, both expected troubleshooting steps. Its extensive mismatch cautions also dilute the direct resolution guidance.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00265": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-frozen.md; label ['runbooks/kiosk-touchscreen.md', 'runbooks/kiosk-frozen.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.2,
+   "reason": "The response correctly identifies the reported symptom as a kiosk screen going black after inactivity and notes that RTR-0107-01 is a router, not the kiosk. However, it directs L1 to a kiosk-frozen runbook and possibly reset the touchscreen driver, rather than checking the expected NetLink NL-3000 v2.2 timeout, power-management, screensaver, and firmware settings. It also says the router version is not a confirmed kiosk version, while the expected resolution calls for investigating those setting",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00266": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-cleaning-stuck.md; label ['runbooks/soft-serve-cleaning-stuck.md', 'runbooks/soft-serve-error-codes.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.8,
+   "reason": "The response selects the correct soft-serve cleaning-stuck runbook and recommends initial diagnostics, including checking error codes and attempting an appropriate reset, while correctly noting the POS-0090-T1 asset mismatch. It gives clear L2 escalation conditions for persistent unresponsiveness or failed troubleshooting. It does not explicitly prioritize arranging an on-site field technician before evening peak service, as the expected resolution specifies.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00269": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/network-slow.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note correctly identifies payment-gateway timeouts affecting all online orders, the lunch-rush urgency, and the need for L2 escalation; it also avoids treating the linked receipt printer as the faulty device. However, it records no troubleshooting and recommends no L1 checks of network connectivity or system status, nor gathering affected processors or recent changes as expected. Its P3 priority also understates the expected critical infrastructure impact.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00270": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-router-offline.md; label ['runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.9,
+   "reason": "The note identifies the Cisco SG350 RTR-0117-01 as dark and unresponsive, with all POS terminals and other store systems offline, and gives hardware failure as the suspected cause after power and cable checks. It records L2 remote access attempts with no response and an onsite visit being scheduled for 25-Apr, consistent with the expected diagnostics and hardware evaluation, though the visit is not described as immediate. It also states the troubleshooting already completed and the business impa",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00272": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-sync-failure.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.2,
+   "reason": "The note captures duplicate confirmations affecting multiple customers and potential billing impact, and accurately states that no troubleshooting has been attempted. However, it contradicts the expected escalation by treating the router as irrelevant and recommending L1/no SOP escalation rather than L2 investigation of RTR-0046-01 and order-processing logic. It also omits the expected resolution steps: investigate timeout or retry logic, prevent duplicate submissions, and verify with test order",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00277": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-software-update.md; label ['runbooks/pos-software-update.md', 'runbooks/pos-screen-frozen.md', 'runbooks/pos-startup-failure.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note documents the stuck 67% update after a hard restart and correctly captures the 40% peak-transaction impact and estimated \u20b92,500\u2013\u20b93,500 loss. It also lists the troubleshooting already tried. However, it labels the escalation reason as no_approved_steps rather than emphasizing the failed update and exhausted L1 troubleshooting, and its next step is only a generic L2 handoff with a paid-repair route; it does not specify backend recovery, rollback, remote intervention, or use of a backup te",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00278": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/pos-printer-integration.md', 'runbooks/printer-driver-reinstall.md', 'runbooks/printer-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "2 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note identifies that the printer is absent from Device Manager after basic troubleshooting, reports the store's failed checks, and recommends L2 hardware support with possible driver reinstallation or a faulty USB port\u2014consistent with the expected escalation and resolution direction. It also states the business impact and steps already tried. However, the escalation reason is only labeled \u201csteps_exhausted,\u201d and the note gives no concrete L2 plan for testing the USB port or arranging replacem",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00279": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00282": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/pos-startup-failure.md; label ['runbooks/pos-startup-failure.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note captures the key context: the OrbitPOS v2.0 terminal hangs on the splash screen, a hard reset did not resolve it, and the outage has lasted about 45 minutes during peak service. It also routes the ticket to L2. However, the stated reason, \u201cno_approved_steps,\u201d does not express the expected escalation reason, and the note does not guide the agent through the runbook\u2019s soft reset, BIOS check, or log review before escalation.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00290": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/network-devices-not-connecting.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action escalate, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K8": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "out_of_poc_scope"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00291": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/soft-serve-overcooling.md; label ['runbooks/soft-serve-overcooling.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The response selects the correct soft-serve overcooling runbook and identifies the FrostyPro 800 v2.0 and frozen-product symptom, matching the device and problem. It includes useful L1 checks and escalation to L2, but focuses on Path 2, freeze-mode checks, and thaw safety rather than the expected thermostat calibration, refrigerant-level, and temperature-sensor diagnostics; it also does not explicitly mention supplying system specs for remote diagnostics or arranging on-site maintenance.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00292": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route l1_pack, reason gate_block",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-guest-wifi.md; label ['runbooks/network-guest-wifi.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00299": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_guided, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-aggregator-disconnect.md; label ['runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md', 'runbooks/online-orders-not-on-kds.md', 'runbooks/network-router-offline.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note correctly identifies Zomato order-sync failure, includes the reported 6:30 PM onset, records stable internet and normal walk-in POS operation, and describes fulfillment delays and customer dissatisfaction. However, it escalates to L2 before the expected initial checks, including verifying Zomato API connectivity and consulting both specified runbooks; it also omits the expected L2 coordination with Zomato support. The stated P3 priority conflicts with the expected P4.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00301": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L1 vs label l2_escalation; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "escalate expected; triage l1_guided, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/network-vpn.md; label ['runbooks/network-vpn.md', 'runbooks/network-router-offline.md', 'runbooks/network-slow.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The response correctly identifies intermittent VPN connectivity and the Cisco SG350, warns that the runbook\u2019s device-specific NetLink procedures do not apply, and recommends L2 escalation if unresolved. However, it does not explicitly guide the expected basic checks for recent logs and ISP connectivity, or require the escalation ticket to include outage timeline and Cisco configuration details. It also repeats NetLink-specific Event ID escalation criteria despite acknowledging they may not apply",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00302": {
+  "K1": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "agent L2 vs label l1_guided; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": false,
+   "value": 1.0,
+   "reason": "no escalation expected; triage l1_then_l2, route l1_pack, reason None",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/online-orders-menu-mismatch.md; label ['runbooks/online-orders-menu-mismatch.md', 'runbooks/online-orders-sync-failure.md', 'runbooks/online-orders-aggregator-disconnect.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15c": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The response correctly identifies the discontinued Paneer Tikka Wrap menu mismatch across the online channels and says the completed sync removed it from Zomato and Swiggy. However, it does not clearly identify a synchronization failure or provide the expected FoodTech admin-console refresh and verification across all channels; it treats the refresh as already completed. It also omits the expected monitoring to detect sync delays within two hours of menu updates.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00305": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route resolver, reason no_approved_steps",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-wrong-output.md; label ['runbooks/printer-wrong-output.md', 'runbooks/printer-driver-reinstall.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "no_steps_sent"
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note correctly identifies the blank receipts, normal power and paper feed, and peak-service impact, and records that L1 checks were only recommended while runbook steps were not performed. However, it escalates for no approved steps rather than the expected hardware-level failure, and it omits the recommended print-head, ribbon/ink, and driver checks via the pos-printer-integration runbook. Paid repair is mentioned, but the conditional on-site technician visit or replacement resolution is no",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00306": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-frozen.md; label ['runbooks/kiosk-frozen.md', 'runbooks/kiosk-touchscreen.md', 'runbooks/kiosk-software-crash.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": 0.5,
+   "reason": "The note identifies the frozen KSK-0106-01, records the reset and power-cycle attempts, failed remote diagnostics, and the queueing impact. However, it says further L1 steps are needed and frames the escalation mainly as the store\u2019s request, whereas the expected reason is that L1 troubleshooting is exhausted and remote diagnostics failed, requiring L2/Field Service diagnosis or an on-site visit. It also does not clearly state that next step.",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00307": {
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00314": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l1_then_l2, route handoff, reason sop_trigger",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/kiosk-software-crash.md; label ['runbooks/kiosk-software-crash.md', 'runbooks/pos-startup-failure.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "first action guide, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.6,
+   "reason": "The note captures the continuous crash loop, inability to accept orders, completed power-cycle and cable checks, and failed remote access. Its history recommends an onsite technician, but the stated escalation rationale mainly says to pass the case to L2 and does not clearly call for dispatch or firmware rollback/hardware replacement as the expected resolution does. It also labels priority P1 rather than the expected P2 and flags the linked asset as a router, though it explicitly says the kiosk ",
+   "missing": false,
+   "excluded": null
+  }
+ },
+ "INC-00316": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L1 vs label l1_guided; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K3": {
+   "passed": true,
+   "value": 0.0,
+   "reason": "no escalation expected; triage l1_guided, route resolver, reason steps_exhausted",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "picked runbooks/printer-offline.md; label ['runbooks/printer-offline.md', 'runbooks/pos-printer-integration.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action guide, label guide",
+   "missing": false,
+   "excluded": null
+  },
+  "K7": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "3 steps, all approved spans",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K8": {
+   "passed": false,
+   "value": 0.4,
+   "reason": "The agent consulted printer-offline.md and tried relevant basic checks\u2014a physical connection check, printer self-test, and POS restart\u2014then escalated after the store still reported failure. However, it did not retrieve pos-printer-integration.md or guide the store through network connectivity, driver status, a proper power cycle, queue clearing, or other expected troubleshooting, so the escalation followed an incomplete runbook process.",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": false,
+   "value": null,
+   "reason": "",
+   "missing": false,
+   "excluded": "label_not_l2"
+  }
+ },
+ "INC-00319": {
+  "K1": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "agent L2 vs label l2_escalation; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K2": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "escalate expected; triage l2_now, route handoff, reason l2_needed",
+   "missing": false,
+   "excluded": null
+  },
+  "K5": {
+   "passed": false,
+   "value": 0.0,
+   "reason": "picked None; label ['runbooks/soft-serve-error-codes.md', 'runbooks/soft-serve-motor-alarm.md']",
+   "missing": false,
+   "excluded": null
+  },
+  "K6": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "first action escalate, label escalate",
+   "missing": false,
+   "excluded": null
+  },
+  "K15a": {
+   "passed": true,
+   "value": 1.0,
+   "reason": "all mandatory fields",
+   "missing": false,
+   "excluded": null
+  },
+  "K15b": {
+   "passed": true,
+   "value": 0.7,
+   "reason": "The note accurately describes complete loss of power, records all four standard L1 checks and their unsuccessful outcomes, and explains the significant peak-hour business impact. It also notes that Field Engineering was assigned and that internal hardware failure is suspected. However, the escalation reason is labeled only \u201cl2_needed,\u201d and the next step does not confirm an active field-tech assignment or ETA, ensure the POS workaround was applied, or specify follow-up after on-site diagnostics. ",
+   "missing": false,
+   "excluded": null
+  }
+ }
+}

@@ -22,7 +22,7 @@ import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import psycopg
@@ -30,10 +30,11 @@ import pytest
 import uvicorn
 from psycopg.types.json import Jsonb
 
+from support_agent.agent.bindings import Bindings, default_bindings
 from support_agent.agent.tools import McpToolClient, TokenSource, ToolCallError
 from support_agent.common.config import ItsmSettings
 from support_agent.mcp.base.errors import ErrorCode
-from support_agent.mcp.itsm.outcome import Outcome, OutcomeProvider
+from support_agent.mcp.itsm.outcome import FaultCardOutcome, Outcome, OutcomeProvider
 from support_agent.mcp.itsm.registry import RegistryAction, default_registry
 from support_agent.mcp.itsm.server import build_service
 from tests.integration.platform_env import ROOT, load_env, superuser_url
@@ -68,6 +69,26 @@ SECTIONS = {
     "drift.spooler.1": (KB_DRIFT, DOC, f"{DOC}#spooler",
                         "Restart the Windows Print Spooler service from services.msc."),
 }  # fmt: skip
+
+
+# The fixture's approved IT steps (S12a): run_fix and create_approval accept only a
+# (section, quote, action) that is a binding of the ticket's runbook.
+FIXTURE_ACTIONS = {
+    "res.status.1": "check_printer_status", "res.spooler.1": "restart_print_spooler",
+    "res.spooler.3": "restart_print_spooler", "res.queue.1": "clear_print_queue",
+    "res.only-other.1": "restart_print_spooler", "res.old.1": "restart_print_spooler",
+}  # fmt: skip
+
+
+def fixture_bindings() -> Bindings:
+    runbooks: dict[str, list[dict[str, Any]]] = {}
+    for i, (step, action) in enumerate(FIXTURE_ACTIONS.items()):
+        _rev, doc, section_id, text = SECTIONS[step]
+        runbooks.setdefault(doc, []).append({
+            "id": f"fx-{i}-step", "section": section_id, "title": f"Fixture {step}",
+            "span": text, "audience": "it", "action_id": action,
+        })  # fmt: skip
+    return Bindings.model_validate({"version": 1, "runbooks": runbooks})
 
 
 def sec(step: str) -> dict[str, str]:
@@ -164,7 +185,10 @@ def _free_port() -> int:
 
 
 class FailOutcome:
-    async def outcome(self, action: RegistryAction, *, ticket_id: str, asset_id: str) -> Outcome:
+    async def outcome(
+        self, action: RegistryAction, *, ticket_id: str, asset_id: str,
+        source_ticket_id: str | None = None,
+    ) -> Outcome:  # fmt: skip
         return Outcome("failed", f"{action.action_id} failed (simulated)")
 
 
@@ -176,7 +200,7 @@ def serve(
         update={"action_autonomy_runs": runs, "eval_mode": eval_mode, "db_host": None}
     )
     port = _free_port()
-    app = build_service(settings, outcome=outcome).app()
+    app = build_service(settings, outcome=outcome, bindings=fixture_bindings()).app()
     server = uvicorn.Server(uvicorn.Config(app, port=port, log_config=None, lifespan="on"))
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
@@ -246,10 +270,12 @@ def ticket(
     *,
     kb_rev: str = KB_REV,
     doc: str = DOC,
+    source: str | None = None,
 ) -> None:
+    extra = {"source_ticket_id": source} if source else {}
     call(url, tokens, ctx, "create_ticket", idem_key=ctx.key("intake"),
          date_opened=datetime(2026, 11, 19, 9, 0, tzinfo=UTC), asset_id=asset, priority="P3",
-         category="Printer", submitted_by_user="mock-store-sw-0001")  # fmt: skip
+         category="Printer", submitted_by_user="mock-store-sw-0001", **extra)  # fmt: skip
     call(url, tokens, ctx, "update_ticket", idem_key=ctx.key("triage"), route="resolver",
          runbook_id=doc, kb_rev=kb_rev, status="in_progress")  # fmt: skip
 
@@ -745,7 +771,7 @@ def test_eval_mode_never_promotes(
     tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
 ) -> None:
     p, spool = assets.printer, "restart_print_spooler"
-    with serve(1, eval_mode=True) as url:
+    with serve(1, eval_mode=True, outcome=FaultCardOutcome({})) as url:
         ctx = new_ctx(assets.store)
         ticket(url, tokens, ctx, p)
         for n in range(2):
@@ -764,13 +790,104 @@ def test_eval_mode_never_promotes(
     assert history == (2, True, True)
 
 
+def test_eval_replay_is_scored_by_its_source_ticket_card(
+    tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
+) -> None:
+    """S12a: a replayed ticket has a fresh operational id; the card is found by its
+    source_ticket_id, a matching action is "fixed" and another is "no change"."""
+    p, spool = assets.printer, "restart_print_spooler"
+    cards = FaultCardOutcome({"INC-99042": frozenset({spool})})
+    with serve(1, eval_mode=True, outcome=cards) as url:
+        ctx = new_ctx(assets.store)
+        ticket(url, tokens, ctx, p, source="INC-99042")
+        hit = fix(url, tokens, ctx, p, "res.spooler.1", spool,
+                  approve(url, tokens, ctx, p, "res.spooler.1", spool))  # fmt: skip
+        miss = fix(url, tokens, ctx, p, "res.status.1", "check_printer_status")
+        other = new_ctx(assets.store)
+        ticket(url, tokens, other, p, source="INC-99099")
+        no_card = fix(url, tokens, other, p, "res.spooler.1", spool,
+                      approve(url, tokens, other, p, "res.spooler.1", spool))  # fmt: skip
+    assert (hit["outcome"], miss["outcome"], no_card["outcome"]) == (
+        "fixed", "no_change", "no_change")  # fmt: skip
+    stored = db.execute("SELECT outcome FROM itsm.actions WHERE run_id = %s ORDER BY id",
+                        (ctx.run_id,)).fetchall()  # fmt: skip
+    assert stored == [("fixed",), ("no_change",)]
+
+
+# ---- S12a: approved binding and ticket state ----------------------------------------
+
+
+def test_real_quote_with_another_action_is_refused(
+    url: str, tokens: TokenSource, assets: Assets
+) -> None:
+    ctx = new_ctx(assets.store)
+    ticket(url, tokens, ctx, assets.printer)
+    p = assets.printer
+    # The spooler quote is real, but its approved action is restart_print_spooler.
+    assert "no_binding" in refused(lambda: fix(url, tokens, ctx, p, "res.spooler.1",
+                                               "clear_print_queue"))  # fmt: skip
+    assert refused(
+        lambda: call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", "x"),
+                     asset_id=p, **sec("res.spooler.1"), action_id="clear_print_queue",
+                     approver_role="l2_engineer", requested_by="agent-actor")
+    ) == "no_binding"  # fmt: skip
+
+
+def test_closed_ticket_runs_nothing(url: str, tokens: TokenSource, assets: Assets) -> None:
+    ctx = new_ctx(assets.store)
+    ticket(url, tokens, ctx, assets.printer)
+    call(url, tokens, ctx, "update_ticket", idem_key=ctx.key("close"), status="resolved")
+    assert "ticket_not_open" in refused(
+        lambda: fix(url, tokens, ctx, assets.printer, "res.status.1", "check_printer_status")
+    )
+    assert refused(
+        lambda: call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", "c"),
+                     asset_id=assets.printer, **sec("res.spooler.1"),
+                     action_id="restart_print_spooler", approver_role="l2_engineer",
+                     requested_by="agent-actor")
+    ) == "ticket_not_open"  # fmt: skip
+
+
+def test_deadline_crossed_after_approval_runs_nothing(
+    url: str, tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
+) -> None:
+    ctx = new_ctx(assets.store)
+    ticket(url, tokens, ctx, assets.printer)
+    p = assets.printer
+    db.execute("DELETE FROM itsm.action_autonomy WHERE action_id = %s AND device_model = %s",
+               ("restart_print_spooler", assets.printer_model))  # fmt: skip
+    appr = approve(url, tokens, ctx, p, "res.spooler.1", "restart_print_spooler")
+    # escalate-by passes in ticket time after the approval was given (D48)
+    past = datetime.now(UTC) - timedelta(minutes=1)
+    call(url, tokens, ctx, "update_ticket", idem_key=ctx.key("sla"), escalate_by=past)
+    assert "sla_passed" in refused(
+        lambda: fix(url, tokens, ctx, p, "res.spooler.1", "restart_print_spooler", appr)
+    )
+    assert db.execute("SELECT count(*) FROM itsm.actions WHERE run_id = %s",
+                      (ctx.run_id,)).fetchone() == (0,)  # fmt: skip
+
+
 # ---- the container ---------------------------------------------------------------------
 
 
 def test_container_smoke(tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets) -> None:
+    # The container loads the real bindings.yaml, so the fixture runbook has no
+    # approved IT step (S12a) and a real printer-offline read-only step runs.
     ctx = new_ctx(assets.store)
     ticket(CONTAINER_URL, tokens, ctx, assets.printer)
-    out = fix(CONTAINER_URL, tokens, ctx, assets.printer, "res.status.1", "check_printer_status")
+    assert "no_binding" in refused(
+        lambda: fix(CONTAINER_URL, tokens, ctx, assets.printer, "res.status.1",
+                    "check_printer_status")
+    )  # fmt: skip
+    row = db.execute("SELECT kb_rev FROM kb.revisions WHERE is_current").fetchone()
+    assert row, "no current kb revision"
+    real = next(b for b in default_bindings().for_runbook("runbooks/printer-offline.md")
+                if b.action_id == "check_printer_recognition")  # fmt: skip
+    live = new_ctx(assets.store)
+    ticket(CONTAINER_URL, tokens, live, assets.printer, kb_rev=str(row[0]), doc=real.doc_id)
+    out = call(CONTAINER_URL, tokens, live, "run_fix", idem_key=live.key("fix", "real"),
+               asset_id=assets.printer, section_id=real.section, quote=real.span,
+               action_id="check_printer_recognition")  # fmt: skip
     assert out["status"] == "ran"
     # agent-reader has no itsm scope or audience: refused before any tool code.
     reader = TokenSource(ISSUER, "agent-reader", load_env()["KEYCLOAK_SECRET_AGENT_READER"])
@@ -779,3 +896,38 @@ def test_container_smoke(tokens: TokenSource, db: psycopg.Connection[Any], asset
                      kind="note", body="x")
     )  # fmt: skip
     assert reason.startswith("http_")
+
+
+# ---- S12a: make demote ------------------------------------------------------------------
+
+
+def test_demote_resets_a_promoted_action_with_history(
+    tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
+) -> None:
+    from support_agent.common.db import dsn
+    from support_agent.mcp.base.opa import OpaClient
+    from support_agent.mcp.itsm.demote import demote_all
+
+    p, spool = assets.printer, "restart_print_spooler"
+    with serve(1) as url:  # one approved, successful run promotes it (N = 1)
+        ctx = new_ctx(assets.store)
+        ticket(url, tokens, ctx, p)
+        fix(url, tokens, ctx, p, "res.spooler.1", spool,
+            approve(url, tokens, ctx, p, "res.spooler.1", spool))  # fmt: skip
+    assert autonomy_row(db, spool, assets.printer_model) == ("autonomous", 1)
+    s = ItsmSettings(_env_file=ROOT / ".env").model_copy(update={"db_host": None})  # type: ignore[call-arg]
+    done = asyncio.run(demote_all(dsn(s.database_url_itsm, None), OpaClient(s.opa_url),
+                                  spool, eval_mode=False))  # fmt: skip
+    assert (assets.printer_model, "supervised") in done
+    assert autonomy_row(db, spool, assets.printer_model) == ("supervised", 0)
+    last = db.execute(
+        "SELECT event, state_before, state_after, why FROM itsm.action_autonomy_history "
+        "WHERE action_id = %s AND device_model = %s ORDER BY id DESC LIMIT 1",
+        (spool, assets.printer_model),
+    ).fetchone()
+    assert last == (
+        "admin_demote",
+        "autonomous",
+        "supervised",
+        "admin_demote: make demote (demo reset)",
+    )

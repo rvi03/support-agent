@@ -1,0 +1,17 @@
+ticket_id: INC-00068
+source: labelled
+version: 1
+runbooks:
+- runbooks/printer-offline.md
+generated_by: judge
+fault: The Epson TM-T88VI is powered on, but its USB connection to the POS terminal is disconnected, so
+  the POS cannot communicate with it.
+observations:
+- The printer’s power light is on.
+- No error message is visible on the printer.
+- Print jobs from the POS do not produce a receipt.
+- 'Windows does not list the Epson printer. '
+fixed_by_actions: []
+fixed_by_store_steps:
+- po-usb-reconnect
+requires: []

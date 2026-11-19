@@ -1,0 +1,18 @@
+{
+ "about": "CP14.7: a panel-style ticket (not in the dataset, written like the panel's unseen tickets) run with `make ticket FILE=tests/fixtures/panel_style.json` on the frozen settings. Mock values only (D70).",
+ "as": "mock-store-sw-0007",
+ "ticket": {
+  "category": "POS",
+  "priority": "P2",
+  "asset_id": "POS-0007-T2",
+  "subject": "Till 2 stuck on the payment screen during lunch rush",
+  "description": "Terminal 2 has been stuck on the card payment screen for 5 minutes, touching the screen does nothing and the queue is building. Terminal 1 is fine. Nobody has restarted it yet."
+ },
+ "script": {
+  "store_reply_before_action": "Done. Waited and checked for pop-ups, nothing. Still frozen.",
+  "store_reply_after_action": "It is working again now.",
+  "answer": "Only terminal 2, POS-0007-T2.",
+  "approval": "approve",
+  "l2_task": "done: L2 restarted the app remotely."
+ }
+}
