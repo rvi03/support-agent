@@ -4,13 +4,14 @@
 version is the hash of the file bytes, which the indexer puts into `kb_rev`
 (`rule_versions.action_registry`), so `run_fix` can refuse a registry that
 drifted from the KB revision a ticket was triaged on. The S14 checker reads the
-same file with its own loader and never imports this module.
+same file with its own loader and never imports this module. The agent picks an
+action from this list as a tool; no text patterns map runbook steps to actions
+(S8a).
 """
 
 from __future__ import annotations
 
 import hashlib
-import re
 from functools import cache
 from pathlib import Path
 from typing import Annotated, Literal
@@ -47,27 +48,8 @@ class RegistryAction(BaseModel):
     description: Annotated[str, StringConstraints(min_length=1, max_length=300)]
     device_families: tuple[Family, ...] = Field(min_length=1)
     tier: Tier
-    match: tuple[tuple[str, ...], ...] = Field(min_length=1)
     simulated_result: SimulatedResult
     approver: Literal["l2", "vendor"] | None = None
-
-    @field_validator("match")
-    @classmethod
-    def _regexes_compile(cls, groups: tuple[tuple[str, ...], ...]) -> tuple[tuple[str, ...], ...]:
-        for group in groups:
-            if not group:
-                raise ValueError("empty match group")
-            for pattern in group:
-                try:
-                    re.compile(pattern)
-                except re.error as exc:
-                    raise ValueError(f"bad match pattern {pattern!r}: {exc}") from None
-        return groups
-
-    def matches(self, step_text: str) -> bool:
-        return any(
-            all(re.search(p, step_text, re.IGNORECASE) for p in group) for group in self.match
-        )
 
 
 class Registry(BaseModel):
@@ -86,10 +68,6 @@ class Registry(BaseModel):
 
     def get(self, action_id: str) -> RegistryAction | None:
         return next((a for a in self.actions if a.action_id == action_id), None)
-
-    def match_step(self, step_text: str) -> list[str]:
-        """Action ids whose patterns match an IT step's text (S9 maps steps with it)."""
-        return [a.action_id for a in self.actions if a.matches(step_text)]
 
 
 def registry_version(raw: bytes) -> str:

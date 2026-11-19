@@ -5,8 +5,9 @@ ACTION_AUTONOMY_RUNS, EVAL_MODE or a failing outcome; everything else is real: a
 Keycloak `agent-actor` token (JWT, scope, audience), OPA P7/P8/P9/P5, Postgres as
 `itsm_rw`. `test_container_smoke` repeats one call against the container on 8103.
 
-S9 has not built `kb.runbook_steps` yet, so the module seeds fixture step rows
-under its own KB revisions (non-current) and removes them afterwards. The
+Approvals and fixes bind to a section of the ticket's runbook and the exact
+runbook words (S8a), so the module seeds fixture sections under its own KB
+revisions (non-current) and removes them afterwards. The
 autonomy rows of the test actions on the test device models are reset around
 each test.
 """
@@ -49,18 +50,29 @@ DOC = "runbooks/test-s7-printer.md"
 DOC_OTHER = "runbooks/test-s7-other.md"
 ACTIONS = ("check_printer_status", "restart_print_spooler", "clear_print_queue")
 
-# (kb_rev, doc, step_id, action_id, tags)
-STEPS = [
-    (KB_REV, DOC, "res.status.1", "check_printer_status", {}),
-    (KB_REV, DOC, "res.spooler.1", "restart_print_spooler", {}),
-    (KB_REV, DOC, "res.spooler.2", "restart_print_spooler", {"guard": True}),
-    (KB_REV, DOC, "res.spooler.3", "restart_print_spooler", {"approval": True, "approver": "l2"}),
-    (KB_REV, DOC, "res.queue.1", "clear_print_queue", {"destructive": True}),
-    (KB_REV, DOC, "res.l2only.1", "restart_print_spooler", {"l2_only": True}),
-    (KB_REV, DOC_OTHER, "res.only-other.1", "restart_print_spooler", {}),
-    (KB_OLD, DOC, "res.old.1", "restart_print_spooler", {}),
-    (KB_DRIFT, DOC, "res.spooler.1", "restart_print_spooler", {}),
-]
+# Old fixture step names -> (kb_rev, doc, section_id, section text). The quote the
+# agent sends is the section text itself.
+SECTIONS = {
+    "res.status.1": (KB_REV, DOC, f"{DOC}#status",
+                     "Check the printer status shown in the POS settings screen."),
+    "res.spooler.1": (KB_REV, DOC, f"{DOC}#spooler",
+                      "Restart the Windows Print Spooler service from services.msc."),
+    "res.spooler.3": (KB_REV, DOC, f"{DOC}#spooler-again",
+                      "If the printer is still offline, restart the Print Spooler again."),
+    "res.queue.1": (KB_REV, DOC, f"{DOC}#queue",
+                    "Clear every pending job from the POS print queue."),
+    "res.only-other.1": (KB_REV, DOC_OTHER, f"{DOC_OTHER}#spooler",
+                         "Restart the Windows Print Spooler as the other runbook says."),
+    "res.old.1": (KB_OLD, DOC, f"{DOC}#old",
+                  "Restart the spooler as the old revision of the runbook says."),
+    "drift.spooler.1": (KB_DRIFT, DOC, f"{DOC}#spooler",
+                        "Restart the Windows Print Spooler service from services.msc."),
+}  # fmt: skip
+
+
+def sec(step: str) -> dict[str, str]:
+    _rev, _doc, section_id, text = SECTIONS[step]
+    return {"section_id": section_id, "quote": text}
 
 
 # ---- platform fixtures -----------------------------------------------------------------
@@ -115,14 +127,17 @@ def kb_fixture(db: psycopg.Connection[Any]) -> Iterator[None]:
             "report, is_current) VALUES (%s, '{}', 'test-s7', %s, '{}', false)",
             (rev, Jsonb({"action_registry": reg})),
         )
-    for ord_, (rev, doc, step, action, tags) in enumerate(STEPS):
+    vector = "[" + ",".join(["0.01"] * 768) + "]"
+    for ord_, (rev, doc, section_id, text) in enumerate(SECTIONS.values()):
         db.execute(
-            "INSERT INTO kb.runbook_steps (kb_rev, doc_id, step_id, ord, stage, team, text, tags, "
-            "action_id) VALUES (%s, %s, %s, %s, 'resolution', 'it', %s, %s, %s)",
-            (rev, doc, step, ord_, f"fixture step {step}", Jsonb(tags), action),
+            "INSERT INTO kb.sections (kb_rev, section_id, parent_section_id, doc_id, doc_type, "
+            "device_family, categories, path, ord, masked_text, index_text, bm25_tokens, "
+            "token_count, embedding) VALUES (%s, %s, NULL, %s, 'runbook', '{printer}', "
+            "'{Printers}', 'Fixture', %s, %s, %s, '{fixture}', 10, %s::vector)",
+            (rev, section_id, doc, ord_, text, text, vector),
         )
     yield
-    db.execute("DELETE FROM kb.runbook_steps WHERE kb_rev = ANY(%s)", (list(revs),))
+    db.execute("DELETE FROM kb.sections WHERE kb_rev = ANY(%s)", (list(revs),))
     db.execute("DELETE FROM kb.revisions WHERE kb_rev = ANY(%s)", (list(revs),))
 
 
@@ -243,7 +258,7 @@ def approve(
     url: str, tokens: TokenSource, ctx: Ctx, asset: str, step: str, action: str, n: int = 0
 ) -> str:
     req = call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", f"{step}.{n}"),
-               asset_id=asset, step_id=step, action_id=action, approver_role="l2_engineer",
+               asset_id=asset, **sec(step), action_id=action, approver_role="l2_engineer",
                requested_by="agent-actor")  # fmt: skip
     call(url, tokens, ctx, "decide_approval", idem_key=ctx.key("decide", f"{step}.{n}"),
          approval_id=req["approval_id"], decision="approve", decided_by="mock-l2")  # fmt: skip
@@ -254,7 +269,7 @@ def fix(
     url: str, tokens: TokenSource, ctx: Ctx, asset: str, step: str, action: str,
     approval: str | None = None, n: int = 0,
 ) -> dict[str, Any]:  # fmt: skip
-    args: dict[str, Any] = {"asset_id": asset, "step_id": step, "action_id": action}
+    args: dict[str, Any] = {"asset_id": asset, **sec(step), "action_id": action}
     if approval:
         args["approval_id"] = approval
     return call(url, tokens, ctx, "run_fix", idem_key=ctx.key("fix", f"{step}.{n}"), **args)
@@ -316,19 +331,19 @@ def test_each_tool_writes_once_per_key(
             "kind": "note", "body": "Triage picked the printer runbook."}, "ticket_comments"),
         ("message_store", ctx.key("communicate", "res.status.1"), lambda: {
             "kind": "step", "body": "Please check the printer cable.",
-            "step_id": "res.status.1"}, "store_messages"),
+            "section_id": sec("res.status.1")["section_id"]}, "store_messages"),
         ("create_approval", ctx.key("approval"), lambda: {
-            "asset_id": assets.printer, "step_id": "res.spooler.1",
+            "asset_id": assets.printer, **sec("res.spooler.1"),
             "action_id": "restart_print_spooler", "approver_role": "l2_engineer",
             "requested_by": "agent-actor"}, "approvals"),
         ("decide_approval", ctx.key("decide"), lambda: {
             "approval_id": approval_id(), "decision": "approve",
             "decided_by": "mock-l2"}, "idempotency"),
         ("create_l2_task", ctx.key("resolver", "res.l2only.1"), lambda: {
-            "step_id": "res.l2only.1", "reason": "l2_only",
+            "section_id": sec("res.queue.1")["section_id"], "reason": "l2_only",
             "note": "L2 to run this step."}, "l2_tasks"),
         ("run_fix", ctx.key("fix", "res.status.1"), lambda: {
-            "asset_id": assets.printer, "step_id": "res.status.1",
+            "asset_id": assets.printer, **sec("res.status.1"),
             "action_id": "check_printer_status"}, "actions"),
         ("escalate_to_l2", ctx.key("handoff"), lambda: {
             "queue": "l2", "reason_code": "no_kb_match",
@@ -457,9 +472,9 @@ def test_supervised_fix_needs_a_valid_approval(
     assert "approval_expired" in refused(
         lambda: fix(url, tokens, ctx, p, "res.spooler.1", spool, expired, n=2)
     )
-    # 3a approval for another step
+    # 3a approval for another runbook section
     other_step = approve(url, tokens, ctx, p, "res.spooler.3", spool, n=3)
-    assert "approval_binding:step_id" in refused(
+    assert "approval_binding:section_id" in refused(
         lambda: fix(url, tokens, ctx, p, "res.spooler.1", spool, other_step, n=3)
     )
     # 3b approval for another kb_rev
@@ -510,23 +525,31 @@ def test_other_store_ticket_and_asset_are_refused(
     assert len(denied_events(db, stranger)) == 2  # same run id as ctx: both run_fix denials
 
 
-def test_step_binding_is_checked(
+def test_quote_binding_is_checked(
     url: str, tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
 ) -> None:
     ctx = new_ctx(assets.store)
     ticket(url, tokens, ctx, assets.printer)
     p = assets.printer
-    # An autonomous (read_only) action paired with a step mapped to another action.
-    assert "step_other_action" in refused(
-        lambda: fix(url, tokens, ctx, p, "res.spooler.1", "check_printer_status")
-    )
-    # A step of another runbook, and a step of another kb_rev: not bound to this ticket.
-    assert "step_not_found" in refused(
+    # Words that are not in the cited section of the ticket's runbook (S8a).
+    made_up = {**sec("res.spooler.1"), "quote": "Format the POS disk and reinstall Windows now."}
+    assert "quote_not_in_section" in refused(
+        lambda: call(url, tokens, ctx, "run_fix", idem_key=ctx.key("fix", "made-up"),
+                     asset_id=p, action_id="check_printer_status", **made_up)
+    )  # fmt: skip
+    # A section of another runbook, and a section of another kb_rev: not this ticket's.
+    assert "section_not_in_runbook" in refused(
         lambda: fix(url, tokens, ctx, p, "res.only-other.1", "restart_print_spooler")
     )
-    assert "step_not_found" in refused(
+    assert "section_not_in_runbook" in refused(
         lambda: fix(url, tokens, ctx, p, "res.old.1", "restart_print_spooler")
     )
+    # The server never creates an approval for made-up words either.
+    assert refused(
+        lambda: call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", "m"),
+                     asset_id=p, action_id="restart_print_spooler", approver_role="l2_engineer",
+                     requested_by="agent-actor", **made_up)
+    ) == "quote_not_in_section"  # fmt: skip
     # An action whose device families exclude the asset (printer check on a POS ticket).
     pos = new_ctx(assets.store)
     ticket(url, tokens, pos, assets.pos)
@@ -537,37 +560,9 @@ def test_step_binding_is_checked(
     drift = new_ctx(assets.store)
     ticket(url, tokens, drift, p, kb_rev=KB_DRIFT)
     assert "registry_drift" in refused(
-        lambda: fix(url, tokens, drift, p, "res.spooler.1", "restart_print_spooler")
+        lambda: fix(url, tokens, drift, p, "drift.spooler.1", "restart_print_spooler")
     )
     assert len(denied_events(db, ctx)) == 3
-
-
-def test_guarded_step_is_refused_even_with_an_approval(
-    url: str, tokens: TokenSource, db: psycopg.Connection[Any], assets: Assets
-) -> None:
-    ctx = new_ctx(assets.store)
-    ticket(url, tokens, ctx, assets.printer)
-    p, spool = assets.printer, "restart_print_spooler"
-    # The server never creates an approval for a guarded step (D51) ...
-    assert refused(
-        lambda: call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", "g"),
-                     asset_id=p, step_id="res.spooler.2", action_id=spool,
-                     approver_role="l2_engineer", requested_by="agent-actor")
-    ).startswith("prohibited_step:guard")  # fmt: skip
-    # ... and one written straight into the table is still refused at run time.
-    row = db.execute(
-        "INSERT INTO itsm.approvals (run_id, ticket_id, asset_id, step_id, action_id, kb_rev, "
-        "approver_role, requested_by, decided_by, decision, decided_at, expires_at, idem_key) "
-        "VALUES (%s, %s, %s, 'res.spooler.2', %s, %s, 'l2_engineer', 'agent-actor', 'mock-l2', "
-        "'approved', now(), now() + interval '10 minutes', %s) RETURNING id",
-        (ctx.run_id, ctx.ticket_id, p, spool, KB_REV, ctx.key("approval", "forged")),
-    ).fetchone()
-    assert row
-    reason = refused(lambda: fix(url, tokens, ctx, p, "res.spooler.2", spool, str(row[0])))
-    assert "prohibited_step:guard" in reason
-    assert "prohibited_step:l2_only" in refused(
-        lambda: fix(url, tokens, ctx, p, "res.l2only.1", spool)
-    )
 
 
 def test_one_approval_runs_once_under_concurrency(
@@ -578,7 +573,7 @@ def test_one_approval_runs_once_under_concurrency(
     p, spool = assets.printer, "restart_print_spooler"
     approval = approve(url, tokens, ctx, p, "res.spooler.3", spool)
     client = McpToolClient(url, tokens, lambda d, _t: d, retries=0)
-    args = {"asset_id": p, "step_id": "res.spooler.3", "action_id": spool, "approval_id": approval}
+    args = {"asset_id": p, **sec("res.spooler.3"), "action_id": spool, "approval_id": approval}
 
     async def both() -> list[Any]:
         return await asyncio.gather(
@@ -647,10 +642,6 @@ def test_reversible_needs_approval_until_promoted(
         assert autonomy_row(db, spool, model) == ("autonomous", runs)
         alone = fix(url, tokens, ctx, p, "res.spooler.1", spool, n=999)
         assert (alone["autonomy_state_at_run"], alone["approval_id"]) == ("autonomous", None)
-        # A step with an approval phrase still needs approval, autonomous or not.
-        assert "approval_missing" in refused(
-            lambda: fix(url, tokens, ctx, p, "res.spooler.3", spool, n=998)
-        )
     promoted = db.execute(
         "SELECT count(*) FROM audit.events WHERE action = 'action_promoted' AND run_id = %s",
         (ctx.run_id,),
@@ -668,7 +659,7 @@ def test_reject_demotes(tokens: TokenSource, db: psycopg.Connection[Any], assets
                 approve(url, tokens, ctx, p, "res.spooler.1", spool, n=n), n=n)  # fmt: skip
         assert autonomy_row(db, spool, model) == ("supervised", 2)
         req = call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval", "r"),
-                   asset_id=p, step_id="res.spooler.1", action_id=spool,
+                   asset_id=p, **sec("res.spooler.1"), action_id=spool,
                    approver_role="l2_engineer", requested_by="agent-actor")  # fmt: skip
         assert refused(
             lambda: call(url, tokens, ctx, "decide_approval", idem_key=ctx.key("decide", "r0"),
@@ -697,7 +688,7 @@ def test_self_approval_and_double_decision_are_refused(
     ctx = new_ctx(assets.store)
     ticket(url, tokens, ctx, assets.printer)
     req = call(url, tokens, ctx, "create_approval", idem_key=ctx.key("approval"),
-               asset_id=assets.printer, step_id="res.spooler.1",
+               asset_id=assets.printer, **sec("res.spooler.1"),
                action_id="restart_print_spooler", approver_role="l2_engineer",
                requested_by="mock-l2")  # fmt: skip
     assert refused(

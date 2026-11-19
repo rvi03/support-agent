@@ -120,7 +120,7 @@ class AgentSettings(BaseServiceSettings):
     embed_dim: int = Field(default=768, ge=1)
     llm_max_calls: int = Field(default=15, ge=1)
     triage_max_tool_calls: int = Field(default=6, ge=1)
-    token_budget_per_ticket: int = Field(default=50_000, ge=1)
+    token_budget_per_ticket: int = Field(default=120_000, ge=1)
     approval_ttl_min: int = Field(default=15, ge=1)
     # Safety setting: required, no default (D46, A35).
     action_autonomy_runs: int = Field(ge=1)
@@ -128,6 +128,11 @@ class AgentSettings(BaseServiceSettings):
     keycloak_secret_agent_reader: SecretStr
     keycloak_secret_agent_actor: SecretStr
     it_data_url: str = "http://localhost:8101/mcp"
+    knowledge_url: str = "http://localhost:8102/mcp"
+    # Shared router key (D66): Triage, Resolver and handler calls.
+    litellm_master_key: SecretStr
+    # Below this Triage confidence the ticket goes to L2 (tuned on the tune half, CP8.4).
+    confidence_min: float = Field(default=0.5, ge=0.0, le=1.0)
 
 
 class ApiSettings(BaseServiceSettings):

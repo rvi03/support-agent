@@ -268,6 +268,7 @@ ALLOWED: dict[str, set[str]] = {
     # embeddings, and its own Valkey user (kb:* keys only); no S3 key, no Keycloak secret.
     "knowledge": {"DATABASE_URL_KNOWLEDGE", "LITELLM_MASTER_KEY", "VALKEY_PASSWORD_KNOWLEDGE"},
     "itsm-actions": {"DATABASE_URL_ITSM"},
+    "gateway": set(),  # D103: the port forwarder holds no credentials
 }
 _LANGFUSE = {
     "LANGFUSE_DB_PASSWORD",

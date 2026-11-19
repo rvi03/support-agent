@@ -106,7 +106,7 @@ def test_get_document_returns_the_whole_sanitized_document(env: dict[str, str]) 
     assert out["status"] == "found" and doc["truncated"] is True
     assert doc["sections"] and doc["sections"][0]["ord"] == 0
     assert "[missing doc:" in doc["masked_text"]
-    assert {c["conflict_id"] for c in doc["conflicts"]} >= {"A19", "A26.6", "A26.7"}
+    assert "conflicts" not in doc and "conflict_ids" not in doc["sections"][0]
     assert call(client(env), "get_document", doc_id="runbooks/no-such.md")["status"] == "not_found"
 
 

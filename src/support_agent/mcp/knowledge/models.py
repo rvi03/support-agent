@@ -47,7 +47,6 @@ class SectionHit(_Out):
     parent_section_id: str | None
     path: str
     snippet: str
-    conflict_ids: list[str]
     promoted: bool
 
 
@@ -57,7 +56,6 @@ class DocumentHit(_Out):
     doc_type: DocType
     score: float
     truncated: bool
-    conflict_ids: list[str]
     sections: list[SectionHit]
 
 
@@ -83,6 +81,8 @@ class SearchKbResult(_Out):
 
 class GetDocumentIn(_In):
     doc_id: DocId
+    # Code only (S8 quote check): each section's own text, not charged to the budget.
+    with_section_text: bool = False
 
 
 class SectionRef(_Out):
@@ -90,16 +90,7 @@ class SectionRef(_Out):
     parent_section_id: str | None
     path: str
     ord: int
-    conflict_ids: list[str]
-
-
-class Conflict(_Out):
-    conflict_id: str
-    topic: str
-    docs: list[str]
-    claims: dict[str, str]
-    affects: dict[str, Any]
-    resolution: Literal["flag_and_handoff", "sop_wins"]
+    masked_text: str | None = None
 
 
 class Document(_Out):
@@ -109,14 +100,12 @@ class Document(_Out):
     categories: list[str]
     device_family: list[str]
     covered_systems: list[dict[str, Any]]
-    version_issues: list[dict[str, Any]]
     related: list[str]
     revision: str | None
     last_updated: str | None
     truncated: bool
     masked_text: str
     sections: list[SectionRef]
-    conflicts: list[Conflict]
 
 
 class GetDocumentResult(_Out):

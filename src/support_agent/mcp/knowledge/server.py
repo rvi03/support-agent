@@ -30,7 +30,6 @@ from support_agent.mcp.base.server import McpService, Policy, current_call
 from support_agent.mcp.knowledge import search
 from support_agent.mcp.knowledge.models import (
     CodeSection,
-    Conflict,
     Document,
     DocumentHit,
     GetDocumentIn,
@@ -89,7 +88,7 @@ def register(service: McpService, kn: Knowledge) -> None:
         """Hybrid BM25 + vector search over KB sections, rolled up to documents. Filter by
         doc_type, device_family (only when the device is established) and category.
         Returns documents with score, best sections (id, parent id, path, snippet),
-        truncated flag and conflict ids."""
+        and truncated flag."""
         filters = search.Filters(
             args.doc_type, args.device_family, args.category, await kn.excluded()
         )
@@ -112,14 +111,12 @@ def register(service: McpService, kn: Knowledge) -> None:
                     doc_type=f["doc_type"],
                     score=round(d.score, 6),
                     truncated=f["truncated"],
-                    conflict_ids=list(f["conflict_ids"]),
                     sections=[
                         SectionHit(
                             section_id=h.section_id,
                             parent_section_id=details[h.section_id]["parent_section_id"],
                             path=details[h.section_id]["path"],
                             snippet=search.snippet(details[h.section_id]["masked_text"]),
-                            conflict_ids=list(details[h.section_id]["conflict_ids"]),
                             promoted=h.promoted,
                         )
                         for h in d.sections
@@ -146,14 +143,15 @@ def register(service: McpService, kn: Knowledge) -> None:
     @service.tool(scope=SCOPE_READ)
     async def get_document(args: GetDocumentIn, conn: Conn) -> GetDocumentResult:
         """A whole sanitized document of the current revision: text, section ids,
-        metadata, related documents, conflicts and the truncated flag."""
+        metadata, related documents and the truncated flag. The agent reads it and
+        notices for itself when documents disagree (S8a: no conflict register)."""
         rev = await search.current_rev(conn)
         if rev is None or args.doc_id in await kn.excluded():
             return GetDocumentResult(status="not_found", kb_rev=rev)
         async with conn.cursor(row_factory=dict_row) as cur:
             await cur.execute(
                 "SELECT doc_id, doc_type, title, categories, device_family, covered_systems, "
-                "version_issues, related, revision, last_updated, truncated, masked_text "
+                "related, revision, last_updated, truncated, masked_text "
                 "FROM kb.documents WHERE kb_rev = %s AND doc_id = %s",
                 (rev, args.doc_id),
             )
@@ -161,17 +159,12 @@ def register(service: McpService, kn: Knowledge) -> None:
             if doc is None:
                 return GetDocumentResult(status="not_found", kb_rev=rev)
             await cur.execute(
-                "SELECT section_id, parent_section_id, path, ord, conflict_ids FROM kb.sections "
+                "SELECT section_id, parent_section_id, path, ord, "
+                "CASE WHEN %s THEN masked_text END AS masked_text FROM kb.sections "
                 "WHERE kb_rev = %s AND doc_id = %s ORDER BY ord",
-                (rev, args.doc_id),
+                (args.with_section_text, rev, args.doc_id),
             )
             sections = await cur.fetchall()
-            await cur.execute(
-                "SELECT conflict_id, topic, docs, claims, affects, resolution FROM kb.conflicts "
-                "WHERE kb_rev = %s AND %s = ANY(docs) ORDER BY conflict_id",
-                (rev, args.doc_id),
-            )
-            conflicts = await cur.fetchall()
         allowed, used = await kn.charge(kb_tokens(doc["masked_text"]))
         if not allowed:
             return GetDocumentResult(
@@ -182,10 +175,7 @@ def register(service: McpService, kn: Knowledge) -> None:
             kb_rev=rev,
             document=Document(
                 **{k: (list(v) if isinstance(v, list | tuple) else v) for k, v in doc.items()},
-                sections=[
-                    SectionRef(**{**s, "conflict_ids": list(s["conflict_ids"])}) for s in sections
-                ],
-                conflicts=[Conflict(**{**c, "docs": list(c["docs"])}) for c in conflicts],
+                sections=[SectionRef(**s) for s in sections],
             ),
             budget_used=used,
             budget_limit=kn.budget,

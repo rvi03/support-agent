@@ -158,3 +158,31 @@ def load_reference(conn: _Connection) -> Reference:
     return build_reference(
         names, [*places, *devices, *ids, *taxonomy], words_from=[*places, *devices]
     )
+
+
+# Ticket taxonomy the agent's tool results carry (never a name). The intake
+# reference reads it from staging, which the agent may not read (D59).
+AGENT_TAXONOMY = (
+    "P1", "P2", "P3", "P4", "POS", "Printers", "Online Orders", "Wi-Fi / Network",
+    "Soft Serve", "Kiosks", "found", "not_found", "fallback_general", "General",
+)  # fmt: skip
+
+
+def load_agent_reference(conn: _Connection) -> Reference:
+    """The reference for the agent-side masker of tool results, as `agent_actor`
+    (db/sql/009_agent.sql): places, devices, systems and ids only. Tool results
+    never carry a person's name (it-data returns no region manager, history is
+    masked at seed), so no known names are loaded (D92)."""
+    stores = conn.execute(
+        "SELECT store_id, store_name, city, neighborhood FROM data.stores"
+    ).fetchall()
+    assets = conn.execute(
+        "SELECT asset_id, asset_type, make, model, system_name FROM data.assets"
+    ).fetchall()
+    systems = [r[0] for r in conn.execute("SELECT system FROM data.version_matrix").fetchall()]
+    places = [p for r in stores for p in r[1:]]
+    devices = [p for r in assets for p in r[1:]] + systems
+    ids = [r[0] for r in stores] + [r[0] for r in assets]
+    return build_reference(
+        (), [*places, *devices, *ids, *AGENT_TAXONOMY], words_from=[*places, *devices]
+    )

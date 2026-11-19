@@ -2,7 +2,9 @@
 # renders .run/ files, applies db/sql/, creates buckets and checks the models.
 # Rules: every image pinned to a version; every container has a healthcheck;
 # each container gets only its own variables, never the whole .env (D46);
-# host ports bind to 127.0.0.1 only. Ollama runs natively on the Mac.
+# host ports bind to 127.0.0.1 only, all on the gateway; services sit on the
+# internal `core` network with no internet, LiteLLM alone also on `edge` (D103).
+# Ollama runs natively on the Mac.
 name: servewell
 
 x-langfuse-env: &langfuse-env
@@ -39,13 +41,13 @@ x-langfuse-env: &langfuse-env
 
 services:
   postgres:
+    networks: ["core"]
     build:
       context: ./postgres
     image: servewell-postgres:17.12-pgvector0.8.7-pgtextsearch1.5.1
     command: ["postgres", "-c", "shared_preload_libraries=pg_textsearch", "-c", "max_connections=200"]
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
-    ports: ["127.0.0.1:5432:5432"]
     volumes: [pg_data:/var/lib/postgresql/data]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
@@ -56,12 +58,12 @@ services:
     restart: unless-stopped
 
   seaweedfs:
+    networks: ["core"]
     image: chrislusf/seaweedfs:4.54
     command: >-
       server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0
       -master.volumeSizeLimitMB=128 -volume.max=50
       -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
-    ports: ["127.0.0.1:8333:8333"]
     volumes:
       - seaweed_data:/data
       - ../.run/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
@@ -74,6 +76,7 @@ services:
     restart: unless-stopped
 
   keycloak:
+    networks: ["core"]
     image: quay.io/keycloak/keycloak:26.8.2
     command: ["start", "--import-realm"]
     environment:
@@ -91,7 +94,6 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?}
       KC_BOOTSTRAP_ADMIN_CLIENT_ID: servewell-admin
       KC_BOOTSTRAP_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:?}
-    ports: ["127.0.0.1:8080:8080"]
     volumes:
       - ../.run/keycloak:/opt/keycloak/data/import:ro
     depends_on:
@@ -112,6 +114,7 @@ services:
     restart: unless-stopped
 
   opa:
+    networks: ["core"]
     image: openpolicyagent/opa:1.22.4-static
     command:
       - run
@@ -121,7 +124,6 @@ services:
       - --log-format=json
       - --set=decision_logs.console=true
       - /policies
-    ports: ["127.0.0.1:8181:8181"]
     volumes:
       - ./opa/policies:/policies:ro
     healthcheck:
@@ -134,6 +136,7 @@ services:
     restart: unless-stopped
 
   valkey:
+    networks: ["core"]
     image: valkey/valkey:8.1.11-alpine
     # S6: user `knowledge` may touch only `kb:*` keys (per-run budget, eval exclusions).
     command: ["sh", "-c", "exec valkey-server --requirepass \"$$VALKEY_PASSWORD\" --user knowledge on \">$$VALKEY_PASSWORD_KNOWLEDGE\" '~kb:*' +@all -@dangerous --maxmemory-policy noeviction --save '' --appendonly no"]
@@ -149,6 +152,7 @@ services:
     restart: unless-stopped
 
   clickhouse:
+    networks: ["core"]
     # The version Langfuse pins in its own v4 compose.
     image: clickhouse/clickhouse-server:26.3.62.3
     user: "101:101"
@@ -168,6 +172,7 @@ services:
     restart: unless-stopped
 
   langfuse-worker:
+    networks: ["core"]
     image: langfuse/langfuse-worker:4.82.0
     environment:
       <<: *langfuse-env
@@ -186,6 +191,7 @@ services:
     restart: unless-stopped
 
   langfuse-web:
+    networks: ["core"]
     image: langfuse/langfuse:4.82.0
     environment:
       <<: *langfuse-env
@@ -202,7 +208,6 @@ services:
       LANGFUSE_INIT_USER_EMAIL: admin@servewell.local
       LANGFUSE_INIT_USER_NAME: admin
       LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_ADMIN_PASSWORD:?}
-    ports: ["127.0.0.1:3000:3000"]
     depends_on: *langfuse-deps
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/public/health"]
@@ -214,6 +219,7 @@ services:
     restart: unless-stopped
 
   litellm:
+    networks: ["core", "edge"]
     image: ghcr.io/berriai/litellm:v1.108.11
     # Logs go to stdout and to LOG_DIR/litellm.log for the K11 scan (S1, Codex F4).
     # The image has bash but no tee, so bash copies each line to both.
@@ -240,7 +246,6 @@ services:
       # telemetry off and no database, LiteLLM's only outside traffic is the OpenAI API.
       LITELLM_LOCAL_MODEL_COST_MAP: "True"
     extra_hosts: ["host.docker.internal:host-gateway"]
-    ports: ["127.0.0.1:4000:4000"]
     volumes:
       - ./litellm/config.yaml:/app/config.yaml:ro
       - ../logs:/logs
@@ -254,6 +259,7 @@ services:
     restart: unless-stopped
 
   it-data:
+    networks: ["core"]
     # S5: read-only IT data MCP server (Streamable HTTP, OAuth resource server).
     build:
       context: ..
@@ -270,7 +276,6 @@ services:
       LOG_DIR: /logs
       IT_DATA_HOST: 0.0.0.0
       IT_DATA_PORT: "8101"
-    ports: ["127.0.0.1:8101:8101"]
     volumes:
       - ../logs:/logs
     depends_on:
@@ -288,6 +293,7 @@ services:
 
 
   knowledge:
+    networks: ["core"]
     # S6: retrieval-only KB MCP server (hybrid search over the published kb revision).
     build:
       context: ..
@@ -311,7 +317,6 @@ services:
       LOG_DIR: /logs
       KNOWLEDGE_HOST: 0.0.0.0
       KNOWLEDGE_PORT: "8102"
-    ports: ["127.0.0.1:8102:8102"]
     volumes:
       - ../logs:/logs
     depends_on:
@@ -330,6 +335,7 @@ services:
     restart: unless-stopped
 
   itsm-actions:
+    networks: ["core"]
     # S7: local ITSM writes (tickets, comments, store messages, approvals, simulated fixes).
     build:
       context: ..
@@ -350,7 +356,6 @@ services:
       LOG_DIR: /logs
       ITSM_HOST: 0.0.0.0
       ITSM_PORT: "8103"
-    ports: ["127.0.0.1:8103:8103"]
     volumes:
       - ../logs:/logs
     depends_on:
@@ -367,10 +372,10 @@ services:
     restart: unless-stopped
 
   prometheus:
+    networks: ["core"]
     image: prom/prometheus:v3.16.0
     profiles: [observability]
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=7d"]
-    ports: ["127.0.0.1:9090:9090"]
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -383,6 +388,7 @@ services:
     restart: unless-stopped
 
   grafana:
+    networks: ["core"]
     image: grafana/grafana:13.2.6
     profiles: [observability]
     environment:
@@ -391,7 +397,6 @@ services:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
-    ports: ["127.0.0.1:3001:3000"]
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
@@ -403,6 +408,34 @@ services:
     deploy: {resources: {limits: {memory: 512m}}}
     restart: unless-stopped
 
+  # Port gateway (D103): the only container that publishes ports. Services sit on
+  # the internal `core` network (no internet); only LiteLLM (OpenAI API) and this
+  # TCP forwarder are also on `edge`.
+  gateway:
+    networks: ["core", "edge"]
+    image: haproxy:3.0.5-alpine
+    volumes:
+      - ./gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:8333:8333"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8181:8181"
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:8101:8101"
+      - "127.0.0.1:8102:8102"
+      - "127.0.0.1:8103:8103"
+      - "127.0.0.1:9090:9090"
+      - "127.0.0.1:3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8404/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    deploy: {resources: {limits: {memory: 64m}}}
+    restart: unless-stopped
+
 volumes:
   pg_data:
   seaweed_data:
@@ -410,3 +443,10 @@ volumes:
   clickhouse_logs:
   prometheus_data:
   grafana_data:
+
+networks:
+  # No route out: every service talks only to the others (D103).
+  core:
+    internal: true
+  # Internet: LiteLLM (OpenAI API, Ollama on the Mac) and the port gateway only.
+  edge: {}

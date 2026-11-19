@@ -148,6 +148,16 @@ class SafetyNet:
         channel = Channel(channel)
         return self._block(self.find(text, ticket_id, channel), ticket_id, channel)
 
+    def scan_vault(self, text: str, ticket_id: str | None, channel: Channel | str) -> list[Hit]:
+        """Vault exact match only (D43), for sanitized KB text: the pattern detector reads
+        Title Case KB terms ("Thermal Paper") as names (D75)."""
+        channel = Channel(channel)
+        if ticket_id is None:
+            return []
+        return self._block(
+            self.vault.detect(text, registered_values(ticket_id)), ticket_id, channel
+        )
+
     def scan_prompt(self, fixed: str, data: str, ticket_id: str | None) -> list[Hit]:
         """A model prompt = fixed instructions from the code + variable data (ticket text,
         replies, tool results). The pattern detector scans the data only: spaCy run over

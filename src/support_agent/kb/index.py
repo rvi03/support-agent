@@ -1,7 +1,7 @@
 """`make index`: build and publish one KB revision (S6 step 1; rag-design.md section 4).
 
     load (S3) -> truncation -> redact -> mask -> links -> table padding -> metadata
-      -> chunk -> conflicts -> tokens -> embed -> kb_staging -> publish (schema swap)
+      -> chunk -> tokens -> embed -> kb_staging -> publish (schema swap)
 
 Steps 2-9 are pure (`build`); only `load`, `embed` and `write` touch a service.
 S9 adds step 6 (parsed runbook steps) through `STEP_HOOKS` before publish.
@@ -26,7 +26,7 @@ from psycopg.types.json import Jsonb
 
 from support_agent.common.config import KbIndexSettings, get_settings
 from support_agent.common.db import dsn
-from support_agent.kb import chunk, clean, conflicts, metadata
+from support_agent.kb import chunk, clean, metadata
 from support_agent.kb.embed import embed, vector_literal
 from support_agent.kb.load import SourceFile, load, s3_client
 from support_agent.mcp.itsm.registry import REGISTRY_PATH, registry_version
@@ -64,7 +64,6 @@ class SectionRow:
     device_family: list[str]
     categories: list[str]
     bm25_tokens: list[str]
-    conflict_ids: list[str]
     embedding: list[float] = field(default_factory=list)
 
 
@@ -75,34 +74,28 @@ class Built:
     rule_versions: dict[str, str]
     docs: list[DocRow]
     sections: list[SectionRow]
-    conflicts: list[conflicts.Conflict]
     redactions: list[tuple[str, str | None, int, str]]  # doc, section, offset, rule
     gaps: list[tuple[str, str, str]]  # doc, kind, detail
     report: dict[str, Any]
 
 
-def _rule_versions(conflicts_version: str) -> dict[str, str]:
+def _rule_versions() -> dict[str, str]:
     return {
         "redaction": clean.REDACTION_RULES_VERSION,
         "masking": clean.MASK_RULES_VERSION,
         "tokenizer": TOKENIZER_VERSION,
         "chunk_budget": str(chunk.CHUNK_BUDGET),
-        "metadata_expected": str(metadata.expected()["version"]),
-        "conflicts": conflicts_version,
         # The registry file hash (S7): run_fix refuses a registry that drifted from it.
         "action_registry": registry_version(REGISTRY_PATH.read_bytes()),
     }
 
 
-def kb_rev_of(
-    source_hashes: dict[str, str], rule_versions: dict[str, str], register_hash: str, embed: str
-) -> str:
+def kb_rev_of(source_hashes: dict[str, str], rule_versions: dict[str, str], embed: str) -> str:
     material = json.dumps(
         {
             "sources": source_hashes,
             "pipeline": PIPELINE_VERSION,
             "rules": rule_versions,
-            "conflict_register": register_hash,
             "embedding": embed,
         },
         sort_keys=True,
@@ -123,13 +116,11 @@ def build(
     embed_id: str,
     analyze: clean.Analyze = clean.presidio_analyze,
 ) -> Built:
-    """Steps 2-9 on the loaded files; raises IndexCheckError on a metadata mismatch."""
+    """Steps 2-9 on the loaded files; raises IndexCheckError when redactions do not line up."""
     source_hashes = {f.doc_id: f.sha256 for f in files}
     md_files = [f for f in files if f.doc_id.endswith(".md")]
     md_ids = [f.doc_id for f in md_files]
-    conflicts_version, register = conflicts.load()
-    register_hash = hashlib.sha256(conflicts.register_text().encode()).hexdigest()
-    rule_versions = _rule_versions(conflicts_version)
+    rule_versions = _rule_versions()
 
     redacted: dict[str, tuple[str, list[clean.Redaction]]] = {}
     for f in md_files:
@@ -163,10 +154,6 @@ def build(
             truncated_why[f.doc_id] = why
             gaps.append((f.doc_id, "truncated", why))
         gaps.extend((f.doc_id, "missing_link", name) for name in linked.missing)
-        gaps.extend(
-            (f.doc_id, "version_not_covered", f"{v['runbook_says']} | stores: {v['stores_have']}")
-            for v in meta.version_issues
-        )
         docs.append(DocRow(meta, truncated, linked.related, f.sha256, final))
         for s in secs:
             sections.append(
@@ -176,22 +163,10 @@ def build(
                     device_family=meta.device_family,
                     categories=meta.categories,
                     bm25_tokens=tokenizer.index_terms(s.index_text),
-                    conflict_ids=conflicts.ids_for(f.doc_id, s.text, register),
                 )
             )
 
-    problems = metadata.mismatches([d.meta for d in docs])
-    if problems:
-        raise IndexCheckError("metadata mismatch (A7-A10):\n  " + "\n  ".join(problems))
-    unattached = [
-        c.conflict_id
-        for c in register
-        if c.attach and not any(c.conflict_id in s.conflict_ids for s in sections)
-    ]
-    if unattached:
-        raise IndexCheckError(f"conflicts attached to no section: {unattached}")
-
-    kb_rev = kb_rev_of(source_hashes, rule_versions, register_hash, embed_id)
+    kb_rev = kb_rev_of(source_hashes, rule_versions, embed_id)
     gap_kinds = Counter(kind for _, kind, _ in gaps)
     report: dict[str, Any] = {
         "kb_rev": kb_rev,
@@ -207,17 +182,8 @@ def build(
         "missing_links": gap_kinds.get("missing_link", 0),
         "docs_with_missing_links": len({d for d, k, _ in gaps if k == "missing_link"}),
         "truncated": dict(sorted(truncated_why.items())),
-        "conflicts": len(register),
-        "conflict_sections": {
-            c.conflict_id: sum(c.conflict_id in s.conflict_ids for s in sections) for c in register
-        },
-        "metadata_mismatches": 0,
-        "version_issues": sum(len(d.meta.version_issues) for d in docs),
-        "non_walkable_runbooks": "S9",
     }
-    return Built(
-        kb_rev, source_hashes, rule_versions, docs, sections, register, redactions, gaps, report
-    )
+    return Built(kb_rev, source_hashes, rule_versions, docs, sections, redactions, gaps, report)
 
 
 # ---- service steps ----------------------------------------------------------------------
@@ -229,7 +195,7 @@ def add_embeddings(built: Built, embedder: Embedder) -> None:
         row.embedding = vec
 
 
-_TABLES = ("revisions", "documents", "sections", "conflicts", "redactions", "gaps", "runbook_steps")
+_TABLES = ("revisions", "documents", "sections", "redactions", "gaps")
 
 
 def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:
@@ -258,9 +224,9 @@ def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:
         with conn.cursor() as cur:
             cur.executemany(
                 "INSERT INTO kb_staging.documents (kb_rev, doc_id, doc_type, title, categories, "
-                "device_family, covered_systems, version_issues, related, revision, last_updated, "
-                "truncated, walkable, content_hash, masked_text) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, %s, %s)",
+                "device_family, covered_systems, related, revision, last_updated, truncated, "
+                "content_hash, masked_text) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 [
                     (
                         rev,
@@ -270,7 +236,6 @@ def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:
                         d.meta.categories,
                         d.meta.device_family,
                         Jsonb(d.meta.covered_systems),
-                        Jsonb(d.meta.version_issues),
                         d.related,
                         d.meta.revision,
                         d.meta.last_updated,
@@ -284,8 +249,8 @@ def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:
             cur.executemany(
                 "INSERT INTO kb_staging.sections (kb_rev, section_id, parent_section_id, doc_id, "
                 "doc_type, device_family, categories, path, ord, masked_text, index_text, "
-                "bm25_tokens, token_count, conflict_ids, embedding) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)",
+                "bm25_tokens, token_count, embedding) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector)",
                 [
                     (
                         rev,
@@ -301,26 +266,9 @@ def write_staging(conn: psycopg.Connection[Any], built: Built) -> None:
                         s.section.index_text,
                         s.bm25_tokens,
                         s.section.token_count,
-                        s.conflict_ids,
                         vector_literal(s.embedding),
                     )
                     for s in built.sections
-                ],
-            )
-            cur.executemany(
-                "INSERT INTO kb_staging.conflicts (kb_rev, conflict_id, topic, docs, claims, "
-                "affects, resolution) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                [
-                    (
-                        rev,
-                        c.conflict_id,
-                        c.topic,
-                        c.docs,
-                        Jsonb(c.claims),
-                        Jsonb(c.affects),
-                        c.resolution,
-                    )
-                    for c in built.conflicts
                 ],
             )
             cur.executemany(
@@ -359,11 +307,6 @@ def report_markdown(report: dict[str, Any]) -> str:
         f"{report['docs_with_missing_links']} documents",
         f"- Truncated documents: {len(report['truncated'])}",
         *[f"  - {doc} ({why})" for doc, why in report["truncated"].items()],
-        f"- Conflicts: {report['conflicts']} rows; sections per conflict: "
-        f"{report['conflict_sections']}",
-        f"- Metadata mismatches: {report['metadata_mismatches']}",
-        f"- Version issues (A10): {report['version_issues']}",
-        f"- Non-walkable runbooks: {report['non_walkable_runbooks']}",
         "",
     ]
     return "\n".join(lines)

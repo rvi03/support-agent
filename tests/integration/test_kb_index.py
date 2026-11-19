@@ -1,5 +1,6 @@
 """CP6.1: `make index` on the real KB reports redactions, 178 missing links, the 4
-truncated documents and the conflicts; no A24 secret is in any `kb` table."""
+truncated documents; no A24 secret is in any `kb` table. S8a: no conflict register
+or hand-written metadata list."""
 
 from __future__ import annotations
 
@@ -45,16 +46,15 @@ def _report(db: psycopg.Connection[Any]) -> dict[str, Any]:
     return dict(row[0])
 
 
-def test_report_lists_redactions_gaps_truncation_and_conflicts(
+def test_report_lists_redactions_gaps_and_truncation(
     indexed: str, db: psycopg.Connection[Any]
 ) -> None:
     report = _report(db)
     assert report["redactions_total"] > 0
     assert report["missing_links"] == 178 and report["docs_with_missing_links"] == 30
     assert set(report["truncated"]) == clean.KNOWN_TRUNCATED
-    assert report["conflicts"] == 20 and all(n > 0 for n in report["conflict_sections"].values())
-    assert report["metadata_mismatches"] == 0
-    for line in ("Redactions:", "Missing links: 178", "Truncated documents: 4", "Conflicts: 20"):
+    assert "conflicts" not in report and "metadata_mismatches" not in report
+    for line in ("Redactions:", "Missing links: 178", "Truncated documents: 4"):
         assert line in indexed
     assert (ROOT / "eval/reports/index_report.md").read_text().startswith("# KB index report")
 
@@ -65,7 +65,10 @@ def test_tables_hold_the_report_rows(db: psycopg.Connection[Any]) -> None:
     assert gaps["missing_link"] == 178 and gaps["truncated"] == 4
     truncated = {r[0] for r in db.execute("SELECT doc_id FROM kb.documents WHERE truncated")}
     assert truncated == clean.KNOWN_TRUNCATED
-    assert db.execute("SELECT count(*) FROM kb.conflicts").fetchone() == (20,)
+    assert set(gaps) == {"missing_link", "truncated"}
+    assert db.execute(
+        "SELECT to_regclass('kb.conflicts'), to_regclass('kb.runbook_steps')"
+    ).fetchone() == (None, None)
     redactions = db.execute(
         "SELECT count(*), count(section_id) FROM kb.redactions WHERE kb_rev = %s", (rev,)
     ).fetchone()

@@ -16,7 +16,12 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstrai
 
 IdemKey = Annotated[str, StringConstraints(min_length=40, max_length=200, pattern=r"^\S+$")]
 Id = Annotated[str, StringConstraints(min_length=1, max_length=64, pattern=r"^\S+$")]
-StepId = Annotated[str, StringConstraints(min_length=1, max_length=80, pattern=r"^[a-z0-9._-]+$")]
+# A KB section of the ticket's runbook, and the exact runbook words the agent acts
+# on; the server checks the quote is in that section (S8a: no parsed steps).
+SectionId = Annotated[
+    str, StringConstraints(max_length=200, pattern=r"^runbooks/[a-z0-9][a-z0-9-]*\.md#[a-z0-9-]+$")
+]
+Quote = Annotated[str, StringConstraints(min_length=20, max_length=2_000)]
 ActionId = Annotated[str, StringConstraints(min_length=1, max_length=64, pattern=r"^[a-z0-9_]+$")]
 Short = Annotated[str, StringConstraints(min_length=1, max_length=120, strip_whitespace=True)]
 Body = Annotated[str, StringConstraints(min_length=1, max_length=20_000)]
@@ -114,7 +119,7 @@ class AddCommentIn(_In):
 class MessageStoreIn(_In):
     kind: MessageKind
     body: Body
-    step_id: StepId | None = None
+    section_id: SectionId | None = None
 
 
 class RowResult(_Out):
@@ -127,7 +132,8 @@ class RowResult(_Out):
 
 class CreateApprovalIn(_In):
     asset_id: Id
-    step_id: StepId
+    section_id: SectionId
+    quote: Quote
     action_id: ActionId
     approver_role: ApproverRole
     requested_by: Short
@@ -148,7 +154,7 @@ class DecideApprovalIn(_In):
 
 
 class CreateL2TaskIn(_In):
-    step_id: StepId
+    section_id: SectionId | None = None
     reason: L2Reason
     note: Body
 
@@ -163,7 +169,8 @@ class L2TaskResult(_Out):
 
 class RunFixIn(_In):
     asset_id: Id
-    step_id: StepId
+    section_id: SectionId
+    quote: Quote
     action_id: ActionId
     approval_id: uuid.UUID | None = None
 

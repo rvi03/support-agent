@@ -38,31 +38,23 @@ def test_registry_version_follows_the_bytes(tmp_path: Path) -> None:
     assert load_registry(copy).version != load_registry().version
 
 
-def test_registry_rejects_duplicates_bad_regex_and_unknown_keys(tmp_path: Path) -> None:
+def test_registry_rejects_duplicates_and_unknown_keys(tmp_path: Path) -> None:
     entry = (
         "  - action_id: {id}\n    description: d\n    device_families: [printer]\n"
-        "    tier: read_only\n    match: [[{pat}]]\n"
+        "    tier: read_only\n"
         "    simulated_result: {{outcome: no_change, text: t}}\n{extra}"
     )
     cases = {
-        "dup": entry.format(id="a_one", pat='"x"', extra="") * 2,
-        "regex": entry.format(id="a_one", pat='"("', extra=""),
-        "extra": entry.format(id="a_one", pat='"x"', extra="    risk: low\n"),
-        "tier": entry.format(id="a_one", pat='"x"', extra="").replace("read_only", "safe"),
+        "dup": entry.format(id="a_one", extra="") * 2,
+        "extra": entry.format(id="a_one", extra="    risk: low\n"),
+        "match": entry.format(id="a_one", extra="    match: [[x]]\n"),  # S8a: no patterns
+        "tier": entry.format(id="a_one", extra="").replace("read_only", "safe"),
     }
     for name, body in cases.items():
         path = tmp_path / f"{name}.yaml"
         path.write_text("actions:\n" + body)
         with pytest.raises((ValidationError, ValueError)):
             load_registry(path)
-
-
-def test_match_step_needs_every_pattern_in_a_group() -> None:
-    reg = load_registry()
-    assert reg.match_step("Open services.msc and Restart the Print Spooler") == [
-        "restart_print_spooler"
-    ]
-    assert reg.match_step("Restart the POS application") == []
 
 
 def test_every_asset_type_has_a_family() -> None:

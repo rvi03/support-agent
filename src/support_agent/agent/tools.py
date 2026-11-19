@@ -43,6 +43,7 @@ from support_agent.mcp.it_data.models import (
     StoreResult,
     TicketResult,
 )
+from support_agent.mcp.knowledge.models import GetDocumentResult, SearchKbResult
 
 TOKEN_REFRESH_MARGIN_S = 30
 RETRIES = 3
@@ -148,6 +149,22 @@ class ResultGuard:
 
 
 Guard = Callable[[dict[str, Any], str | None], dict[str, Any]]
+
+
+class _VaultNet(Protocol):
+    def scan_vault(self, text: str, ticket_id: str | None, channel: Channel | str) -> Any: ...
+
+
+@dataclass(frozen=True)
+class KbGuard:
+    """KB results are sanitized at index time (D75) and are not masked again: the
+    masker reads Title Case KB terms as names. Only the vault exact match runs."""
+
+    safety_net: _VaultNet
+
+    def __call__(self, data: dict[str, Any], ticket_id: str | None) -> dict[str, Any]:
+        self.safety_net.scan_vault(json.dumps(data, ensure_ascii=False), ticket_id, Channel.PROMPT)
+        return data
 
 
 # ---- one tool call -------------------------------------------------------------------
@@ -304,3 +321,43 @@ class ItDataClient:
             before=before,
             limit=limit,
         )
+
+
+# ---- knowledge -----------------------------------------------------------------------
+
+
+class KnowledgeClient:
+    """Typed knowledge calls with the run in `_meta`, so run-scoped eval exclusions
+    and the per-run KB-text budget apply (S6)."""
+
+    def __init__(
+        self, client: McpToolClient, *, ticket_id: str, run_id: uuid.UUID | None = None
+    ) -> None:
+        self.client, self.ticket_id, self.run_id = client, ticket_id, run_id
+
+    async def search_kb(
+        self,
+        query: str,
+        *,
+        doc_type: str | None = None,
+        device_family: str | None = None,
+        k: int = 5,
+    ) -> SearchKbResult:
+        args: dict[str, Any] = {"query": query, "k": k}
+        if doc_type:
+            args["doc_type"] = doc_type
+        if device_family:
+            args["device_family"] = device_family
+        data = await self.client.call(
+            "search_kb", args, ticket_id=self.ticket_id, run_id=self.run_id
+        )
+        return SearchKbResult.model_validate(data)
+
+    async def get_document(self, doc_id: str) -> GetDocumentResult:
+        data = await self.client.call(
+            "get_document",
+            {"doc_id": doc_id, "with_section_text": True},
+            ticket_id=self.ticket_id,
+            run_id=self.run_id,
+        )
+        return GetDocumentResult.model_validate(data)

@@ -1,8 +1,8 @@
 """Moderation of every ticket and store reply (design.md, User guardrail; S4 step 6).
 
 One label-classifier call on the `moderation` LiteLLM alias with a strict JSON
-schema (labels + evidence quotes), plus code rules for PIN or password
-requests, skip or approve requests, delete or void requests, and bypass.
+schema (labels + evidence quotes). No keyword rules: the model judges forbidden
+requests too (S8a).
 Labels are not exclusive: every flag found is kept and the strictest one
 decides (threat > forbidden > abusive > injection > off_topic > angry). The
 graph applies the behaviour in S10; the abuse count lives in graph state.
@@ -15,7 +15,6 @@ Moderation calls have their own cap, never `LLM_MAX_CALLS` (review m1).
 from __future__ import annotations
 
 import json
-import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
@@ -136,53 +135,6 @@ def decide(moderation: Moderation, abuse_count: int = 0) -> Behaviour:
     if label is Label.ABUSIVE and abuse_count >= 1:
         return REPEATED_ABUSE
     return BEHAVIOUR[label]
-
-
-# --- code rules -------------------------------------------------------------
-
-_ASK = (
-    r"(?:tell|give|share|send|show|provide|reveal|need|want|get|what(?:'s| is| are)|"
-    r"can (?:you|i)|could you|please|help me|how (?:do|can) i)"
-)
-RULES: dict[str, re.Pattern[str]] = {
-    # "Tell me the manager's PIN", "share the admin password"; not "PIN pad".
-    "secret_request": re.compile(
-        _ASK + r"\b(?:\W+\w+){0,5}?\W+(?:pin|password|passcode|passwords|pins|otp|"
-        r"admin (?:login|credentials)|credentials)\b(?!\s*(?:pad|entry|device))",
-        re.IGNORECASE,
-    ),
-    # "skip the restart step", "approve this step yourself".
-    "skip_or_approve": re.compile(
-        r"\b(?:skip|ignore|jump over)\b(?:\W+\w+){0,4}?\W+(?:steps?|approvals?|checks?|"
-        r"verification)\b|\b(?:approve|authori[sz]e)\s+(?:this|the|that|my)\s+(?:step|action)\b"
-        r"|\b(?:approve|authori[sz]e)\s+(?:it|this)\s+(?:yourself|for me)\b"
-        r"|\bmark (?:it|this)(?: as)? approved\b",
-        re.IGNORECASE,
-    ),
-    # "please void yesterday's transactions", "delete the sales records".
-    "delete_or_void": re.compile(
-        _ASK + r"\b(?:\W+\w+){0,4}?\W+(?:delete|void|erase|wipe|remove|cancel)\b"
-        r"(?:\W+\w+){0,4}?\W+(?:transactions?|sales?|bills?|records?|entries|logs?|"
-        r"invoices?|payments?)\b",
-        re.IGNORECASE,
-    ),
-    # "bypass the approval", "override the security check".
-    "bypass": re.compile(
-        r"\b(?:bypass|circumvent|override|disable|turn off)\b(?:\W+\w+){0,3}?\W+(?:approvals?|"
-        r"security|checks?|polic(?:y|ies)|firewall|antivirus|lock|audit|logging|"
-        r"restrictions?)\b",
-        re.IGNORECASE,
-    ),
-}
-
-
-def code_rules(text: str) -> list[Flag]:
-    flags = []
-    for name, regex in RULES.items():
-        m = regex.search(text)
-        if m:
-            flags.append(Flag(Label.FORBIDDEN, m.group(0), f"rule:{name}"))
-    return flags
 
 
 # --- model call -------------------------------------------------------------
@@ -326,15 +278,14 @@ class Moderator:
 
     def moderate(self, text: str, ticket_id: str, budget: ModerationBudget) -> Moderation:
         """Masked text in; flags out. Fails closed on a model failure or the cap."""
-        rule_flags = code_rules(text)
         if not budget.take():
-            return self._failed(ticket_id, "cap_reached", rule_flags)
+            return self._failed(ticket_id, "cap_reached", [])
         self.safety_net.scan_prompt(SYSTEM_PROMPT, _wrap(text), ticket_id)  # raises PIIBlocked
         try:
             model_flags = self.client.classify(text)
         except ModerationUnavailableError:
-            return self._failed(ticket_id, "unavailable", rule_flags)
-        result = Moderation(flags=tuple(model_flags + rule_flags))
+            return self._failed(ticket_id, "unavailable", [])
+        result = Moderation(flags=tuple(model_flags))
         if result.flags:
             self.audit(
                 AuditEvent(

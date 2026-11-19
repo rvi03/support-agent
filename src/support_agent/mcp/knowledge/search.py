@@ -223,7 +223,7 @@ async def rank(
 async def section_details(conn: Conn, rev: str, ids: list[str]) -> dict[str, dict[str, Any]]:
     rows = await _rows(
         conn,
-        "SELECT section_id, parent_section_id, path, masked_text, conflict_ids, token_count "
+        "SELECT section_id, parent_section_id, path, masked_text, token_count "
         "FROM kb.sections WHERE kb_rev = %(rev)s AND section_id = ANY(%(ids)s)",
         {"rev": rev, "ids": ids},
     )
@@ -233,9 +233,7 @@ async def section_details(conn: Conn, rev: str, ids: list[str]) -> dict[str, dic
 async def document_facts(conn: Conn, rev: str, ids: list[str]) -> dict[str, dict[str, Any]]:
     rows = await _rows(
         conn,
-        "SELECT d.doc_id, d.title, d.doc_type, d.truncated, "
-        "  coalesce((SELECT array_agg(c.conflict_id ORDER BY c.conflict_id) FROM kb.conflicts c "
-        "            WHERE c.kb_rev = d.kb_rev AND d.doc_id = ANY(c.docs)), '{}') AS conflict_ids "
+        "SELECT d.doc_id, d.title, d.doc_type, d.truncated "
         "FROM kb.documents d WHERE d.kb_rev = %(rev)s AND d.doc_id = ANY(%(ids)s)",
         {"rev": rev, "ids": ids},
     )

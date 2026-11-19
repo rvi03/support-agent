@@ -12,7 +12,7 @@ export COMPOSE_PROFILES :=
 endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
-	opa-test env up down nuke status mock-stores seed split index realm k4
+	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -89,6 +89,12 @@ seed: ## Upload the dataset to S3, load Postgres from S3, load the split, then m
 
 k4: ## K4 replay + retrieval ablation on the tune half (S6); writes eval/reports/ablation_tune.md
 	$(UV) run python -m support_agent.eval.k4 $(or $(SPLIT),tune)
+
+abstention: ## CP8.2: 20 Group A tune tickets with every runbook of their family excluded must hand off (D102); SCOPE=labelled for the report
+	$(UV) run python -m support_agent.eval.agent_run abstention $(or $(ALIAS),agent) $(or $(SCOPE),family)
+
+model-check: ## CP8.4: K1, K5, output validity on 40 tune tickets; ALIAS=agent|agent-terra
+	$(UV) run python -m support_agent.eval.agent_run model-check $(or $(ALIAS),agent)
 
 realm: ## Re-import the Keycloak realm after a realm.py change (deletes and re-imports it)
 	@$(PLATFORM) realm-reload

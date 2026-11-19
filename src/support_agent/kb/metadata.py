@@ -1,19 +1,16 @@
 """Index step 6: document metadata (S6 step 1; rag-design.md section 4, step 6).
 
 Categories come from the document's content (its title), never its file name
-(A7). The result is checked against `expected_metadata.yaml`, which encodes the
-A8 and A10 tables; any mismatch fails the run.
+(A7). No hand-written list of expected metadata is checked: at 1M documents
+nobody can type one (S8a). Which versions a runbook covers is read by the agent
+from the text itself.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from functools import cache
-from importlib import resources
 from typing import Any
-
-import yaml
 
 from support_agent.mcp.knowledge.tokenizer import is_version, version_form
 
@@ -53,7 +50,6 @@ class DocMeta:
     categories: list[str]
     device_family: list[str]
     covered_systems: list[dict[str, Any]] = field(default_factory=list)
-    version_issues: list[dict[str, Any]] = field(default_factory=list)
     revision: str | None = None
     last_updated: str | None = None
 
@@ -130,19 +126,11 @@ def revision_info(text: str) -> tuple[str | None, str | None]:
     )
 
 
-@cache
-def expected() -> dict[str, Any]:
-    text = resources.files("support_agent.kb").joinpath("expected_metadata.yaml").read_text()
-    data: dict[str, Any] = yaml.safe_load(text)
-    return data
-
-
 def build(doc_id: str, text: str) -> DocMeta:
     doc_type = doc_type_of(doc_id)
     title = title_of(text)
     cats = categories_of(title)
     revision, updated = revision_info(text)
-    exp = expected()["documents"].get(doc_id, {})
     return DocMeta(
         doc_id=doc_id,
         doc_type=doc_type,
@@ -150,30 +138,6 @@ def build(doc_id: str, text: str) -> DocMeta:
         categories=cats,
         device_family=families_of(cats),
         covered_systems=covered_systems(doc_type, title, text),
-        version_issues=list(exp.get("version_issues", [])),
         revision=revision,
         last_updated=updated,
     )
-
-
-def mismatches(metas: list[DocMeta]) -> list[str]:
-    """Differences from the A7-A10 tables; any one fails the run."""
-    exp = expected()["documents"]
-    out: list[str] = []
-    seen = {m.doc_id for m in metas}
-    for doc_id in sorted(set(exp) - seen):
-        out.append(f"{doc_id}: expected but not in the KB")
-    for m in metas:
-        e = exp.get(m.doc_id)
-        if e is None:
-            out.append(f"{m.doc_id}: no expected metadata (add it to expected_metadata.yaml)")
-            continue
-        if m.doc_type != e["doc_type"]:
-            out.append(f"{m.doc_id}: doc_type {m.doc_type} != {e['doc_type']}")
-        if sorted(m.categories) != sorted(e["categories"]):
-            out.append(f"{m.doc_id}: categories {m.categories} != {e['categories']}")
-        if sorted(m.device_family) != sorted(e["device_family"]):
-            out.append(f"{m.doc_id}: device_family {m.device_family} != {e['device_family']}")
-        if not m.title:
-            out.append(f"{m.doc_id}: no title")
-    return out

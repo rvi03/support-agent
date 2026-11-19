@@ -10,6 +10,13 @@ model_list:
       model: openai/gpt-6-luna
       api_key: os.environ/OPENAI_API_KEY
       temperature: 0
+  # CP8.4 comparison only (model check): the next tier up for the `agent` job. No
+  # service names it; `make model-check ALIAS=agent-terra` does.
+  - model_name: agent-terra
+    litellm_params:
+      model: openai/gpt-6.1-terra
+      api_key: os.environ/OPENAI_API_KEY
+      temperature: 0
   - model_name: embed
     litellm_params:
       model: openai/text-embedding-3-small

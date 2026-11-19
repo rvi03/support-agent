@@ -4,17 +4,16 @@
 # makes the KB revision change and needs `make index`.
 #
 # S7 ships the schema and one test entry per tier; S9 adds the Group A entries.
+# The agent chooses the action from this list (its tools); the server checks tier,
+# autonomy and approval (S8a: no text patterns).
 #   tier: read_only (autonomous) | reversible (supervised -> autonomous) | destructive (always supervised)
-#   match: runbook step-text patterns; every regex in one group must match (case-insensitive)
 #   simulated_result: what the default outcome provider returns (eval uses fault cards, D40)
-#   approver: optional; vendor -> vendor_approver, l2 -> l2_engineer (else from the step)
+#   approver: optional; vendor -> vendor_approver, l2 -> l2_engineer (else l2)
 actions:
   - action_id: check_printer_status
     description: Read the printer's status from the POS (online, paper, cover).
     device_families: [printer]
     tier: read_only
-    match:
-      - ["printer", "status"]
     simulated_result:
       outcome: no_change
       text: "Printer status read: online, paper present, cover closed."
@@ -23,8 +22,6 @@ actions:
     description: Restart the Windows Print Spooler service on the POS terminal.
     device_families: [printer, pos]
     tier: reversible
-    match:
-      - ["print spooler", "restart"]
     simulated_result:
       outcome: fixed
       text: "Print Spooler restarted; printer status online."
@@ -34,8 +31,6 @@ actions:
     device_families: [printer]
     tier: destructive
     approver: l2
-    match:
-      - ["clear", "print queue"]
     simulated_result:
       outcome: fixed
       text: "Print queue cleared; 0 jobs pending."

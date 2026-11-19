@@ -36,12 +36,10 @@ BEGIN
         categories      text[] NOT NULL,
         device_family   text[] NOT NULL,
         covered_systems jsonb NOT NULL,
-        version_issues  jsonb NOT NULL,
         related         text[] NOT NULL,
         revision        text,
         last_updated    text,
         truncated       boolean NOT NULL,
-        walkable        boolean,
         content_hash    text NOT NULL,
         masked_text     text NOT NULL,
         PRIMARY KEY (kb_rev, doc_id)
@@ -61,7 +59,6 @@ BEGIN
         index_text        text NOT NULL,
         bm25_tokens       text[] NOT NULL,
         token_count       int NOT NULL,
-        conflict_ids      text[] NOT NULL DEFAULT '{}',
         embedding         vector(768) NOT NULL,
         PRIMARY KEY (kb_rev, section_id)
       );
@@ -70,17 +67,6 @@ BEGIN
       CREATE INDEX IF NOT EXISTS sections_hnsw ON %1$I.sections
         USING hnsw (embedding vector_cosine_ops);
       CREATE INDEX IF NOT EXISTS sections_doc ON %1$I.sections (kb_rev, doc_id, ord);
-
-      CREATE TABLE IF NOT EXISTS %1$I.conflicts (
-        kb_rev      text NOT NULL,
-        conflict_id text NOT NULL,
-        topic       text NOT NULL,
-        docs        text[] NOT NULL,
-        claims      jsonb NOT NULL,
-        affects     jsonb NOT NULL,
-        resolution  text NOT NULL CHECK (resolution IN ('flag_and_handoff', 'sop_wins')),
-        PRIMARY KEY (kb_rev, conflict_id)
-      );
 
       CREATE TABLE IF NOT EXISTS %1$I.redactions (
         kb_rev     text NOT NULL,
@@ -91,32 +77,22 @@ BEGIN
         created_at timestamptz NOT NULL DEFAULT now()
       );
 
-      -- Group A runbooks parsed into rule-tagged steps (rag-design.md 6.2). S7 reads
-      -- them to bind run_fix to a step; S9 fills them.
-      CREATE TABLE IF NOT EXISTS %1$I.runbook_steps (
-        kb_rev       text NOT NULL,
-        doc_id       text NOT NULL,
-        step_id      text NOT NULL,
-        ord          int NOT NULL,
-        stage        text NOT NULL CHECK (stage IN ('immediate', 'diagnosis', 'resolution')),
-        scope        jsonb NOT NULL DEFAULT '{}'::jsonb,
-        team         text NOT NULL CHECK (team IN ('store', 'it')),
-        text         text NOT NULL,
-        safety_lines text[] NOT NULL DEFAULT '{}',
-        tags         jsonb NOT NULL DEFAULT '{}'::jsonb,
-        generic      boolean NOT NULL DEFAULT false,
-        action_id    text,
-        section_id   text,
-        PRIMARY KEY (kb_rev, doc_id, step_id)
-      );
-
       CREATE TABLE IF NOT EXISTS %1$I.gaps (
         kb_rev text NOT NULL,
         doc_id text NOT NULL,
-        kind   text NOT NULL CHECK (kind IN ('missing_link', 'truncated', 'version_not_covered',
-                                             'not_walkable', 'unmapped_it_step')),
+        kind   text NOT NULL CHECK (kind IN ('missing_link', 'truncated')),
         detail text NOT NULL
       );
+      -- S8a: no conflict register, no parsed steps, no hand-written version issues.
+      DROP TABLE IF EXISTS %1$I.conflicts;
+      DROP TABLE IF EXISTS %1$I.runbook_steps;
+      ALTER TABLE %1$I.sections DROP COLUMN IF EXISTS conflict_ids;
+      ALTER TABLE %1$I.documents DROP COLUMN IF EXISTS version_issues;
+      ALTER TABLE %1$I.documents DROP COLUMN IF EXISTS walkable;
+      DELETE FROM %1$I.gaps WHERE kind NOT IN ('missing_link', 'truncated');
+      ALTER TABLE %1$I.gaps DROP CONSTRAINT IF EXISTS gaps_kind_check;
+      ALTER TABLE %1$I.gaps ADD CONSTRAINT gaps_kind_check
+        CHECK (kind IN ('missing_link', 'truncated'));
     $t$, s);
   END LOOP;
 END
@@ -129,7 +105,7 @@ BEGIN
   REVOKE ALL ON ALL TABLES IN SCHEMA kb, kb_staging
     FROM kb_index_rw, knowledge_ro, checker_ro, eval_ro, itsm_rw;
   GRANT USAGE ON SCHEMA kb, kb_staging TO kb_index_rw;
-  -- itsm_rw (S7) reads the revision and the parsed steps to bind run_fix.
+  -- itsm_rw (S7) reads the revision and the ticket's runbook sections to check a quote.
   GRANT SELECT ON ALL TABLES IN SCHEMA kb TO kb_index_rw, knowledge_ro, checker_ro, eval_ro,
     itsm_rw;
   GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA kb_staging

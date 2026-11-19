@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS itsm.store_messages (
     ticket_id  text NOT NULL,
     kind       text NOT NULL CHECK (kind IN ('step', 'framing_template', 'redirect', 'clarify',
                                              'status_template', 'summary')),
-    step_id    text,
+    section_id text,
     body       text NOT NULL,
     idem_key   text NOT NULL UNIQUE,
     created_at timestamptz NOT NULL DEFAULT now(),
@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS itsm.approvals (
     run_id        uuid NOT NULL,
     ticket_id     text NOT NULL,
     asset_id      text NOT NULL,
-    step_id       text NOT NULL,
+    section_id    text NOT NULL,
+    quote         text NOT NULL,
     action_id     text NOT NULL,
     kb_rev        text NOT NULL,
     approver_role text NOT NULL CHECK (approver_role IN ('l2_engineer', 'vendor_approver')),
@@ -94,7 +95,8 @@ CREATE TABLE IF NOT EXISTS itsm.actions (
     ticket_id             text NOT NULL,
     asset_id              text NOT NULL,
     device_model          text NOT NULL,
-    step_id               text NOT NULL,
+    section_id            text NOT NULL,
+    quote                 text NOT NULL,
     action_id             text NOT NULL,
     kb_rev                text NOT NULL,
     registry_version      text NOT NULL,
@@ -116,7 +118,7 @@ CREATE TABLE IF NOT EXISTS itsm.l2_tasks (
     id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     run_id     uuid NOT NULL,
     ticket_id  text NOT NULL,
-    step_id    text NOT NULL,
+    section_id text,
     reason     text NOT NULL CHECK (reason IN ('l2_only', 'secret', 'destructive_store_step',
                                                'unmapped', 'guard')),
     note       text NOT NULL,
@@ -128,6 +130,25 @@ CREATE TABLE IF NOT EXISTS itsm.l2_tasks (
     created_at timestamptz NOT NULL DEFAULT now(),
     FOREIGN KEY (run_id, ticket_id) REFERENCES itsm.tickets (run_id, ticket_id)
 );
+
+-- S8a: approvals, actions, messages and L2 tasks bind to a runbook section and the
+-- quoted runbook words, not to parsed steps. Upgrade tables made before S8a.
+DO $mig$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['store_messages', 'approvals', 'actions', 'l2_tasks'] LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = 'itsm' AND table_name = t AND column_name = 'step_id') THEN
+      EXECUTE format('ALTER TABLE itsm.%I RENAME COLUMN step_id TO section_id', t);
+    END IF;
+  END LOOP;
+  ALTER TABLE itsm.l2_tasks ALTER COLUMN section_id DROP NOT NULL;
+  ALTER TABLE itsm.approvals ADD COLUMN IF NOT EXISTS quote text NOT NULL DEFAULT '';
+  ALTER TABLE itsm.approvals ALTER COLUMN quote DROP DEFAULT;
+  ALTER TABLE itsm.actions ADD COLUMN IF NOT EXISTS quote text NOT NULL DEFAULT '';
+  ALTER TABLE itsm.actions ALTER COLUMN quote DROP DEFAULT;
+END
+$mig$;
 
 -- Autonomy per (action, device model) (D37); only code promotes (P5).
 CREATE TABLE IF NOT EXISTS itsm.action_autonomy (
@@ -164,6 +185,7 @@ REVOKE UPDATE, DELETE, TRUNCATE ON itsm.ticket_comments, itsm.store_messages, it
 REVOKE DELETE, TRUNCATE ON itsm.tickets, itsm.approvals, itsm.l2_tasks, itsm.idempotency,
     itsm.action_autonomy FROM itsm_rw;
 
--- The server checks the asset's store and device family itself (P8).
+-- The server checks the asset's store and device family itself (P8), and reads the
+-- ticket's runbook sections (kb.sections, granted in 007) to check a quote.
 GRANT USAGE ON SCHEMA data TO itsm_rw;
 GRANT SELECT ON data.assets TO itsm_rw;

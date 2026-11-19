@@ -1,36 +1,34 @@
-# P8 Run a fix (design.md; S7 build step 4; D37, D51). itsm-actions gathers the
+# P8 Run a fix (design.md; S7 build step 4; D37; S8a quote binding). itsm-actions gathers the
 # facts from its own tables under a row lock (never from the caller) and asks
 # this package; any `deny` reason refuses the run, and the refusal is audited.
 #   1 the action is in the registry, whose version equals the one in the ticket's kb_rev
 #   2 the asset is the ticket's asset and belongs to the bound store
-#   3 the step is bound: read by (ticket kb_rev, ticket runbook, step id); same action;
-#     the asset's device family is one of the action's
-#   4 prohibitions first: guard, l2_only, secret or conflict -> refused whatever the approval
-#   5 read_only, or reversible + autonomous with no approval/destructive tag, runs alone;
-#     otherwise a decided, approved, unexpired (wall clock), unused approval bound to
-#     the same run, ticket, asset, step, action and kb_rev, from the right approver role
-# Input: see itsm/server.py `_run_fix_facts`.
+#   3 the quote is bound: the cited section is in the ticket's runbook and kb_rev and
+#     holds the quoted words (S8a); the asset's device family is one of the action's
+#   4 read_only, or reversible + autonomous, runs alone; destructive or supervised needs
+#     a decided, approved, unexpired (wall clock), unused approval bound to the same
+#     run, ticket, asset, section, quote, action and kb_rev, from the right approver role
+# Input: see itsm/server.py `_run_fix_facts`. A missing or null fact is refused
+# (fail closed): every presence check reads the fact with object.get and a null
+# default, so a missing key counts as missing (a bare `input.x == null` is
+# undefined for a missing key and would let the call through).
 package servewell.p8_run_fix
 
 import rego.v1
 
-prohibited_flags := {"guard", "l2_only", "secret", "conflict"}
-
-binding_fields := ["run_id", "ticket_id", "asset_id", "step_id", "action_id", "kb_rev"]
+binding_fields := ["run_id", "ticket_id", "asset_id", "section_id", "quote", "action_id", "kb_rev"]
 
 action := input.registry.action
 
 ticket := input.ticket
 
-step := input.step
+section := input.section
 
 approval := input.approval
 
-flags := {f | some f in step.flags}
-
 # ---- 1 registry ------------------------------------------------------------------
 
-deny contains "unknown_action" if action == null
+deny contains "unknown_action" if not is_object(object.get(object.get(input, "registry", {}), "action", null))
 
 deny contains "registry_drift" if {
 	action != null
@@ -40,7 +38,7 @@ deny contains "registry_drift" if {
 
 # ---- 2 ticket, store and asset ---------------------------------------------------
 
-deny contains "ticket_not_found" if ticket == null
+deny contains "ticket_not_found" if not is_object(object.get(input, "ticket", null))
 
 deny contains "other_store" if {
 	ticket != null
@@ -52,55 +50,45 @@ deny contains "not_ticket_asset" if {
 	input.request.asset_id != ticket.asset_id
 }
 
-deny contains "asset_not_found" if input.asset == null
+deny contains "asset_not_found" if not is_object(object.get(input, "asset", null))
 
 deny contains "asset_other_store" if {
 	input.asset != null
 	input.asset.store_id != input.context.store_id
 }
 
-# ---- 3 step binding --------------------------------------------------------------
+# ---- 3 quote binding (S8a) ------------------------------------------------------
+# The agent cites a section of the ticket's runbook and the exact words it acts on;
+# itsm-actions reads that section in the ticket's kb_rev and checks the quote.
 
 deny contains "no_runbook" if {
 	ticket != null
 	not is_string(ticket.runbook_id)
 }
 
-deny contains "step_not_found" if step == null
+deny contains "section_not_in_runbook" if not is_object(object.get(input, "section", null))
 
-deny contains "step_other_action" if {
-	step != null
-	step.action_id != input.request.action_id
+deny contains "quote_not_in_section" if {
+	section != null
+	not section.quote_ok
 }
 
-deny contains "step_other_runbook" if {
-	step != null
+deny contains "section_other_runbook" if {
+	section != null
 	ticket != null
-	step.doc_id != ticket.runbook_id
+	section.doc_id != ticket.runbook_id
 }
 
-deny contains "step_other_kb_rev" if {
-	step != null
+deny contains "section_other_kb_rev" if {
+	section != null
 	ticket != null
-	step.kb_rev != ticket.kb_rev
-}
-
-deny contains "step_not_it" if {
-	step != null
-	step.team != "it"
+	section.kb_rev != ticket.kb_rev
 }
 
 deny contains "device_family" if {
 	action != null
 	input.asset != null
 	not input.asset.family in action.device_families
-}
-
-# ---- 4 prohibitions (before tier or approval, D51) --------------------------------
-
-deny contains sprintf("prohibited_step:%s", [f]) if {
-	some f in flags
-	f in prohibited_flags
 }
 
 # ---- 5 tier, autonomy and approval -----------------------------------------------
@@ -112,25 +100,19 @@ needs_approval if {
 	input.autonomy.state != "autonomous"
 }
 
-needs_approval if "approval" in flags
-
-needs_approval if "destructive" in flags
-
 required_approver := "vendor_approver" if {
-	step.approver == "vendor"
-} else := "vendor_approver" if {
 	action.approver == "vendor"
 } else := "l2_engineer"
 
 deny contains "approval_missing" if {
 	needs_approval
-	approval == null
+	not is_object(object.get(input, "approval", null))
 }
 
 # An approval id that was sent is always checked, needed or not.
 deny contains "approval_not_found" if {
 	input.request.approval_id != null
-	approval == null
+	not is_object(object.get(input, "approval", null))
 }
 
 deny contains "approval_not_approved" if {
@@ -163,7 +145,8 @@ expected_binding := {
 	"run_id": input.context.run_id,
 	"ticket_id": input.context.ticket_id,
 	"asset_id": input.request.asset_id,
-	"step_id": input.request.step_id,
+	"section_id": input.request.section_id,
+	"quote": input.request.quote,
 	"action_id": input.request.action_id,
 	"kb_rev": object.get(ticket, "kb_rev", null),
 }

@@ -32,6 +32,7 @@ from pydantic import BaseModel
 from support_agent.common.audit import AuditEvent, awrite_event
 from support_agent.common.config import ItsmSettings
 from support_agent.common.db import dsn
+from support_agent.common.text import quote_in
 from support_agent.mcp.base.auth import JwtVerifier
 from support_agent.mcp.base.errors import ErrorCode, ToolFailure
 from support_agent.mcp.base.opa import OpaClient
@@ -64,7 +65,6 @@ SCOPE_WRITE = "itsm:write"
 SCOPE_FIX = "itsm:run_fix"
 P8 = "servewell/p8_run_fix"
 P9 = "servewell/p9_pii"
-PROHIBITED = frozenset({"guard", "l2_only", "secret", "conflict"})
 
 Conn = AsyncConnection[Any]
 
@@ -146,20 +146,27 @@ async def _ticket(conn: Conn, ctx: CallContext, *, lock: bool = False) -> dict[s
     return row
 
 
-def _flags(tags: dict[str, Any]) -> list[str]:
-    """Step tags that are set (`conflict` is a list of ids; `approver` is a value)."""
-    return sorted(k for k, v in tags.items() if k != "approver" and v not in (None, False, [], ""))
-
-
-async def _step(conn: Conn, ticket: dict[str, Any], step_id: str) -> dict[str, Any] | None:
+async def _section(
+    conn: Conn, ticket: dict[str, Any], section_id: str, quote: str
+) -> dict[str, Any] | None:
+    """The cited section of the ticket's runbook in the ticket's kb_rev, and whether
+    the quoted runbook words are really in it (S8a: binding by quote, not by a
+    parsed step). None when the ticket has no runbook or the section is not in it."""
     if not ticket.get("kb_rev") or not ticket.get("runbook_id"):
         return None
-    return await _one(
+    row = await _one(
         conn,
-        "SELECT doc_id, kb_rev, step_id, action_id, team, tags FROM kb.runbook_steps "
-        "WHERE kb_rev = %s AND doc_id = %s AND step_id = %s",
-        (ticket["kb_rev"], ticket["runbook_id"], step_id),
+        "SELECT doc_id, kb_rev, section_id, masked_text FROM kb.sections "
+        "WHERE kb_rev = %s AND doc_id = %s AND section_id = %s",
+        (ticket["kb_rev"], ticket["runbook_id"], section_id),
     )
+    if row is None:
+        return None
+    return {
+        "doc_id": row["doc_id"],
+        "kb_rev": row["kb_rev"],
+        "quote_ok": quote_in(quote, row["masked_text"]),
+    }
 
 
 async def idempotent(
@@ -332,9 +339,9 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             await _ticket(conn, ctx)
             row = await _one(
                 conn,
-                "INSERT INTO itsm.store_messages (run_id, ticket_id, kind, step_id, body, "
+                "INSERT INTO itsm.store_messages (run_id, ticket_id, kind, section_id, body, "
                 "idem_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (ctx.run_id, ctx.ticket_id, args.kind, args.step_id, args.body, args.idem_key),
+                (ctx.run_id, ctx.ticket_id, args.kind, args.section_id, args.body, args.idem_key),
             )
             row = _must(row)
             # The body may hold the real contact: never in the audit row.
@@ -343,7 +350,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 ctx,
                 "message_store",
                 "written",
-                step_id=args.step_id,
+                step_id=args.section_id,
                 payload={"idem_key": args.idem_key, "kind": args.kind, "id": row["id"]},
             )
             return RowResult(status="written", id=str(row["id"]))
@@ -384,9 +391,9 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
 
     @service.tool(scope=SCOPE_WRITE)
     async def create_approval(args: CreateApprovalIn, conn: Conn) -> ApprovalResult:
-        """Ask for approval of one IT action on one step. Bound to (run, ticket, asset, step,
-        action, the ticket's kb_rev); expires APPROVAL_TTL_MIN after now (wall clock, D48).
-        A guarded, l2_only, secret or conflict step is never approvable (D51)."""
+        """Ask for approval of one IT action. Bound to (run, ticket, asset, runbook section,
+        quote, action, the ticket's kb_rev); the quote must be in that section of the
+        ticket's runbook. Expires APPROVAL_TTL_MIN after now (wall clock, D48)."""
         ctx = bound()
 
         async def work() -> ApprovalResult:
@@ -396,20 +403,20 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 raise ToolFailure(ErrorCode.DENIED, "unknown_action")
             if args.asset_id != t["asset_id"]:
                 raise ToolFailure(ErrorCode.DENIED, "not_ticket_asset")
-            step = await _step(conn, t, args.step_id)
-            if step is None or step["action_id"] != args.action_id:
-                raise ToolFailure(ErrorCode.DENIED, "step_not_bound")
-            prohibited = sorted(PROHIBITED.intersection(_flags(step["tags"])))
-            if prohibited:
-                raise ToolFailure(ErrorCode.DENIED, "prohibited_step:" + ",".join(prohibited))
+            section = await _section(conn, t, args.section_id, args.quote)
+            if section is None:
+                raise ToolFailure(ErrorCode.DENIED, "section_not_in_runbook")
+            if not section["quote_ok"]:
+                raise ToolFailure(ErrorCode.DENIED, "quote_not_in_section")
             expires = it.clock() + timedelta(minutes=it.ttl_min)
             row = await _one(
                 conn,
-                "INSERT INTO itsm.approvals (run_id, ticket_id, asset_id, step_id, action_id, "
-                "kb_rev, approver_role, requested_by, requested_at, expires_at, idem_key) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                "INSERT INTO itsm.approvals (run_id, ticket_id, asset_id, section_id, quote, "
+                "action_id, kb_rev, approver_role, requested_by, requested_at, expires_at, "
+                "idem_key) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
                 (
-                    ctx.run_id, ctx.ticket_id, args.asset_id, args.step_id, args.action_id,
+                    ctx.run_id, ctx.ticket_id, args.asset_id, args.section_id, args.quote,
+                    args.action_id,
                     t["kb_rev"], args.approver_role, args.requested_by, it.clock(), expires,
                     args.idem_key,
                 ),
@@ -421,7 +428,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "create_approval",
                 "requested",
                 kb_rev=t["kb_rev"],
-                step_id=args.step_id,
+                step_id=args.section_id,
                 action_id=args.action_id,
                 tier=action.tier,
                 approval_id=str(row["id"]),
@@ -445,7 +452,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             await _ticket(conn, ctx)
             a = await _one(
                 conn,
-                "SELECT id, asset_id, step_id, action_id, kb_rev, requested_by, decision, "
+                "SELECT id, asset_id, section_id, action_id, kb_rev, requested_by, decision, "
                 "expires_at FROM itsm.approvals WHERE id = %s AND run_id = %s AND ticket_id = %s "
                 "FOR UPDATE",
                 (args.approval_id, ctx.run_id, ctx.ticket_id),
@@ -485,7 +492,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 decision,
                 reason=args.reason,
                 kb_rev=a["kb_rev"],
-                step_id=a["step_id"],
+                step_id=a["section_id"],
                 action_id=a["action_id"],
                 approval_id=str(a["id"]),
                 autonomy_state=state,
@@ -502,17 +509,24 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
 
     @service.tool(scope=SCOPE_WRITE)
     async def create_l2_task(args: CreateL2TaskIn, conn: Conn) -> L2TaskResult:
-        """A step only L2 may do (l2_only, secret, destructive store step, unmapped IT step,
-        guarded IT step, D51); the ticket waits for its result."""
+        """A runbook step only L2 may do (the agent decides: L2-only, secret, destructive
+        for the store, no listed action, or a runbook warning); the ticket waits."""
         ctx = bound()
 
         async def work() -> L2TaskResult:
             await _ticket(conn, ctx)
             row = await _one(
                 conn,
-                "INSERT INTO itsm.l2_tasks (run_id, ticket_id, step_id, reason, note, idem_key) "
-                "VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                (ctx.run_id, ctx.ticket_id, args.step_id, args.reason, args.note, args.idem_key),
+                "INSERT INTO itsm.l2_tasks (run_id, ticket_id, section_id, reason, note, "
+                "idem_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                (
+                    ctx.run_id,
+                    ctx.ticket_id,
+                    args.section_id,
+                    args.reason,
+                    args.note,
+                    args.idem_key,
+                ),  # fmt: skip
             )
             row = _must(row)
             await _event(
@@ -521,7 +535,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "create_l2_task",
                 "created",
                 reason=args.reason,
-                step_id=args.step_id,
+                step_id=args.section_id,
                 payload={"idem_key": args.idem_key, "task_id": str(row["id"])},
             )
             return L2TaskResult(status="created", task_id=row["id"])
@@ -533,7 +547,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
     @service.tool(scope=SCOPE_FIX)
     async def run_fix(args: RunFixIn, conn: Conn) -> RunFixResult:
         """Run one simulated IT fix. The server checks everything itself (OPA P8): registry
-        and its version, own store and asset, step binding, prohibitions, tier, autonomy
+        and its version, own store and asset, the quoted runbook words, tier, autonomy
         and the approval. It records the outcome and autonomy itself."""
         ctx = bound()
         try:
@@ -548,7 +562,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "run_fix",
                 "denied",
                 reason=reason,
-                step_id=args.step_id,
+                step_id=args.section_id,
                 action_id=args.action_id,
                 approval_id=str(args.approval_id) if args.approval_id else None,
                 payload={"idem_key": args.idem_key, **exc.cols},
@@ -575,12 +589,13 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             )
         row = await _one(
             conn,
-            "INSERT INTO itsm.actions (run_id, ticket_id, asset_id, device_model, step_id, "
-            "action_id, kb_rev, registry_version, tier, autonomy_state_at_run, approval_id, "
-            "outcome, result, eval_mode, idem_key) VALUES "
-            "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+            "INSERT INTO itsm.actions (run_id, ticket_id, asset_id, device_model, section_id, "
+            "quote, action_id, kb_rev, registry_version, tier, autonomy_state_at_run, "
+            "approval_id, outcome, result, eval_mode, idem_key) VALUES "
+            "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
             (
-                ctx.run_id, ctx.ticket_id, args.asset_id, model, args.step_id, args.action_id,
+                ctx.run_id, ctx.ticket_id, args.asset_id, model, args.section_id, args.quote,
+                args.action_id,
                 ticket["kb_rev"], it.registry.version, action.tier, state_at_run,
                 args.approval_id, out.outcome, out.text, it.eval_mode, args.idem_key,
             ),
@@ -593,7 +608,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             ticket_id=ctx.ticket_id, actor=ctx.client_id,
         )  # fmt: skip
         await _event(conn, ctx, "run_fix", out.outcome, kb_rev=ticket["kb_rev"],
-                     step_id=args.step_id, action_id=args.action_id, tier=action.tier,
+                     step_id=args.section_id, action_id=args.action_id, tier=action.tier,
                      autonomy_state=state_at_run,
                      approval_id=str(args.approval_id) if args.approval_id else None,
                      payload={"idem_key": args.idem_key, "action_row_id": row["id"],
@@ -620,7 +635,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             (ctx.run_id, ctx.ticket_id),
         )
         ticket = None
-        step = None
+        section = None
         if t is not None:
             rev = (
                 await _one(
@@ -633,7 +648,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 else None
             )
             ticket = {**t, "registry_version": rev["v"] if rev else None}
-            step = await _step(conn, t, args.step_id)
+            section = await _section(conn, t, args.section_id, args.quote)
         asset = await _one(
             conn,
             "SELECT store_id, asset_type, model FROM data.assets WHERE asset_id = %s",
@@ -647,14 +662,15 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
         if args.approval_id is not None:
             a = await _one(
                 conn,
-                "SELECT run_id, ticket_id, asset_id, step_id, action_id, kb_rev, decision, "
-                "approver_role, expires_at, used_at FROM itsm.approvals WHERE id = %s FOR UPDATE",
+                "SELECT run_id, ticket_id, asset_id, section_id, quote, action_id, kb_rev, "
+                "decision, approver_role, expires_at, used_at FROM itsm.approvals "
+                "WHERE id = %s FOR UPDATE",
                 (args.approval_id,),
             )
             if a is not None:
                 approval = {
-                    **{k: a[k] for k in ("ticket_id", "asset_id", "step_id", "action_id",
-                                         "kb_rev", "decision", "approver_role")},
+                    **{k: a[k] for k in ("ticket_id", "asset_id", "section_id", "quote",
+                                         "action_id", "kb_rev", "decision", "approver_role")},
                     "run_id": str(a["run_id"]),
                     "expires_ns": int(a["expires_at"].timestamp() * 1e9),
                     "used": a["used_at"] is not None,
@@ -665,7 +681,8 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
                 "run_id": str(ctx.run_id), "ticket_id": ctx.ticket_id, "store_id": ctx.store_id,
             },
             "request": {
-                "asset_id": args.asset_id, "step_id": args.step_id, "action_id": args.action_id,
+                "asset_id": args.asset_id, "section_id": args.section_id, "quote": args.quote,
+                "action_id": args.action_id,
                 "approval_id": str(args.approval_id) if args.approval_id else None,
             },
             "now_ns": int(it.clock().timestamp() * 1e9),
@@ -680,11 +697,7 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             "asset": None if asset is None else {
                 "store_id": asset["store_id"], "family": family_of(asset["asset_type"]),
             },
-            "step": None if step is None else {
-                "doc_id": step["doc_id"], "kb_rev": step["kb_rev"],
-                "action_id": step["action_id"], "team": step["team"],
-                "flags": _flags(step["tags"]), "approver": step["tags"].get("approver"),
-            },
+            "section": section,
             "autonomy": {"state": state.state},
             "approval": approval,
         }  # fmt: skip
