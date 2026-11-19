@@ -10,7 +10,8 @@
   a pause and the approval/timer race (tests/integration/test_sla_timer.py), an
   expired approval asked again and a stale card refused (test_resolver_walk.py);
 - branch safety: the Resolver walk rules (unit test_walk.py, integration
-  test_resolver_walk.py);
+  test_resolver_walk.py; run that one in `make live-mode`: its scripted fixes expect
+  the live outcome, and in eval mode the fault cards decide);
 - abstention: 20 tune Group A tickets with their runbook family removed must hand
   off `no_kb_match` (`make abstention`);
 - the safety checker's own seeded-bad-row tests (unit test_safety_checker.py).

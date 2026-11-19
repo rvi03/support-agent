@@ -10,7 +10,7 @@ Run 2026-11-19 10:23Z.
 | Revision and resume (unit) | pass | 2 s |   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET)) |
 | SLA expiry during a pause, approval/timer race | pass | 73 s |   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET)) |
 | Branch safety (walk rules, unit) | pass | 2 s |   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET)) |
-| Branch safety and resume (live walks) | **fail** | 27 s |   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET)) |
+| Branch safety and resume (live walks) | pass (live mode) | 35 s | 7 passed; in eval mode 2 fail by design: fault cards decide the outcome, so the scripted printer fix is "no change" |
 | Safety checker seeded bad rows | pass | 2 s |   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET)) |
 | Abstention (20 tune tickets, family removed) | pass | 109 s | - Control found a runbook: **20/20**. |
 

@@ -20,10 +20,14 @@ uv sync
 make hooks                # install the pre-commit hooks
 make check                # lint, mypy strict, unit tests, opa test
 make up                   # creates .env with random secrets if missing, starts everything
+make seed                 # dataset to S3 and Postgres, split, masked train tickets
+make index                # build and publish the sanitized KB revision
 make check-all            # check plus integration tests against the running platform
+make ticket FILE=tests/fixtures/new_printer_ticket.json   # one ticket through the API
+make ui                   # Demo UI at http://localhost:5173 (`make ui-users` prints logins)
 ```
 
-Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, `make eval`.
+The eval has its own flow; see [Eval](#eval).
 
 ## Local platform (`make up`)
 
@@ -38,37 +42,59 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | LiteLLM | `localhost:4000` | Aliases `agent`, `moderation`, `judge`, `simulator` (gpt-6-luna) and `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
 | Langfuse (web, worker) + ClickHouse + Valkey | `localhost:3000` | LLM traces; project and keys created headless |
 | it-data MCP server | `localhost:8101/mcp` | 7 read-only IT data tools (Streamable HTTP; bearer token with `it-data:read`), `/health` |
+| knowledge MCP server | `localhost:8102/mcp` | KB search (hybrid BM25 + vector) and whole-document reads; retrieval only |
+| itsm-actions MCP server | `localhost:8103/mcp` | Ticket writes, store messages, approvals, registry-only simulated fixes (OPA P8) |
 | API (FastAPI) | `localhost:8000` | 6 endpoints: tickets create, list, get, reply, approve, `/health`; OpenAPI in `docs/openapi.json` (S12) |
 | Prometheus, Grafana | `localhost:9090`, `localhost:3001` | Metrics (profile `observability`; `make up LEAN=1` skips them) |
+| Demo UI (`make ui`) | `localhost:5173` | Store ticket chat, new ticket, IT approval queue; Keycloak PKCE login (S13) |
 
 - All ports bind to 127.0.0.1. Each container gets only its own variables from `.env` (D46).
-- Keycloak imports the realm on first start only. After changing the realm or its secrets, reset with `make nuke && make up`.
+- Keycloak imports the realm on first start only. After a change in `platform/realm.py` or its secrets, run `make realm` (deletes and re-imports the realm, D81).
+- Every service sits on an internal Docker network with no route out; only LiteLLM reaches the OpenAI API, and one gateway publishes the local ports (D103).
 - `audit.events` is append-only: INSERT is the only grant, and a trigger refuses UPDATE, DELETE and TRUNCATE for every role.
 - A model swap is an edit of `compose/litellm/config.yaml`. Only masked text is sent to the models (S4 safety net). `ALLOW_EXTERNAL_MODELS=false` forces local Ollama aliases only.
 - `scripts/mem_probe.sh` records memory and swap (CP2.4) into `docs/measurements.md`.
 
 ## Make targets
 
-| Target | Does |
+`make help` lists them all. The main ones:
+
+| Group | Targets |
 |---|---|
-| `make check` | ruff lint and format check, mypy `--strict` on `src/`, unit tests; needs no services |
-| `make check-all` | `check` plus integration tests (from S2 on, needs `make up`) |
-| `make lint` / `make fmt` | Check / fix lint and format |
-| `make typecheck` | mypy `--strict` |
-| `make test` / `test-unit` / `test-integration` | Run tests by marker |
-| `make cov` | Unit tests with coverage on the core modules (fails under 85%) |
-| `make fresh-check` | Clone the committed HEAD to a temp dir and run `make check` there |
-| `make hooks` | Install the pre-commit hooks |
-| `make opa-test` | OPA policy unit tests in the pinned OPA image (part of `check`) |
-| `make env` | Create `.env` from `.env.example` with fresh random secrets, if missing |
-| `make up` / `make up LEAN=1` | Start the platform (see above); `LEAN=1` skips Prometheus and Grafana |
-| `make down` | Stop every container; volumes are kept |
-| `make nuke` | Stop everything and delete all volumes (asks first) |
-| `make status` | Container health, model digests, Keycloak and OPA ping |
-| `make mock-stores DATASET_DIR=…` | Regenerate the mock-store client list from the dataset |
-| `make ticket FILE=… [AS=mock-store-<id>]` | Post a ticket file through the API as a mock user, follow it (2 s polls), answer pauses from the file's `script`, `ANSWERS` or the terminal, print the outcome (S12) |
-| `make test-e2e` | API end-to-end tests (CP12.1, CP12.2) against the running API |
-| `make openapi` | Write the API schema to `docs/openapi.json` |
+| Quality | `check` (lint, mypy strict, unit tests, opa test; no services), `check-all` (+ integration), `lint`, `fmt`, `typecheck`, `test`, `test-unit`, `test-integration`, `test-e2e`, `cov`, `fresh-check`, `hooks`, `opa-test` |
+| Platform | `env`, `up` (`LEAN=1` skips Prometheus and Grafana), `down`, `nuke` (deletes volumes, asks first), `status`, `realm`, `api-logs`, `mock-stores DATASET_DIR=…` |
+| Data and KB | `seed`, `split` (once, before tuning), `index` (`ARGS=--force`) |
+| Tickets | `ticket FILE=… [AS=mock-store-<id>]` (through the API), `ticket-local FILE=…` (in-process), `demote ACTION=…` (back to supervised, audited), `openapi` |
+| Demo UI | `ui`, `ui-users`, `ui-install`, `ui-types`, `ui-check`, `ui-e2e` |
+| Earlier checks (tune half) | `k4`, `abstention`, `model-check`, `walk-dry-run`, `tricky`, `notes-check`, `walk-live` |
+| Eval (S14) | `eval-dataset`, `fault-cards`, `eval-mode`, `live-mode`, `eval-run`, `eval-score`, `safety-check`, `adversarial`, `rule-breaks`, `eval-suites`, `hand-forms`, `hand-import`, `freeze` |
+
+## Demo UI
+
+`make ui` serves the single-page app in `ui/` (Vite, React, TypeScript; Node runs in Docker, D141). It talks only to the API, logs people in with Keycloak PKCE (tokens in memory) and polls every 2 s. A store user gets the ticket chat and new-ticket form; `l2_engineer` and `vendor_approver` get the approval queue. `make ui-users` prints the demo logins. Before a demo, `make demote ACTION=restart_print_spooler` so the approval card shows again (one approval promotes the action, `ACTION_AUTONOMY_RUNS=1`).
+
+## Eval
+
+Tuning uses the tune half only; held-out numbers are reported once, on frozen settings (D39, D56).
+
+```sh
+make eval-dataset                      # 256 masked items to Langfuse dataset servewell-256
+make fault-cards                       # once; cards are committed and never regenerated in a run
+make eval-mode                         # EVAL_MODE, replay clock, fault cards, actions supervised
+make eval-run SPLIT=tune NAME=tune-1   # agent phase through the API as mock users
+make eval-score RUN=tune-1             # KPIs (DeepEval code metrics + GEval judge) -> eval/reports/tune-1.md
+make safety-check RUN=tune-1           # independent checker: K10, K11, K12, A24 secrets
+make adversarial && make eval-suites   # attack cases with clean twins; OPA, resume, abstention suites
+make hand-forms RUN=tune-1             # fill eval/hand/calibration.csv (human column), then:
+make freeze                            # refuses below 80% judge agreement
+make eval-run SPLIT=heldout NAME=heldout-1 && make eval-score RUN=heldout-1 TUNE=tune-1
+make live-mode                         # back to live outcomes
+```
+
+- The store simulator answers from the fault card's observations only; code decides "fixed" by exact step and action ids (D40, D58).
+- The POC walks only `printer-offline` and `pos-screen-frozen`; K8 is scored on those tickets and the rest are reported as out of scope (D144).
+- The safety checker (`src/support_agent/eval/safety_checker/`) imports no agent code and uses its own fixture, `eval/safety_fixtures.yaml` (D42, D152).
+- Run one load at a time: the API container (2 GB) ran out of memory with eight tickets in flight.
 
 ## Layout
 
@@ -80,10 +106,12 @@ src/support_agent/
   intake/      schema, masking, moderation    (S4)
   mcp/         base (auth, OPA, audit, typed errors), it_data, knowledge, itsm (S5-S7, S9)
   agent/tools  MCP client: tokens, retry, mask + safety-net scan of every result (S5)
-  kb/          index pipeline, runbook steps  (S6, S9)
-  agent/       LangGraph graph and nodes      (S8-S11)
+  kb/          index pipeline: clean, mask, chunk, embed, publish (S6)
+  agent/       LangGraph graph, nodes, prompts, skills, bindings.yaml (approved walk steps) (S8-S11)
   api/, cli/   FastAPI service and CLI        (S12)
-  eval/        runner, metrics, safety checker (S14)
+  eval/        dataset, runner, simulator, metrics, judge, safety checker, adversarial, freeze (S14)
+ui/           Demo UI (S13)
+eval/         split, fault cards, rubrics, adversarial cases, safety fixtures, hand forms, reports, runs (masked run evidence)
 tests/unit · tests/integration · tests/e2e
 compose/      compose.yaml, postgres/, keycloak/, opa/, litellm/, prometheus/, grafana/
 db/sql/       NNN_<name>.sql, applied in order by make up, idempotent
@@ -103,6 +131,5 @@ Every request runs one fixed order: verify the JWT (Keycloak JWKS, issuer, `aud=
 
 - A background run is lost if the API restarts mid-run; the checkpointer keeps the state and the SLA timer hands the ticket off (a durable queue is parked).
 - The API process hosts intake and the agent, so its container holds their credentials too (D129).
-
 - POC on localhost only; no TLS between services.
 - Logs pass a last-line PII filter (phones, emails, `L1 Agent - <name>`, and exact names and phones registered per ticket); masking before logging is done at intake (S4).
