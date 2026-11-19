@@ -6,6 +6,10 @@ which Keycloak imports at first start. Rules this file enforces:
 - No password grant anywhere: every client has `directAccessGrantsEnabled`
   false, including the built-in `admin-cli` (D52; RFC 9700 section 2.4).
 - People use the public `ui` client with PKCE (S256).
+- People log in to the Demo UI (S13) as realm users with a password typed on
+  Keycloak's own login page (auth code + PKCE): one `store-sw-<id>` user per mock
+  store plus `l2-engineer` and `vendor-approver`. Each password is derived from
+  MOCK_CLIENT_SECRET_KEY like the mock client secrets (D63); `make ui-users` prints them.
 - Services and scripted mock users are confidential clients using client
   credentials. A mock user's service-account user carries that person's realm
   roles and `store_id`, so the API and OPA see a token shaped like the person's.
@@ -36,6 +40,16 @@ class ClientSpec:
     scopes: tuple[str, ...]
     roles: tuple[str, ...] = ()
     store_id: str | None = None
+
+
+# Obviously fake contact values for the mock store users (D70): the API takes a new
+# ticket's name and phone from these profile claims (S12), never from the body.
+MOCK_CONTACT_NAME = "Testa Mockwell"
+
+
+def mock_contact_phone(store_id: str) -> str:
+    digits = re.sub(r"\D", "", store_id)[-5:].rjust(5, "0")
+    return f"+91-90000-{digits}"
 
 
 def read_mock_stores(path: Path) -> list[str]:
@@ -75,6 +89,33 @@ def mock_store_client_id(store_id: str) -> str:
     return f"mock-store-{store_id.lower()}"
 
 
+UI_ORIGIN = "http://localhost:5173"
+
+
+@dataclass(frozen=True)
+class PersonSpec:
+    """A Demo UI login (S13): a realm user with a password, never a client."""
+
+    username: str
+    roles: tuple[str, ...]
+    store_id: str | None = None
+
+
+def ui_people(store_ids: list[str]) -> list[PersonSpec]:
+    people = [
+        PersonSpec("l2-engineer", ("l2_engineer",)),
+        PersonSpec("vendor-approver", ("vendor_approver",)),
+    ]
+    return people + [
+        PersonSpec(f"store-{s.lower()}", ("store_user",), store_id=s) for s in store_ids
+    ]
+
+
+def person_password(key: str, username: str) -> str:
+    """16 hex characters of HMAC(MOCK_CLIENT_SECRET_KEY, "person:<username>")."""
+    return mock_client_secret(key, f"person:{username}")[:16]
+
+
 def service_clients() -> list[ClientSpec]:
     return [
         ClientSpec("agent-reader", ("it-data:read", "kb:read")),
@@ -92,13 +133,15 @@ def mock_user_clients(store_ids: list[str]) -> list[ClientSpec]:
         # Holds both roles for the self-approval negative test (P3).
         ClientSpec(
             "mock-dual",
-            ("api", "store"),
+            ("api", "store", "contact"),
             roles=("store_user", "l2_engineer"),
             store_id=store_ids[0],
         ),
     ]
     stores = [
-        ClientSpec(mock_store_client_id(s), ("api", "store"), roles=("store_user",), store_id=s)
+        ClientSpec(
+            mock_store_client_id(s), ("api", "store", "contact"), roles=("store_user",), store_id=s
+        )
         for s in store_ids
     ]
     return people + stores
@@ -197,6 +240,27 @@ def client_scopes() -> list[Json]:
             ],
             in_scope_claim=False,
         ),
+        # S12: the store user's contact for a new ticket (mock values only, D70).
+        _scope(
+            "contact",
+            [
+                _mapper(
+                    name,
+                    "oidc-usermodel-attribute-mapper",
+                    {
+                        **token_claim,
+                        "user.attribute": attr,
+                        "claim.name": claim,
+                        "jsonType.label": "String",
+                    },
+                )
+                for name, attr, claim in (
+                    ("contact name", "contact_name", "name"),
+                    ("contact phone", "contact_phone", "phone_number"),
+                )
+            ],
+            in_scope_claim=False,
+        ),
         _scope("api", [_audience("api")]),
         _scope("it-data:read", [_audience("it-data")]),
         _scope("kb:read", [_audience("knowledge")]),
@@ -241,15 +305,14 @@ def _ui_client() -> Json:
         "implicitFlowEnabled": False,
         "directAccessGrantsEnabled": False,
         "serviceAccountsEnabled": False,
-        # S13 sets the real UI origin.
-        "redirectUris": ["http://localhost:8000/*"],
-        "webOrigins": ["http://localhost:8000"],
+        "redirectUris": [f"{UI_ORIGIN}/*"],
+        "webOrigins": [UI_ORIGIN],
         "attributes": {
             "pkce.code.challenge.method": "S256",
             "oauth2.device.authorization.grant.enabled": "false",
-            "post.logout.redirect.uris": "http://localhost:8000/*",
+            "post.logout.redirect.uris": f"{UI_ORIGIN}/*",
         },
-        "defaultClientScopes": [*_BASE_SCOPES, "api", "store"],
+        "defaultClientScopes": [*_BASE_SCOPES, "api", "store", "contact"],
         "optionalClientScopes": [],
     }
 
@@ -276,7 +339,30 @@ def _service_account_user(spec: ClientSpec) -> Json:
         "realmRoles": list(spec.roles),
     }
     if spec.store_id:
-        user["attributes"] = {"store_id": [spec.store_id]}
+        user["attributes"] = _store_attributes(spec.store_id)
+    return user
+
+
+def _store_attributes(store_id: str) -> Json:
+    return {
+        "store_id": [store_id],
+        "contact_name": [MOCK_CONTACT_NAME],
+        "contact_phone": [mock_contact_phone(store_id)],
+    }
+
+
+def _person_user(spec: PersonSpec, key: str) -> Json:
+    user: Json = {
+        "username": spec.username,
+        "enabled": True,
+        "realmRoles": list(spec.roles),
+        "credentials": [
+            {"type": "password", "value": person_password(key, spec.username),
+             "temporary": False}
+        ],  # fmt: skip
+    }
+    if spec.store_id:
+        user["attributes"] = _store_attributes(spec.store_id)
     return user
 
 
@@ -303,6 +389,20 @@ def _user_profile() -> Json:
                 "name": "store_id",
                 "displayName": "Store",
                 "validations": {"pattern": {"pattern": _STORE_ID.pattern}},
+                "permissions": admin_only,
+                "multivalued": False,
+            },
+            {
+                "name": "contact_name",
+                "displayName": "Contact name",
+                "validations": {"length": {"max": 200}},
+                "permissions": admin_only,
+                "multivalued": False,
+            },
+            {
+                "name": "contact_phone",
+                "displayName": "Contact phone",
+                "validations": {"length": {"max": 32}},
                 "permissions": admin_only,
                 "multivalued": False,
             },
@@ -348,7 +448,8 @@ def build_realm(
         "defaultDefaultClientScopes": _BASE_SCOPES,
         "defaultOptionalClientScopes": [],
         "clients": clients,
-        "users": [_service_account_user(c) for c in services + mocks],
+        "users": [_service_account_user(c) for c in services + mocks]
+        + [_person_user(p, mock_key) for p in ui_people(store_ids)],
         "components": _user_profile(),
     }
 

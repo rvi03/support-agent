@@ -20,6 +20,7 @@ from typing import Any
 import psycopg
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from psycopg.conninfo import make_conninfo
 
 from support_agent.agent.graph import Busy, build_graph, state_types
 from support_agent.agent.llm import ChatClient
@@ -69,6 +70,9 @@ class Agent:
     locker: AdvisoryLocker
     saver_cm: Any
     conns: list[Any]
+    # Load a ticket's vault values into the safety net's exact match (D43): an eval
+    # replay copies the contact inside the database, so no process saw it (D52).
+    reload_contact: Any = None
 
     async def aclose(self) -> None:
         self.deps.tracer.flush()
@@ -115,8 +119,10 @@ async def build_agent(s: AgentSettings, *, model_alias: str | None = None) -> Ag
     masker = Masker(reference)
     net = SafetyNet(reference, sync_audit, actor="agent-actor")
     issuer = s.keycloak_issuer
-    reader = TokenSource(issuer, "agent-reader", s.keycloak_secret_agent_reader.get_secret_value())
-    actor = TokenSource(issuer, "agent-actor", s.keycloak_secret_agent_actor.get_secret_value())
+    reader = TokenSource(issuer, "agent-reader", s.keycloak_secret_agent_reader.get_secret_value(),
+                         token_url=s.token_url)  # fmt: skip
+    actor = TokenSource(issuer, "agent-actor", s.keycloak_secret_agent_actor.get_secret_value(),
+                        token_url=s.token_url)  # fmt: skip
     key = s.litellm_master_key.get_secret_value()
     alias = model_alias or s.model_agent
     moderator = Moderator(
@@ -162,9 +168,15 @@ async def build_agent(s: AgentSettings, *, model_alias: str | None = None) -> Ag
             s.replay_reply_delay_min if s.clock_mode == ClockMode.REPLAY else 0.0
         ),
     )
+    # make_conninfo works on both a URL and the key=value form `dsn()` returns with DB_HOST.
     saver_cm = AsyncPostgresSaver.from_conn_string(
-        conninfo + ("&" if "?" in conninfo else "?") + "options=-csearch_path%3Dagent",
+        make_conninfo(conninfo, options="-csearch_path=agent"),
         serde=JsonPlusSerializer(allowed_msgpack_modules=state_types()),
     )
     saver = await saver_cm.__aenter__()
-    return Agent(build_graph(deps, saver), deps, AdvisoryLocker(conninfo), saver_cm, [sync, aconn])
+
+    def contact(ticket_id: str) -> bool:
+        return reload_contact(sync, ticket_id)
+
+    return Agent(build_graph(deps, saver), deps, AdvisoryLocker(conninfo), saver_cm, [sync, aconn],
+                 reload_contact=contact)  # fmt: skip

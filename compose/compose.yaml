@@ -372,6 +372,70 @@ services:
     deploy: {resources: {limits: {memory: 256m}}}
     restart: unless-stopped
 
+  api:
+    networks: ["core"]
+    # S12: the FastAPI service (6 endpoints, D30). It hosts intake, the agent graph and
+    # the SLA timer in one process, so it holds the intake and agent credentials beside
+    # its own (D129). /metrics is internal on 9000 (not on the gateway).
+    build:
+      context: ..
+      dockerfile: compose/app/Dockerfile
+      args:
+        SKIP_NLP: "0"  # intake masks with spaCy and Presidio (S4)
+    image: servewell-api:s12
+    command: ["python", "-m", "support_agent.api"]
+    environment:
+      DATABASE_URL_API: ${DATABASE_URL_API:?}
+      DATABASE_URL_INTAKE: ${DATABASE_URL_INTAKE:?}
+      DATABASE_URL_AGENT: ${DATABASE_URL_AGENT:?}
+      DB_HOST: postgres
+      S3_ENDPOINT_URL: http://seaweedfs:8333
+      S3_ACCESS_KEY_API: ${S3_ACCESS_KEY_API:?}
+      S3_SECRET_KEY_API: ${S3_SECRET_KEY_API:?}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER:?}
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/servewell/protocol/openid-connect/certs
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/servewell/protocol/openid-connect/token
+      KEYCLOAK_SECRET_AGENT_READER: ${KEYCLOAK_SECRET_AGENT_READER:?}
+      KEYCLOAK_SECRET_AGENT_ACTOR: ${KEYCLOAK_SECRET_AGENT_ACTOR:?}
+      OPA_URL: http://opa:8181
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?}
+      LANGFUSE_HOST: http://langfuse-web:3000
+      IT_DATA_URL: http://it-data:8101/mcp
+      KNOWLEDGE_URL: http://knowledge:8102/mcp
+      ITSM_URL: http://itsm-actions:8103/mcp
+      ACTION_AUTONOMY_RUNS: ${ACTION_AUTONOMY_RUNS:?}
+      APPROVAL_TTL_MIN: ${APPROVAL_TTL_MIN:-15}
+      CLOCK_MODE: ${CLOCK_MODE:-live}
+      EVAL_MODE: ${EVAL_MODE:-false}
+      REPLAY_REPLY_DELAY_MIN: ${REPLAY_REPLY_DELAY_MIN:-2}
+      TOKEN_BUDGET_PER_TICKET: ${TOKEN_BUDGET_PER_TICKET:-120000}
+      LOG_DIR: /logs
+      API_HOST: 0.0.0.0
+      API_PORT: "8000"
+      API_METRICS_PORT: "9000"
+    volumes:
+      - ../logs:/logs
+    depends_on:
+      postgres: {condition: service_healthy}
+      seaweedfs: {condition: service_healthy}
+      keycloak: {condition: service_healthy}
+      opa: {condition: service_healthy}
+      litellm: {condition: service_healthy}
+      it-data: {condition: service_healthy}
+      knowledge: {condition: service_healthy}
+      itsm-actions: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
+    deploy: {resources: {limits: {memory: 2g}}}
+    restart: unless-stopped
+
   prometheus:
     networks: ["core"]
     image: prom/prometheus:v3.16.0
@@ -427,6 +491,7 @@ services:
       - "127.0.0.1:8101:8101"
       - "127.0.0.1:8102:8102"
       - "127.0.0.1:8103:8103"
+      - "127.0.0.1:8000:8000"
       - "127.0.0.1:9090:9090"
       - "127.0.0.1:3001:3001"
     healthcheck:

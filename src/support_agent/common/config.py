@@ -44,6 +44,8 @@ class BaseServiceSettings(BaseSettings):
     keycloak_issuer: str
     # Where a container fetches the signing keys; the issuer stays the public URL (S5).
     keycloak_jwks_url: str | None = None
+    # Where a container asks for client-credentials tokens (S12); the issuer stays public.
+    keycloak_token_url: str | None = None
     opa_url: str
     litellm_base_url: str
     log_dir: str = "logs"
@@ -55,6 +57,10 @@ class BaseServiceSettings(BaseSettings):
     @property
     def jwks_url(self) -> str:
         return self.keycloak_jwks_url or self.keycloak_issuer + "/protocol/openid-connect/certs"
+
+    @property
+    def token_url(self) -> str:
+        return self.keycloak_token_url or self.keycloak_issuer + "/protocol/openid-connect/token"
 
 
 class IngestSettings(BaseServiceSettings):
@@ -148,10 +154,28 @@ class AgentSettings(BaseServiceSettings):
 
 
 class ApiSettings(BaseServiceSettings):
+    """The API's own settings (S12). The API process also hosts intake and the agent
+    graph, so it loads `IntakeSettings` and `AgentSettings` beside this class."""
+
     database_url_api: SecretStr
     s3_endpoint_url: str
     s3_access_key_api: SecretStr
     s3_secret_key_api: SecretStr
+    s3_bucket: str = "servewell"
+    api_host: str = "127.0.0.1"
+    api_port: int = Field(default=8000, ge=1, le=65535)
+    # Internal Prometheus exporter, not part of the API contract (D30).
+    api_metrics_port: int = Field(default=9000, ge=1, le=65535)
+    api_audience: str = "api"
+    # Request body cap in bytes (middleware) and rate limits per user and per store.
+    api_max_body_bytes: int = Field(default=64_000, ge=1_024)
+    api_rate_write_user: str = "20/minute"
+    api_rate_write_store: str = "60/minute"
+    api_rate_read_user: str = "240/minute"
+    # The eval runner replays a whole run (S14): its own, higher limit.
+    api_rate_replay: str = "2000/minute"
+    # Run the SLA timer in this process (S11 hand-on); tests may turn it off.
+    api_sla_timer: bool = True
 
 
 class EvalSettings(BaseServiceSettings):

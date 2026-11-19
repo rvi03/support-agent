@@ -38,6 +38,7 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | LiteLLM | `localhost:4000` | Aliases `agent`, `moderation`, `judge`, `simulator` (gpt-6-luna) and `embed` (text-embedding-3-small, 768 dims) → OpenAI API |
 | Langfuse (web, worker) + ClickHouse + Valkey | `localhost:3000` | LLM traces; project and keys created headless |
 | it-data MCP server | `localhost:8101/mcp` | 7 read-only IT data tools (Streamable HTTP; bearer token with `it-data:read`), `/health` |
+| API (FastAPI) | `localhost:8000` | 6 endpoints: tickets create, list, get, reply, approve, `/health`; OpenAPI in `docs/openapi.json` (S12) |
 | Prometheus, Grafana | `localhost:9090`, `localhost:3001` | Metrics (profile `observability`; `make up LEAN=1` skips them) |
 
 - All ports bind to 127.0.0.1. Each container gets only its own variables from `.env` (D46).
@@ -65,6 +66,9 @@ Coming with later sub-tasks: `make seed`, `make index`, `make ticket FILE=…`, 
 | `make nuke` | Stop everything and delete all volumes (asks first) |
 | `make status` | Container health, model digests, Keycloak and OPA ping |
 | `make mock-stores DATASET_DIR=…` | Regenerate the mock-store client list from the dataset |
+| `make ticket FILE=… [AS=mock-store-<id>]` | Post a ticket file through the API as a mock user, follow it (2 s polls), answer pauses from the file's `script`, `ANSWERS` or the terminal, print the outcome (S12) |
+| `make test-e2e` | API end-to-end tests (CP12.1, CP12.2) against the running API |
+| `make openapi` | Write the API schema to `docs/openapi.json` |
 
 ## Layout
 
@@ -91,7 +95,14 @@ Each service loads only its own settings: `python -m support_agent.common.config
 
 Every tool call runs one fixed order in `mcp/base`: verify the JWT (Keycloak JWKS, issuer, audience = server name, expiry) → the tool's scope → OPA (P10 → P7; 1 s timeout, fail closed) → validate the arguments (Pydantic) → the tool → validate the result → one `audit.events` row (client, tool, argument hash, ticket id from the request `_meta`, result, latency). A refused token (401/403) is audited too. Typed error replies: `denied`, `invalid`, `error`; domain outcomes (`not_found`, `unknown_system`, `fallback_general`) are normal results. The servers run on the MCP Python SDK 2.x (`MCPServer`); the agent uses the SDK's own client, because langchain-mcp-adapters still pins `mcp<2`.
 
+## API
+
+Every request runs one fixed order: verify the JWT (Keycloak JWKS, issuer, `aud=api`, expiry) → body size (64 kB, 413) and schema (422; `ticket_id`, `date_opened`, `store_id` and contact fields are never accepted) → rate limit per user and store (429) → OPA (P1 own store, P2 queues, P3 approve, P4 vendor and L2 tasks, P6 admin, all through P10) → the handler → an audit event. Every denial is audited. A ticket the caller may not read is a 404, like an unknown one. `POST /tickets` saves the raw JSON to `raw/tickets/incoming/` and answers 202; intake and the graph run in the background. Reply and approve name the open `pending_id`; the API takes the ticket lock and clears the pending item before its 202, so a busy ticket or a stale id is a 409. Only `eval-runner` replays dataset tickets (`source_ticket_id`, D52). Metrics are internal on port 9000.
+
 ## Limits
+
+- A background run is lost if the API restarts mid-run; the checkpointer keeps the state and the SLA timer hands the ticket off (a durable queue is parked).
+- The API process hosts intake and the agent, so its container holds their credentials too (D129).
 
 - POC on localhost only; no TLS between services.
 - Logs pass a last-line PII filter (phones, emails, `L1 Agent - <name>`, and exact names and phones registered per ticket); masking before logging is done at intake (S4).

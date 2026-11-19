@@ -86,7 +86,8 @@ async def open_node(state: TicketState, ctx: NodeCtx) -> dict[str, Any]:
     await ctx.itsm.call(
         "create_ticket", "open", "create", date_opened=t.date_opened.isoformat(),
         asset_id=t.asset_id, priority=t.priority, category=t.category,
-        clock_offset_s=state.clock_offset_s,
+        clock_offset_s=state.clock_offset_s, submitted_by_user=state.submitted_by_user,
+        source_ticket_id=state.source_ticket_id,
     )  # fmt: skip
     label = state.moderation_label
     if label in ("threat", "forbidden", "failed"):
@@ -301,6 +302,50 @@ async def run_ticket(app: Any, state: TicketState, *, locker: Locker | None = No
     return await _outcome(app, cfg, result)
 
 
+async def claim(
+    app: Any,
+    deps: Deps,
+    run_id: str,
+    ticket_id: str,
+    pending_id: str,
+    kind: str,
+    *,
+    idem_step: str | None = None,
+) -> None:
+    """The compare-and-clear of one pause (D53), without running the graph. The caller
+    holds the ticket lock. A stale `pending_id`, a wrong kind or a lost race is
+    `WrongState` and changes nothing. The API claims before its 202 (S12), so a stale
+    or losing call gets 409 at once; `continue_run` then runs in the background."""
+    cfg = thread(run_id, ticket_id)
+    snap = await app.aget_state(cfg)
+    if not snap.values or not snap.next:
+        raise WrongState("no paused run for this ticket")
+    state = TicketState.model_validate(snap.values)
+    from support_agent.agent.runtime import Itsm
+
+    itsm = Itsm(deps.itsm, uuid.UUID(run_id), ticket_id, state.ticket.store_id)
+    try:
+        await itsm.call(
+            "clear_pending", "resume",
+            idem_step or f"{pending_id}:{kind}:{uuid.uuid4().hex[:8]}",
+            pending_id=pending_id, kind=kind,
+        )  # fmt: skip
+    except ToolCallError as exc:
+        if exc.code in (ErrorCode.CONFLICT, ErrorCode.INVALID):
+            raise WrongState(exc.reason) from None
+        raise
+
+
+async def continue_run(
+    app: Any, run_id: str, ticket_id: str, kind: str, payload: dict[str, Any]
+) -> RunOutcome:
+    """Resume the graph after a won `claim` (the caller still holds the lock)."""
+    cfg = thread(run_id, ticket_id)
+    value = {"timeout": True} if kind == "timeout" else payload
+    result = await app.ainvoke(Command(resume=value), cfg)
+    return await _outcome(app, cfg, result)
+
+
 async def resume(
     app: Any,
     deps: Deps,
@@ -313,30 +358,12 @@ async def resume(
     locker: Locker | None = None,
     idem_step: str | None = None,
 ) -> RunOutcome:
-    """One contract for every pause (D53). The compare-and-clear decides the winner; a
-    stale call, a wrong kind or a lost race is `WrongState` and changes nothing.
-    `kind="timeout"` (the SLA timer) clears a pause of any kind and resumes with
-    `{"timeout": True}`; `idem_step` names its key (`sla_breach`)."""
-    cfg = thread(run_id, ticket_id)
+    """One contract for every pause (D53): lock, `claim`, `continue_run`. The
+    compare-and-clear decides the winner; a stale call, a wrong kind or a lost race is
+    `WrongState` and changes nothing. `kind="timeout"` (the SLA timer) clears a pause
+    of any kind and resumes with `{"timeout": True}`; `idem_step` names its key
+    (`sla_breach`)."""
     lock = locker.hold(run_id, ticket_id) if locker else _noop_lock("", "")
     async with lock:
-        snap = await app.aget_state(cfg)
-        if not snap.values or not snap.next:
-            raise WrongState("no paused run for this ticket")
-        state = TicketState.model_validate(snap.values)
-        from support_agent.agent.runtime import Itsm
-
-        itsm = Itsm(deps.itsm, uuid.UUID(run_id), ticket_id, state.ticket.store_id)
-        try:
-            await itsm.call(
-                "clear_pending", "resume",
-                idem_step or f"{pending_id}:{kind}:{uuid.uuid4().hex[:8]}",
-                pending_id=pending_id, kind=kind,
-            )  # fmt: skip
-        except ToolCallError as exc:
-            if exc.code in (ErrorCode.CONFLICT, ErrorCode.INVALID):
-                raise WrongState(exc.reason) from None
-            raise
-        value = {"timeout": True} if kind == "timeout" else payload
-        result = await app.ainvoke(Command(resume=value), cfg)
-    return await _outcome(app, cfg, result)
+        await claim(app, deps, run_id, ticket_id, pending_id, kind, idem_step=idem_step)
+        return await continue_run(app, run_id, ticket_id, kind, payload)

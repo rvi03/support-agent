@@ -68,6 +68,8 @@ class CreateTicketIn(_In):
     priority: Priority | None = None
     category: Short | None = None
     submitted_by_user: Short | None = None
+    # Eval replay only (D52): the dataset ticket this run replays, for scoring.
+    source_ticket_id: Id | None = None
     clock_offset_s: float = Field(default=0.0, description="Replay time minus wall time (D48).")
 
 

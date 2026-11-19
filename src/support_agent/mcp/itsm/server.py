@@ -230,13 +230,14 @@ def register(service: McpService, it: Itsm) -> None:  # noqa: C901 - one closure
             digest = args_hash({**body, "store_id": ctx.store_id})
             cur = await conn.execute(
                 "INSERT INTO itsm.tickets (run_id, ticket_id, store_id, asset_id, "
-                "submitted_by_user, date_opened, clock_offset, priority, category, "
-                "create_sha256, idem_key) VALUES (%s, %s, %s, %s, %s, %s, "
+                "submitted_by_user, source_ticket_id, date_opened, clock_offset, priority, "
+                "category, create_sha256, idem_key) VALUES (%s, %s, %s, %s, %s, %s, %s, "
                 "make_interval(secs => %s), %s, %s, %s, %s) "
                 "ON CONFLICT (run_id, ticket_id) DO NOTHING RETURNING ticket_id",
                 (
                     ctx.run_id, ctx.ticket_id, ctx.store_id, args.asset_id,
-                    args.submitted_by_user, args.date_opened, args.clock_offset_s,
+                    args.submitted_by_user, args.source_ticket_id, args.date_opened,
+                    args.clock_offset_s,
                     args.priority, args.category, digest, args.idem_key,
                 ),
             )  # fmt: skip

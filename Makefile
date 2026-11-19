@@ -13,7 +13,7 @@ endif
 
 .PHONY: help check check-all lint fmt typecheck test test-unit test-integration cov fresh-check hooks \
 	opa-test env up down nuke status mock-stores seed split index realm k4 abstention model-check walk-dry-run \
-	ticket-local tricky notes-check walk-live
+	ticket-local tricky notes-check walk-live ticket test-e2e openapi api-logs
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -99,6 +99,18 @@ model-check: ## CP8.4: K1, K5, output validity on 40 tune tickets; ALIAS=agent|a
 
 walk-dry-run: ## CP9.3: walk-runbook skill on 5 tune Group A tickets with a scripted store; writes eval/reports/walk_dry_run.md
 	$(UV) run python -m support_agent.eval.walk_dry_run
+
+ticket: ## S12: post a ticket file through the API as a mock user and follow it (FILE=..., AS=mock-store-<id>, ANSWERS=... for pauses)
+	$(UV) run python -m support_agent.cli.ticket $(FILE) $(if $(filter command line environment,$(origin AS)),$(AS))
+
+test-e2e: ## S12: API end-to-end tests (CP12.1, CP12.2) against the running API
+	$(UV) run pytest -m e2e
+
+openapi: ## S12: write the API's OpenAPI schema to docs/openapi.json
+	$(UV) run python -m support_agent.api.openapi docs/openapi.json
+
+api-logs: ## Follow the API container's log
+	$(COMPOSE) logs -f api
 
 ticket-local: ## S10: run one ticket file through intake and the graph in-process (FILE=..., ANSWERS=... for pauses)
 	$(UV) run python -m support_agent.cli.ticket_local $(FILE)

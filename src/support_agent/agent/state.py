@@ -302,6 +302,10 @@ class TicketState(_Model):
     ticket: MaskedTicket
     run_id: str = ""
     clock_offset_s: float = 0.0  # replay time minus wall time (D48)
+    # From the API (S12): the requester's user id (P3) and, for an eval replay, the
+    # dataset ticket it replays (D52). Ids only.
+    submitted_by_user: str | None = None
+    source_ticket_id: str | None = None
     facts: Facts | None = None
     triage: TriageResult | None = None
     policy: PolicyResult | None = None

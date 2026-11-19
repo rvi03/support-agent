@@ -269,6 +269,21 @@ ALLOWED: dict[str, set[str]] = {
     "knowledge": {"DATABASE_URL_KNOWLEDGE", "LITELLM_MASTER_KEY", "VALKEY_PASSWORD_KNOWLEDGE"},
     "itsm-actions": {"DATABASE_URL_ITSM"},
     "gateway": set(),  # D103: the port forwarder holds no credentials
+    # S12 (D129): the API process hosts intake and the agent graph, so it holds its own
+    # DB role and write-only S3 key plus the intake and agent roles, the two agent
+    # Keycloak clients, the router key (D66) and the Langfuse project keys.
+    "api": {
+        "DATABASE_URL_API",
+        "S3_ACCESS_KEY_API",
+        "S3_SECRET_KEY_API",
+        "DATABASE_URL_INTAKE",
+        "DATABASE_URL_AGENT",
+        "KEYCLOAK_SECRET_AGENT_READER",
+        "KEYCLOAK_SECRET_AGENT_ACTOR",
+        "LITELLM_MASTER_KEY",
+        "LANGFUSE_PUBLIC_KEY",
+        "LANGFUSE_SECRET_KEY",
+    },
 }
 _LANGFUSE = {
     "LANGFUSE_DB_PASSWORD",

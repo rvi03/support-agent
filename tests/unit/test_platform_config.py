@@ -99,10 +99,14 @@ def test_service_clients_get_only_their_scopes(built: dict[str, Any]) -> None:
 
 
 def test_mock_users_carry_roles_and_store(built: dict[str, Any]) -> None:
-    users = {u["serviceAccountClientId"]: u for u in built["users"]}
+    users = {u["serviceAccountClientId"]: u for u in built["users"] if "serviceAccountClientId" in u}
     store = users["mock-store-sw-0002"]
     assert store["realmRoles"] == ["store_user"]
-    assert store["attributes"] == {"store_id": ["SW-0002"]}
+    assert store["attributes"] == {
+        "store_id": ["SW-0002"],
+        "contact_name": ["Testa Mockwell"],
+        "contact_phone": ["+91-90000-00002"],
+    }
     assert set(users["mock-dual"]["realmRoles"]) == {"store_user", "l2_engineer"}
     assert users["mock-l2"]["realmRoles"] == ["l2_engineer"]
     assert users["agent-reader"]["realmRoles"] == []
@@ -112,6 +116,31 @@ def test_mock_users_carry_roles_and_store(built: dict[str, Any]) -> None:
         "mock-key", "mock-store-sw-0001"
     )
     assert clients["mock-store-sw-0001"]["secret"] != clients["mock-store-sw-0002"]["secret"]
+
+
+def test_ui_client_allows_only_the_ui_origin(built: dict[str, Any]) -> None:
+    ui = _clients(built)["ui"]
+    assert ui["redirectUris"] == ["http://localhost:5173/*"]
+    assert ui["webOrigins"] == ["http://localhost:5173"]
+    assert ui["standardFlowEnabled"] is True
+
+
+def test_ui_people_log_in_with_derived_passwords(built: dict[str, Any]) -> None:
+    people = {u["username"]: u for u in built["users"] if "serviceAccountClientId" not in u}
+    assert set(people) == {"l2-engineer", "vendor-approver", "store-sw-0001", "store-sw-0002"}
+    store = people["store-sw-0001"]
+    assert store["realmRoles"] == ["store_user"]
+    assert store["attributes"]["store_id"] == ["SW-0001"]
+    assert store["attributes"]["contact_name"] == ["Testa Mockwell"]
+    assert people["l2-engineer"]["realmRoles"] == ["l2_engineer"]
+    assert "attributes" not in people["l2-engineer"]
+    (cred,) = store["credentials"]
+    assert cred == {"type": "password", "value": realm.person_password("mock-key", "store-sw-0001"),
+                    "temporary": False}  # fmt: skip
+    assert len(cred["value"]) == 16
+    assert cred["value"] != realm.person_password("mock-key", "store-sw-0002")
+    # A person's password is never a mock client's secret.
+    assert cred["value"] not in mock_client_secret("mock-key", "mock-store-sw-0001")
 
 
 def test_scopes_add_their_audience(built: dict[str, Any]) -> None:

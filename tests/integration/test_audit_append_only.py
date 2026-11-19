@@ -156,5 +156,11 @@ def test_writer_roles_can_use_write_event_but_not_read_content(role: str) -> Non
     with _connect(_url(role)) as conn:
         event = AuditEvent(step="test", actor=role, action="s4 write_event", result="ok")
         assert write_event(conn, event) > 0
+        if role == "api_rw":
+            # S12 (D135): the ticket view reads the summary columns, never the payload.
+            conn.execute("SELECT step, action, result, reason FROM audit.events LIMIT 1")
+            with pytest.raises(errors.InsufficientPrivilege):
+                conn.execute("SELECT payload FROM audit.events LIMIT 1")
+            return
         with pytest.raises(errors.InsufficientPrivilege):
             conn.execute("SELECT result FROM audit.events LIMIT 1")

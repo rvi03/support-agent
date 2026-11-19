@@ -74,8 +74,9 @@ class TokenSource:
         *,
         http: httpx.AsyncClient | None = None,
         clock: Callable[[], float] = time.time,
+        token_url: str | None = None,
     ) -> None:
-        self.url = issuer.rstrip("/") + "/protocol/openid-connect/token"
+        self.url = token_url or issuer.rstrip("/") + "/protocol/openid-connect/token"
         self.client_id, self._secret = client_id, client_secret
         self._http = http or httpx.AsyncClient(timeout=5.0)
         self._clock = clock

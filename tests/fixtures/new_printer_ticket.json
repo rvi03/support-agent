@@ -1,0 +1,23 @@
+{
+ "about": "CP12.1: a fresh ticket, not in the dataset, with no system_version. The store's name and phone come from the mock user's token (mock values only).",
+ "as": "mock-store-sw-0003",
+ "ticket": {
+  "category": "Printers",
+  "priority": "P3",
+  "asset_id": "PRN-0003-P1",
+  "subject": "Front counter receipt printer offline",
+  "description": "Since opening today the receipt printer at the front counter shows Offline on the POS. Orders go into the queue but nothing prints. It is the USB printer next to the till."
+ },
+ "script": {
+  "store_reply_before_action": "Done. The power light is on, the USB cable is firmly connected at both ends, and the self-test page printed fine. The POS still shows the printer Offline.",
+  "store_reply_after_action": "Done. It prints again now, the test receipt came out.",
+  "answer": "It is the USB receipt printer at the front counter, PRN-0003-P1.",
+  "approval": "approve",
+  "l2_task": "done: L2 did the step; no change on the printer."
+ },
+ "expected": {
+  "route": "resolver",
+  "first_step_in": ["po-physical-check", "po-self-test", "po-restart-pos-app"],
+  "status": "resolved"
+ }
+}

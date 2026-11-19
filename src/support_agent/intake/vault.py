@@ -42,7 +42,7 @@ def split_contact(ticket: TicketIn) -> tuple[dict[str, Any], Contact]:
     return fields, Contact(full_name=ticket.submitted_by, phone=ticket.contact_phone)
 
 
-_INSERT = """
+VAULT_INSERT = """
     INSERT INTO pii.vault (ticket_id, full_name, phone, mask_map)
     VALUES (%s, %s, %s, %s)
     ON CONFLICT DO NOTHING
@@ -54,6 +54,6 @@ def write_vault(
 ) -> bool:
     """Add the vault row; return False if the ticket already had one."""
     cur = conn.execute(
-        _INSERT, (ticket_id, contact.full_name, contact.phone, Jsonb(dict(mask_map)))
+        VAULT_INSERT, (ticket_id, contact.full_name, contact.phone, Jsonb(dict(mask_map)))
     )
     return bool(cur.rowcount)
